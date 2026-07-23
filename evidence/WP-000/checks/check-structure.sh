@@ -77,7 +77,8 @@ echo
 echo "--- Elementos NO pactados en la raíz (deben ser cero) ---"
 for e in $(ls -A . 2>/dev/null); do
   case "$e" in
-    CLAUDE.md|CODEOWNERS|.gitignore|.claude|specs|work-packages|evidence|.github|docs|.git) ;;
+    CLAUDE.md|CODEOWNERS|.gitignore|.claude|specs|work-packages|evidence|tests|.github|docs|.git) ;;
+    FDA-diagnostico-y-plan-fase1.md) ;;   # plan vinculante de la Fase 1 (versionado por decisión humana)
     *) printf '  EXTRA %s\n' "$e"; EXTRA=$((EXTRA+1)) ;;
   esac
 done

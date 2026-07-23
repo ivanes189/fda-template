@@ -36,12 +36,21 @@ Contexto: Fase 0 del plan de implantación (§7 de `docs/02-guia-fabrica-desarro
 - CLAUDE.md
 - CODEOWNERS
 - .gitignore
+- FDA-diagnostico-y-plan-fase1.md
 - .claude/**
 - docs/**
 - specs/**
 - work-packages/**
 - evidence/**
+- tests/**
 - .github/**
+
+<!-- AMPLIACIÓN DE ALCANCE — 2026-07-23, Paso 0 de la Fase 1.
+     Añadidos `tests/**` y `FDA-diagnostico-y-plan-fase1.md` por decisión humana
+     explícita, para alojar la suite adversarial del guard (tarea 6 del Paso 0)
+     y versionar el plan vinculante de la Fase 1.
+     Ampliación consciente y con rastro, conforme a docs/manual/05-bloqueos-y-parada.md. -->
+
 
 ## Archivos prohibidos
 
