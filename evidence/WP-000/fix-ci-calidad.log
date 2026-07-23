@@ -1,0 +1,32 @@
+==============================================================
+ FDA — Corrección del job 'calidad' de ci.yml
+ Fecha: 2026-07-23 15:40:19
+==============================================================
+
+--- Paso 0: comprobaciones previas ---
+  OK  ci.yml presente y huellas registradas
+
+--- Paso 1: copia de seguridad ---
+  Guardada: evidence/WP-000/backups/20260723-154019/ci.yml
+
+--- Paso 2: reescribir el job 'calidad' ---
+  Job 'calidad' reescrito.
+
+--- Paso 3: validar ---
+  OK  ci.yml es YAML válido
+Workflows analizados: 3
+  - .github/workflows/ci.yml
+  - .github/workflows/claude.yml
+  - .github/workflows/code-review.yml
+
+
+RESULTADO: 0 errores, 0 avisos
+
+--- Paso 4: integridad ---
+  OK     guard.sh SIN modificar
+  OK     settings.json SIN modificar
+
+==============================================================
+ RESULTADO: TODO CORRECTO
+ Ejecuta ahora:  git add -A && git commit -m 'WP-000: corregir el job calidad de ci.yml' && git push
+==============================================================

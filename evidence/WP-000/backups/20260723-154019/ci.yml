@@ -96,12 +96,9 @@ jobs:
   # que su "stack" es su propio gobierno. Validación = actionlint (workflows) +
   # shellcheck (hooks y scripts) + suite del guard + link-check del manual.
   #
-  # La herramienta shellcheck viene preinstalada en los runners ubuntu-latest.
-  # OJO: no empieces un comentario por la palabra "shellcheck" — la trata como
-  # una directiva suya y falla con SC1072/SC1073.
-  #
-  # Severidad 'warning': bloquea ante problemas reales e ignora avisos de estilo.
-  # Endurecer a 'style' es un WP posterior, no una decisión del Paso 0.
+  # shellcheck corre a --severity=warning: bloquea ante problemas reales e
+  # ignora avisos de estilo. Endurecer a 'style' es un WP posterior, no algo
+  # que deba decidirse en el Paso 0.
   # ---------------------------------------------------------------------------
   calidad:
     name: Lint · Shell · Tests · Manual
@@ -117,25 +114,19 @@ jobs:
         run: pip install --quiet pyyaml
 
       - name: Instalar actionlint
-        run: |
-          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.7
-          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+        run: go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.7
 
       - name: actionlint (workflows)
-        run: actionlint -color
+        run: $(go env GOPATH)/bin/actionlint -color
 
       - name: shellcheck (hooks, tests y scripts)
         run: |
           set -euo pipefail
-          archivos=$( { find .claude/hooks tests scripts evidence/WP-000/checks \
-                          -name '*.sh' -type f 2>/dev/null || true; } | sort )
-          if [ -z "$archivos" ]; then
-            echo "::error::no se encontró ningún archivo .sh que analizar"
-            exit 1
-          fi
-          echo "Archivos analizados:"
+          archivos=$(find .claude/hooks tests scripts evidence/WP-000/checks \
+                       -name '*.sh' -type f 2>/dev/null | sort)
+          if [ -z "$archivos" ]; then echo "::error::no se encontró ningún .sh"; exit 1; fi
           echo "$archivos" | sed 's/^/  /'
-          # shellcheck disable=SC2086
+          # shellcheck está preinstalado en los runners ubuntu-latest
           shellcheck --severity=warning --shell=bash $archivos
 
       - name: Suite adversarial del guard
