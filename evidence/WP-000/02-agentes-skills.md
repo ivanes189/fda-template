@@ -44,21 +44,43 @@ Las tres en `.claude/skills/<nombre>/SKILL.md`, con `name` coincidente con su di
   OK     guard.sh ejecutable
 ```
 
-## ⚠️ Límite de esta evidencia
+## Confirmación de carga real en el CLI
 
-El criterio original pedía que «`claude` en el repo carga los 5 agentes y las 3 skills». **Esa comprobación no se ha ejecutado**: no es posible lanzar una sesión interactiva de `claude` desde dentro de esta sesión.
+Los checks anteriores validan los archivos (frontmatter y rutas). La carga efectiva por Claude Code se confirmó en una **sesión interactiva real** sobre el repositorio, el 2026-07-23.
 
-Lo verificado aquí es que los archivos están en las rutas que lee Claude Code y que su frontmatter es válido y parseable — condición necesaria, no suficiente.
+### Skills — CONFIRMADO ✅
 
-**Pendiente de confirmación humana**, en una sesión interactiva sobre el repositorio:
-
-```bash
-claude
-```
+`/skills` en Claude Code **v2.1.218** listó las tres, todas con ámbito `project` y estado `on`:
 
 ```
-/agents    → deben aparecer: planner, implementer, qa, security-reviewer, code-reviewer
-/skills    → deben aparecer: new-work-package, run-verification, prepare-pr
+Skills — 3 skills · project
+  ✔ on   new-work-package · project · ~60 tok
+  ✔ on   prepare-pr · project · ~40 tok
+  ✔ on   run-verification · project · ~60 tok
 ```
 
-Indicio favorable registrado en esta sesión: el hook declarado en `.claude/settings.json` **se activó y bloqueó operaciones reales** del agente (ver `03-bloqueo-hook.md`, parte A), lo que demuestra que Claude Code sí está leyendo la configuración de `.claude/` de este repositorio.
+Es confirmación de primer orden: no es que los archivos existan, es que el CLI los ha leído del proyecto y los ha activado.
+
+### Agentes — CONFIRMADO ✅
+
+⚠️ En Claude Code **v2.1.218 el asistente `/agents` fue retirado** y ya no lista los subagentes (devuelve un mensaje remitiendo a `.claude/agents/` y a los docs). El comando del criterio original ya no aplica en esta versión.
+
+Se confirmó por enumeración directa en sesión interactiva. Al preguntar «¿Qué subagentes tienes disponibles en este proyecto?», el CLI listó los 5 del proyecto junto a los integrados del sistema:
+
+```
+- code-reviewer        ← proyecto
+- implementer          ← proyecto
+- planner              ← proyecto
+- qa                   ← proyecto
+- security-reviewer    ← proyecto
+  (además: claude, claude-code-guide, Explore, general-purpose,
+           Plan, statusline-setup — integrados del sistema)
+```
+
+**Los 5 agentes definidos en `.claude/agents/` están cargados y disponibles para delegación.**
+
+### Indicios convergentes ya registrados
+
+- El hook de `.claude/settings.json` **se activó y bloqueó operaciones reales** del agente (ver `03-bloqueo-hook.md`, parte A): Claude Code lee la configuración de `.claude/` de este repositorio.
+- El CLI **leyó y evaluó `settings.json`** hasta el punto de avisar de las 4 reglas `Write(...)` inertes, que después se eliminaron.
+- Las 3 skills se cargan desde `.claude/skills/`, mismo mecanismo de descubrimiento de proyecto que `.claude/agents/`.

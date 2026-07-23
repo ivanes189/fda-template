@@ -1,6 +1,7 @@
-Fecha:  2026-07-23T12:51:29Z
-Commit: ff98ec1
+Fecha:  2026-07-23T13:17:11Z
+Commit: e1ac17b
 Host:   Darwin 24.6.0 x86_64 · Python 3.11.5
+Nota:   verificaciones 2 y 6 completadas con confirmación humana (CLI v2.1.218 y /cost)
 
 ############################################################
 === COMANDO: bash evidence/WP-000/checks/check-structure.sh
