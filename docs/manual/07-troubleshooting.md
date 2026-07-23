@@ -112,6 +112,46 @@ Modificar `.github/workflows/` para que un check no se ejecute; añadir `continu
 
 ---
 
+## Avisos «deny rule … is not matched by file permission checks»
+
+**Síntoma:** al arrancar `claude` aparecen líneas como:
+
+```
+Permission deny rule (.claude/settings.json): Write(./.github/workflows/**) is not
+matched by file permission checks — only Edit(path) rules are.
+Use Edit(./.github/workflows/**) instead (Edit rules cover all file-editing tools).
+```
+
+**Causa:** en las reglas de permiso sobre archivos, Claude Code evalúa **solo la forma `Edit(ruta)`**, y esa forma cubre **todas** las herramientas de edición: `Edit`, `Write`, `MultiEdit` y `NotebookEdit`. Una regla `Write(ruta)` es inerte.
+
+**Riesgo real:** creer que estás protegiendo una ruta con `Write(...)` cuando no hay un `Edit(...)` equivalente. En ese caso la ruta **no está protegida en absoluto** y el único aviso es esta línea al arrancar.
+
+**Arreglo:** deja solo la forma `Edit(...)`.
+
+```json
+"deny": [
+  "Edit(./.github/workflows/**)",
+  "Edit(./CODEOWNERS)",
+  "Edit(./.claude/hooks/**)",
+  "Edit(./.claude/settings.json)"
+]
+```
+
+Comprueba que ninguna ruta queda huérfana:
+
+```bash
+python3 -c "
+import json
+d=json.load(open('.claude/settings.json'))['permissions']['deny']
+w={r[6:-1] for r in d if r.startswith('Write(')}
+e={r[5:-1] for r in d if r.startswith('Edit(')}
+print('Reglas Write inertes:', w or 'ninguna')
+print('SIN equivalente Edit (RUTAS DESPROTEGIDAS):', w-e or 'ninguna')
+"
+```
+
+> Recuerda que esto solo afecta a las herramientas de edición. Las escrituras vía shell las gobierna `guard.sh`, no `permissions.deny`.
+
 ## Un agente no carga
 
 ```bash

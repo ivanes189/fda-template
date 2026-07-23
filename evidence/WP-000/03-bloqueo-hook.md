@@ -33,8 +33,10 @@ El agente intentó crear `.github/workflows/ci.yml` con la herramienta `Write`:
 File is in a directory that is denied by your permission settings.
 ```
 
-Bloqueado por `.claude/settings.json` → `permissions.deny` → `Write(./.github/workflows/**)`.
+Bloqueado por `.claude/settings.json` → `permissions.deny` → **`Edit(./.github/workflows/**)`**.
 Nótese que `.github/pull_request_template.md` **sí** se creó sin problema: el deny discrimina por ruta, no bloquea `.github/` entero.
+
+> **Corrección posterior.** Esta evidencia atribuyó inicialmente el bloqueo a una regla `Write(./.github/workflows/**)` que se había añadido para "endurecer" el deny. Es incorrecto: en Claude Code, las reglas de permiso sobre archivos se evalúan **solo** con `Edit(ruta)`, y esa forma cubre todas las herramientas de edición (`Edit`, `Write`, `MultiEdit`, `NotebookEdit`). Las entradas `Write(...)` son inertes y el CLI las señala al arrancar. La protección real la ejercía la regla `Edit(...)` que ya venía del §3 de la guía. Ver `docs/manual/07-troubleshooting.md`.
 
 ### A.3 — Modificación del propio hook
 
