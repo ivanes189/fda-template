@@ -9,7 +9,9 @@
 set -u
 
 REPO_ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-GUARD="$REPO_ROOT/.claude/hooks/guard.sh"
+# FDA_GUARD permite validar un guard candidato antes de instalarlo.
+# Uso: FDA_GUARD=/ruta/al/candidato.sh bash evidence/WP-000/checks/check-guard.sh
+GUARD="${FDA_GUARD:-$REPO_ROOT/.claude/hooks/guard.sh}"
 PASS=0
 FAIL=0
 
@@ -29,6 +31,15 @@ run() {
 }
 
 w() { printf '{"tool_name":"Write","tool_input":{"file_path":"%s"}}' "$1"; }
+
+# Comando de shell, con el JSON escapado correctamente.
+b() {
+  if command -v jq >/dev/null 2>&1; then
+    jq -nc --arg c "$1" '{tool_name:"Bash",tool_input:{command:$c}}'
+  else
+    python3 -c 'import json,sys; print(json.dumps({"tool_name":"Bash","tool_input":{"command":sys.argv[1]}}))' "$1"
+  fi
+}
 
 echo "=============================================================="
 echo " Verificación del hook guard.sh — WP activo: $(grep -v '^[[:space:]]*#' "$REPO_ROOT/work-packages/ACTIVE" | grep -v '^[[:space:]]*$' | head -1 | tr -d '[:space:]')"
@@ -95,6 +106,30 @@ printf 'WP-500\n' > "$FIX/d/work-packages/ACTIVE"
 printf '# WP-500 — sin rutas\n\n## Archivos permitidos\n\n## Archivos prohibidos\n- ninguno\n' \
   > "$FIX/d/work-packages/WP-500-vacio.md"
 run 2 "WP sin rutas permitidas"            "$(w 'docs/x.md')" "$FIX/d"
+
+echo
+echo "--- G. BASH: escrituras vía shell (el vector que saltaba el hook) ---"
+echo "    Requiere 'Bash' en el matcher de .claude/settings.json y el"
+echo "    analizador de comandos en guard.sh."
+run 2 "echo > src/y.py (redirección)"      "$(b 'echo "codigo" > src/y.py')"
+run 2 "echo >> package.json (append)"      "$(b 'echo x >> package.json')"
+run 2 "tee src/z.py"                       "$(b 'cat fichero | tee src/z.py')"
+run 2 "sed -i sobre src/"                  "$(b "sed -i '' 's/a/b/' src/z.py")"
+run 2 "cp hacia src/"                      "$(b 'cp plantilla.txt src/b.txt')"
+run 2 "mv hacia tests/"                    "$(b 'mv a.py tests/b.py')"
+run 2 "rm -rf src/"                        "$(b 'rm -rf src/')"
+run 2 "dd of=src/big.bin"                  "$(b 'dd if=/dev/zero of=src/big.bin')"
+run 2 "redirección con ruta entrecomillada" "$(b 'echo x > "src/con espacio.py"')"
+
+echo
+echo "--- H. BASH: lo que NO debe bloquearse (falsos positivos) ---"
+run 0 "echo > docs/ok.md (en alcance)"     "$(b 'echo "texto" > docs/ok.md')"
+run 0 "echo >> evidence/WP-000/log.txt"    "$(b 'echo x >> evidence/WP-000/log.txt')"
+run 0 "redirección a /dev/null"            "$(b 'ruidoso 2>/dev/null')"
+run 0 "escritura en /tmp"                  "$(b 'echo x > /tmp/scratch.txt')"
+run 0 "commit con > dentro de comillas"    "$(b 'git commit -m "arreglar a > b"')"
+run 0 "pytest (sin escrituras)"            "$(b 'pytest --cov --cov-report=term')"
+run 0 "grep con > en el patrón"            "$(b "grep -n '>' docs/manual/MANUAL.md")"
 
 echo
 echo "=============================================================="
