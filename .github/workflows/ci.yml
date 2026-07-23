@@ -1,0 +1,189 @@
+name: CI
+
+# CI bloqueante de la FDA. Rojo = no se fusiona, sin excepciones conversacionales.
+# Configúralo como status check obligatorio en el ruleset de main
+# (ver docs/manual/01-instalacion.md).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Gobierno: verifica que la propia FDA sigue intacta. No depende del stack
+  # del proyecto, así que se ejecuta igual en cualquier instalación.
+  # ---------------------------------------------------------------------------
+  gobierno:
+    name: Gobierno FDA
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar PyYAML
+        run: pip install --quiet pyyaml
+
+      - name: Archivos de gobierno presentes
+        run: |
+          set -euo pipefail
+          faltan=0
+          for f in CLAUDE.md CODEOWNERS .claude/settings.json .claude/hooks/guard.sh \
+                   work-packages/_TEMPLATE.md work-packages/ACTIVE \
+                   .github/pull_request_template.md; do
+            if [ ! -e "$f" ]; then echo "::error::falta $f"; faltan=1; fi
+          done
+          for d in .claude/agents .claude/skills specs/adr work-packages evidence docs/manual; do
+            if [ ! -d "$d" ]; then echo "::error::falta el directorio $d"; faltan=1; fi
+          done
+          exit $faltan
+
+      - name: El hook guard.sh es ejecutable
+        run: test -x .claude/hooks/guard.sh || { echo "::error::guard.sh no es ejecutable"; exit 1; }
+
+      - name: El WP activo existe (estado en archivos, no en sesión)
+        run: |
+          set -euo pipefail
+          wp=$(grep -v '^[[:space:]]*#' work-packages/ACTIVE | grep -v '^[[:space:]]*$' | head -1 | tr -d '[:space:]')
+          if [ -z "$wp" ]; then echo "::error::work-packages/ACTIVE vacío"; exit 1; fi
+          ls work-packages/"$wp"*.md >/dev/null 2>&1 || { echo "::error::ACTIVE apunta a $wp pero no existe su archivo"; exit 1; }
+          echo "WP activo: $wp"
+
+      - name: El guard bloquea fuera de alcance (suite completa)
+        run: bash evidence/WP-000/checks/check-guard.sh
+
+      - name: Workflows válidos
+        run: python3 .claude/skills/run-verification/validate-workflows.py .github/workflows
+
+      - name: Manual sin enlaces rotos
+        run: python3 evidence/WP-000/checks/check-manual.py
+
+      # Aplica la regla de CLAUDE.md: "Todo cambio de proceso, contrato o agente
+      # actualiza docs/manual/ en la misma PR. Manual desactualizado = PR incompleta."
+      - name: El manual acompaña a los cambios de proceso
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          cambiados=$(git diff --name-only "$BASE_SHA" HEAD)
+          proceso=$(printf '%s\n' "$cambiados" | grep -E '^(CLAUDE\.md|\.claude/|\.github/|work-packages/_TEMPLATE\.md)' || true)
+          manual=$(printf '%s\n' "$cambiados" | grep -E '^docs/manual/' || true)
+          if [ -n "$proceso" ] && [ -z "$manual" ]; then
+            echo "::error::Esta PR cambia proceso/contrato/agentes pero no toca docs/manual/."
+            printf '%s\n' "$proceso" | sed 's/^/  /'
+            exit 1
+          fi
+          echo "OK"
+
+  # ---------------------------------------------------------------------------
+  # Calidad: lint, tipos y pruebas del proyecto.
+  #
+  # ===================== {{COMANDOS_VALIDACION}} =============================
+  # PLACEHOLDER DE INSTALACIÓN. Sustituye este bloque por los comandos reales de
+  # tu stack. Tal como está, autodetecta el stack por sus archivos de
+  # configuración y no falla si no hay ninguno (útil en la plantilla vacía).
+  # En un proyecto real, FIJA los comandos y quita los condicionales: un job que
+  # se salta en silencio no es un control.
+  # Ver docs/manual/01-instalacion.md
+  # ===========================================================================
+  # ---------------------------------------------------------------------------
+  calidad:
+    name: Lint · Tipos · Pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # --- Stack Python: pytest / ruff / mypy ---
+      - uses: actions/setup-python@v5
+        if: hashFiles('pyproject.toml', 'requirements.txt') != ''
+        with:
+          python-version: '3.11'
+
+      - name: Dependencias (Python)
+        if: hashFiles('pyproject.toml', 'requirements.txt') != ''
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f pyproject.toml ]; then pip install -e ".[dev]" || pip install -e .; fi
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install ruff mypy pytest pytest-cov
+
+      - name: ruff
+        if: hashFiles('pyproject.toml', 'requirements.txt') != ''
+        run: ruff check .
+
+      - name: mypy
+        if: hashFiles('pyproject.toml', 'requirements.txt') != ''
+        run: mypy .
+
+      - name: pytest
+        if: hashFiles('pyproject.toml', 'requirements.txt') != ''
+        run: pytest --cov --cov-report=term-missing
+
+      # --- Stack Node: npm test / eslint / tsc ---
+      - uses: actions/setup-node@v4
+        if: hashFiles('package.json') != ''
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Dependencias (Node)
+        if: hashFiles('package.json') != ''
+        run: npm ci
+
+      - name: eslint
+        if: hashFiles('package.json') != ''
+        run: npx eslint .
+
+      - name: tsc
+        if: hashFiles('tsconfig.json') != ''
+        run: npx tsc --noEmit
+
+      - name: npm test
+        if: hashFiles('package.json') != ''
+        run: npm test
+
+  # ---------------------------------------------------------------------------
+  # Secretos. El control primario es el secret scanning + push protection nativo
+  # de GitHub, que se activa una vez por proyecto (ver el manual de instalación).
+  # Este job es la segunda capa, dentro del propio CI.
+  # ---------------------------------------------------------------------------
+  secretos:
+    name: Escaneo de secretos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Repos de organización requieren licencia de gitleaks. Si no la tienes,
+          # elimina este paso y apóyate en el secret scanning nativo de GitHub.
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+      - name: Ningún archivo de secretos versionado
+        run: |
+          set -euo pipefail
+          hallazgos=$(git ls-files | grep -E '(^|/)\.env($|\.)|\.pem$|(^|/)secrets/' || true)
+          if [ -n "$hallazgos" ]; then
+            echo "::error::hay archivos de secretos versionados:"
+            printf '%s\n' "$hallazgos" | sed 's/^/  /'
+            exit 1
+          fi
+          echo "OK"
