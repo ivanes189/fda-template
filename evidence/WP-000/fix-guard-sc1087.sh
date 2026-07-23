@@ -10,8 +10,11 @@
 # ¿ES UN BUG REAL? No. En bash el nombre de variable termina en '[', así que
 # `$_out[^/]*` expande $_out y deja `[^/]*` literal — que es justo lo que
 # queremos. Pero la forma es ambigua a la vista (parece indexado de array) y
-# shellcheck la marca como error. En un control de seguridad, código que
+# la herramienta la marca como error. En un control de seguridad, código que
 # *parece* otra cosa es un problema aunque funcione.
+#
+# (Nota: no empieces un comentario por la palabra 'shellcheck'; la trata como
+#  una directiva suya y falla con SC1072/SC1073.)
 #
 # ARREGLO: `${_out}[^/]*`. Comportamiento idéntico, intención explícita.
 #

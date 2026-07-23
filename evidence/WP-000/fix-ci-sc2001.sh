@@ -3,8 +3,8 @@
 # fix-ci-sc2001.sh — Arregla el último hallazgo de actionlint en ci.yml.
 #
 # SC2001 (style): `echo "$archivos" | sed 's/^/  /'`
-#   shellcheck sugiere ${var//buscar/reemplazar}. El patrón que dispara la regla
-#   es específicamente `echo "$var" | sed`; con `printf` no salta — por eso el
+#   La regla sugiere ${var//buscar/reemplazar}. El patrón que la dispara es
+#   específicamente `echo "$var" | sed`; con `printf` no salta — por eso el
 #   job 'secretos', que hace exactamente lo mismo con printf, nunca la disparó.
 #
 # Nota: actionlint falla ante CUALQUIER hallazgo de shellcheck, incluidos los de
