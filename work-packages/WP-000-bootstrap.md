@@ -1,10 +1,18 @@
 # WP-000 — Bootstrap de la plantilla fda-template (Fase 0)
 
-estado: in_progress
+estado: done
 prioridad: P0
 agente_responsable: implementer     agente_revisor: code-reviewer
 requisitos: []                      adr: [ADR-001]
 presupuesto_max_eur: 75             max_ciclos_correccion: 2
+
+<!-- CIERRE — 2026-07-23, por decisión humana. Verificación de Fase 0 completa
+     (estructura 22/22, 5 agentes, 3 skills, guard 42/42, 3 workflows, manual sin
+     enlaces rotos y placeholders controlados) y Paso 0 de la Fase 1 ejecutado
+     (DEC-001, ADR-001 accepted, REQ semilla, WP-001..WP-005 en draft). Actos de
+     cierre: reparación del encabezado de CODEOWNERS y aplicación de las
+     correcciones D1–D8 de la validación DoR de WP-001 (aprobadas por Ivan).
+     Coste registrado en evidence/WP-000/cost.md. -->
 
 ## Objetivo y contexto
 
@@ -101,24 +109,24 @@ python3 evidence/WP-000/checks/check-manual.py
 
 **Criterios de aceptación:**
 
-- [ ] La estructura resultante contiene todos los archivos y directorios del §2, sin elementos no pactados.
-- [ ] Los 5 agentes y las 3 skills tienen frontmatter válido y están en las rutas que lee Claude Code.
-- [ ] `guard.sh` deniega (exit 2) una escritura fuera de las rutas permitidas y permite (exit 0) una escritura dentro.
-- [ ] `guard.sh` deniega también si falta `ACTIVE`, si está vacío o si el WP no declara rutas permitidas (fail-closed demostrado).
-- [ ] Los 3 workflows parsean como YAML válido y declaran `name`, `on` y `jobs` con `runs-on` y `steps`.
-- [ ] Todos los enlaces internos del manual resuelven a archivos existentes.
-- [ ] Los 3 placeholders (`{{COMANDOS_VALIDACION}}`, `{{PROPIEDAD_COMPONENTES}}`, `{{PRESUPUESTOS_Y_MODELOS}}`) aparecen en `docs/manual/01-instalacion.md`.
-- [ ] `evidence/WP-000/cost.md` existe y registra el coste de la sesión.
+- [x] La estructura resultante contiene todos los archivos y directorios del §2, sin elementos no pactados.
+- [x] Los 5 agentes y las 3 skills tienen frontmatter válido y están en las rutas que lee Claude Code.
+- [x] `guard.sh` deniega (exit 2) una escritura fuera de las rutas permitidas y permite (exit 0) una escritura dentro.
+- [x] `guard.sh` deniega también si falta `ACTIVE`, si está vacío o si el WP no declara rutas permitidas (fail-closed demostrado).
+- [x] Los 3 workflows parsean como YAML válido y declaran `name`, `on` y `jobs` con `runs-on` y `steps`.
+- [x] Todos los enlaces internos del manual resuelven a archivos existentes.
+- [x] Los 3 placeholders (`{{COMANDOS_VALIDACION}}`, `{{PROPIEDAD_COMPONENTES}}`, `{{PRESUPUESTOS_Y_MODELOS}}`) aparecen en `docs/manual/01-instalacion.md`.
+- [x] `evidence/WP-000/cost.md` existe y registra el coste de la sesión.
 
 ## Evidencias exigidas (qué debe aparecer en evidence/WP-000/)
 
-- [ ] `01-estructura.md` — listado comentado contra el §2.
-- [ ] `02-agentes-skills.md` — resultado de la carga de agentes y skills.
-- [ ] `03-bloqueo-hook.md` — salida literal del hook denegando, incluidos los casos fail-closed.
-- [ ] `04-workflows.md` — validación de los 3 workflows.
-- [ ] `05-manual.md` — enlaces y placeholders.
-- [ ] `cost.md` — coste de la sesión.
-- [ ] `checks/` — los scripts ejecutables que producen lo anterior (reproducibles en headless).
+- [x] `01-estructura.md` — listado comentado contra el §2.
+- [x] `02-agentes-skills.md` — resultado de la carga de agentes y skills.
+- [x] `03-bloqueo-hook.md` — salida literal del hook denegando, incluidos los casos fail-closed.
+- [x] `04-workflows.md` — validación de los 3 workflows.
+- [x] `05-manual.md` — enlaces y placeholders.
+- [x] `cost.md` — coste de la sesión.
+- [x] `checks/` — los scripts ejecutables que producen lo anterior (reproducibles en headless).
 
 ## Condiciones de parada específicas
 
