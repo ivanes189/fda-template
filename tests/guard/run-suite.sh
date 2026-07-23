@@ -31,7 +31,7 @@ _exec() {
 }
 
 run() {
-  _exp="$1"; _desc="$2"; _json="$3"; _dir="${4:-$REPO_ROOT}"
+  _exp="$1"; _desc="$2"; _json="$3"; _dir="${4:-$BOOT}"
   _out="$(_exec "$_dir" "$_json")"; _code=$?
   if [ "$_code" = "$_exp" ]; then
     PASS=$((PASS+1)); printf '  OK    exit=%s  %s\n' "$_code" "$_desc"
@@ -42,7 +42,7 @@ run() {
 }
 
 xfail() {
-  _want="$1"; _desc="$2"; _json="$3"; _ref="$4"; _dir="${5:-$REPO_ROOT}"
+  _want="$1"; _desc="$2"; _json="$3"; _ref="$4"; _dir="${5:-$BOOT}"
   _out="$(_exec "$_dir" "$_json")"; _code=$?
   if [ "$_code" = "$_want" ]; then
     XPASS=$((XPASS+1))
@@ -63,6 +63,42 @@ b() {
     python3 -c 'import json,sys; print(json.dumps({"tool_name":"Bash","tool_input":{"command":sys.argv[1]}}))' "$1"
   fi
 }
+
+# --- Fixture con alcance de BOOTSTRAP (el de WP-000) -------------------------
+# Es el fixture POR DEFECTO de los grupos A–H.
+#
+# Antes estos grupos se ejecutaban contra el repositorio real, y por tanto
+# contra el WP que estuviera activo en ese momento. Eso los hacía depender del
+# estado ambiental: en cuanto ACTIVE pasó de WP-000 a otro WP, 8 casos se
+# pusieron rojos sin que el guard hubiera cambiado nada.
+#
+# Una batería de pruebas que se rompe según qué encargo esté en curso enseña a
+# la gente a ignorarla, que es la peor avería posible en un control. Con este
+# fixture los casos son deterministas y no dependen de work-packages/ACTIVE.
+BOOT="$FIX/bootstrap"
+mkdir -p "$BOOT/work-packages"
+printf 'WP-000\n' > "$BOOT/work-packages/ACTIVE"
+cat > "$BOOT/work-packages/WP-000-bootstrap.md" <<'WPEOF'
+# WP-000 — Bootstrap (fixture: réplica del alcance real)
+
+## Archivos permitidos
+- CLAUDE.md
+- CODEOWNERS
+- .gitignore
+- FDA-diagnostico-y-plan-fase1.md
+- .claude/**
+- docs/**
+- specs/**
+- work-packages/**
+- evidence/**
+- tests/**
+- .github/**
+
+## Archivos prohibidos
+- .env*
+- **/secrets/**
+- **/*.pem
+WPEOF
 
 # --- Fixture con alcance REALISTA de WP de calibración -----------------------
 # Necesario para los vectores de autoprotección: el alcance de bootstrap de
@@ -97,7 +133,7 @@ run 0 ".claude/agents/planner.md"          "$(w '.claude/agents/planner.md')"
 run 0 "docs/manual/MANUAL.md"              "$(w 'docs/manual/MANUAL.md')"
 run 0 "specs/adr/ADR-001-runtime.md"       "$(w 'specs/adr/ADR-001-runtime.md')"
 run 0 ".github/workflows/ci.yml"           "$(w '.github/workflows/ci.yml')"
-run 0 "ruta absoluta interna"              "$(w "$REPO_ROOT/docs/manual/07-troubleshooting.md")"
+run 0 "ruta absoluta interna"              "$(w "$BOOT/docs/manual/07-troubleshooting.md")"
 
 echo
 echo "--- B. REGRESIÓN: rutas permitidas que aún no existen en disco ---"
@@ -242,6 +278,25 @@ xfail 2 "git push -f (control en settings.json, no en guard)" \
       "$(b 'git push -f origin main')" "capa de permisos, no guard.sh"
 xfail 2 "git push --force (idem)" \
       "$(b 'git push --force origin main')" "capa de permisos, no guard.sh"
+
+echo
+echo "--- K. REPOSO: ACTIVE vacío (estado normal entre dos WPs) ---"
+echo "    Debe seguir siendo fail-closed para escrituras REALES, sin bloquear"
+echo "    comandos de diagnóstico cuyos únicos destinos son exentos."
+REPOSO="$FIX/reposo"
+mkdir -p "$REPOSO/work-packages"
+printf '# fabrica en reposo: sin WP activo\n' > "$REPOSO/work-packages/ACTIVE"
+
+run 2 "Write a docs/ (fail-closed intacto)"   "$(w 'docs/manual/x.md')"        "$REPOSO"
+run 2 "Write a cualquier ruta"                "$(w 'README.md')"              "$REPOSO"
+run 2 "Bash: echo > src/y.py"                 "$(b 'echo x > src/y.py')"      "$REPOSO"
+run 2 "Bash: cp hacia el repo"                "$(b 'cp a.txt docs/b.txt')"    "$REPOSO"
+run 0 "Bash: 2>/dev/null (solo diagnóstico)"  "$(b 'ruidoso 2>/dev/null')"    "$REPOSO"
+run 0 "Bash: >/dev/null y stderr"             "$(b 'algo >/dev/null 2>&1')"   "$REPOSO"
+run 0 "Bash: escritura en /tmp"               "$(b 'echo x > /tmp/scratch')"  "$REPOSO"
+run 0 "Bash: sin destinos (pytest)"           "$(b 'pytest --cov')"           "$REPOSO"
+run 0 "Bash: mezcla exento + sin destino"     "$(b 'git status 2>/dev/null')" "$REPOSO"
+run 2 "Bash: mezcla exento + destino real"    "$(b 'cp x /tmp/a 2>/dev/null && cp x src/b')" "$REPOSO"
 
 echo
 echo "=============================================================="

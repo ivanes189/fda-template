@@ -170,20 +170,39 @@ PY
   echo
 
   echo "--- Paso 4: validaciones ---"
-  python3 -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))" \
-    && echo "  OK  ci.yml es YAML válido"
+  # Cada validación se comprueba con if/else explícito y ABORTA si falla.
+  #
+  # La forma `comando && echo OK` es una trampa: en bash, un fallo dentro de una
+  # lista `&&` NO dispara `set -e`, así que el script continuaría y lo único
+  # visible sería la ausencia de una línea "OK" entre muchas. Este script dejó
+  # pasar así una regresión de 8 casos en la suite del guard. Corregido.
+  validar() {
+    _desc="$1"; shift
+    if "$@" >/dev/null 2>&1; then
+      printf '  OK  %s\n' "$_desc"
+    else
+      printf '  FALLO: %s\n' "$_desc"
+      printf '  Salida:\n'
+      "$@" 2>&1 | tail -20 | sed 's/^/    /'
+      return 1
+    fi
+  }
+
+  validar "ci.yml es YAML válido" \
+          python3 -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))" || return 1
   if command -v actionlint >/dev/null 2>&1; then
-    actionlint && echo "  OK  actionlint sin hallazgos"
+    validar "actionlint sin hallazgos" actionlint || return 1
   fi
   if command -v shellcheck >/dev/null 2>&1; then
     archivos=$( { find .claude/hooks tests scripts evidence/WP-000/checks \
                     -name '*.sh' -type f 2>/dev/null || true; } | sort )
     # shellcheck disable=SC2086
-    shellcheck --severity=warning --shell=bash $archivos && echo "  OK  shellcheck sin hallazgos"
+    validar "shellcheck sin hallazgos" \
+            shellcheck --severity=warning --shell=bash $archivos || return 1
   fi
-  bash tests/governance/check-active.sh >/dev/null && echo "  OK  check-active.sh sobre este repo"
-  bash tests/governance/test-check-active.sh >/dev/null && echo "  OK  pruebas del validador"
-  bash tests/guard/run-suite.sh >/dev/null && echo "  OK  suite del guard sin regresión"
+  validar "check-active.sh sobre este repo"  bash tests/governance/check-active.sh || return 1
+  validar "pruebas del validador"            bash tests/governance/test-check-active.sh || return 1
+  validar "suite del guard sin regresión"    bash tests/guard/run-suite.sh || return 1
   echo
 
   echo "--- Paso 5: integridad (nada más ha cambiado) ---"
