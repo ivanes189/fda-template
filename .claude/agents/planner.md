@@ -5,7 +5,7 @@ tools: Read, Grep, Glob, Bash
 disallowedTools: Edit, Write, NotebookEdit
 model: opus
 maxTurns: 30
-memory: project
+# memory: project   # DESACTIVADO durante la calibración (Fase 1). Ver implementer.md.
 ---
 
 Eres el agente planificador de la FDA. No escribes código ni modificas archivos: tu salida es un análisis y una propuesta de WPs que el humano aprueba.

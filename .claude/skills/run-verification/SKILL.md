@@ -1,21 +1,40 @@
 ---
 name: run-verification
-description: Ejecuta la batería de validación del WP activo y compila las evidencias en evidence/WP-XXX/. Usar antes de abrir la PR y tras cada ciclo de corrección.
+description: Ejecuta la batería de validación de un WP y compila las evidencias en evidence/WP-XXX/. Acepta el WP-ID como argumento. Usar antes de abrir la PR y tras cada ciclo de corrección.
 ---
 
 # Ejecutar la verificación de un WP
 
 Ejecuta los comandos declarados en el WP, captura la evidencia y emite un veredicto. No arregla código: si algo falla, reporta.
 
+**Uso:** `run-verification [WP-ID]` — por ejemplo `run-verification WP-014`.
+
 ## Procedimiento
 
-### 1. Identificar el WP activo
+### 1. Resolver el WP-ID
+
+El WP-ID se toma, en este orden de precedencia:
+
+1. **El argumento explícito**, si se ha pasado.
+2. `work-packages/ACTIVE`, como respaldo.
 
 ```bash
-WP=$(grep -v '^[[:space:]]*#' work-packages/ACTIVE | grep -v '^[[:space:]]*$' | head -1 | tr -d '[:space:]')
-echo "WP activo: $WP"
+# WP-ID explícito si se pasa; ACTIVE como respaldo.
+WP="${1:-}"
+if [ -z "$WP" ]; then
+  WP=$(grep -v '^[[:space:]]*#' work-packages/ACTIVE 2>/dev/null | grep -v '^[[:space:]]*$' | head -1 | tr -d '[:space:]')
+  echo "WP-ID tomado de ACTIVE: $WP"
+else
+  echo "WP-ID explícito: $WP"
+fi
+[ -z "$WP" ] && { echo "ERROR: sin WP-ID. Pásalo como argumento o escríbelo en work-packages/ACTIVE." >&2; exit 1; }
+ls work-packages/"$WP"*.md >/dev/null 2>&1 || { echo "ERROR: no existe work-packages/$WP*.md" >&2; exit 1; }
 mkdir -p "evidence/$WP"
 ```
+
+> **Por qué el argumento explícito manda** (ADR-001, invariante I4): un runner del Agent SDK procesa una cola y necesita verificar `WP-014` sin que `ACTIVE` apunte a él. Si la skill solo leyera `ACTIVE`, habría que mutar estado global antes de cada invocación — una carrera garantizada en cuanto haya concurrencia.
+>
+> ⚠️ Si pasas un WP-ID distinto del que hay en `ACTIVE`, la verificación se ejecuta sobre el que pasaste, pero **el hook `guard.sh` sigue gobernando las escrituras según `ACTIVE`**. Es correcto para verificar (solo lee y escribe evidencias), pero no confundas ambas cosas.
 
 ### 2. Extraer los comandos de validación
 

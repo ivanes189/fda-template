@@ -1,21 +1,32 @@
 ---
 name: new-work-package
-description: Genera un work package nuevo desde la plantilla y valida su contrato contra la Definition of Ready. Usar al empezar cualquier encargo, antes de tocar código.
+description: Genera un work package nuevo desde la plantilla y valida su contrato contra la Definition of Ready. Acepta el WP-ID como argumento. Usar al empezar cualquier encargo, antes de tocar código.
 ---
 
 # Crear un work package
 
 Convierte un encargo en una hoja de encargo que cumple la Definition of Ready, o lo rechaza diciendo qué falta. No implementa nada.
 
+**Uso:** `new-work-package [WP-ID]` — por ejemplo `new-work-package WP-014`. Sin argumento, se asigna el siguiente número libre.
+
 ## Procedimiento
 
 ### 1. Asignar identificador
 
+Si se pasa un WP-ID explícito, se usa ese (ADR-001, invariante I4). Si no, el siguiente libre:
+
 ```bash
-ls work-packages/ | grep -oE 'WP-[0-9]{3}' | sort -u | tail -1
+WP="${1:-}"
+if [ -z "$WP" ]; then
+  ULTIMO=$(ls work-packages/ 2>/dev/null | grep -oE 'WP-[0-9]{3}' | sort -u | tail -1)
+  N=$(( ${ULTIMO#WP-} + 1 ))
+  WP=$(printf 'WP-%03d' "$N")
+fi
+echo "WP-ID: $WP"
+ls work-packages/"$WP"*.md >/dev/null 2>&1 && { echo "ERROR: $WP ya existe." >&2; exit 1; }
 ```
 
-El nuevo WP es el siguiente número libre. Archivo: `work-packages/WP-XXX-descripcion-corta.md` (kebab-case, sin acentos).
+Archivo: `work-packages/$WP-descripcion-corta.md` (kebab-case, sin acentos).
 
 ### 2. Copiar la plantilla
 

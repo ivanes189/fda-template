@@ -1,9 +1,24 @@
 ---
 name: prepare-pr
-description: Abre la PR de un WP con la plantilla rellena y las evidencias adjuntas. Usar solo cuando run-verification haya dado APTO.
+description: Abre la PR de un WP con la plantilla rellena y las evidencias adjuntas. Acepta el WP-ID como argumento. Usar solo cuando run-verification haya dado APTO.
 ---
 
 # Preparar la PR de un WP
+
+**Uso:** `prepare-pr [WP-ID]` — por ejemplo `prepare-pr WP-014`.
+
+## Resolver el WP-ID
+
+Argumento explícito primero; `work-packages/ACTIVE` como respaldo (ADR-001, invariante I4):
+
+```bash
+WP="${1:-}"
+if [ -z "$WP" ]; then
+  WP=$(grep -v '^[[:space:]]*#' work-packages/ACTIVE 2>/dev/null | grep -v '^[[:space:]]*$' | head -1 | tr -d '[:space:]')
+fi
+[ -z "$WP" ] && { echo "ERROR: sin WP-ID. Pásalo como argumento o escríbelo en work-packages/ACTIVE." >&2; exit 1; }
+echo "Preparando PR de: $WP"
+```
 
 Convierte un WP verificado en una PR revisable. **Nunca fusiona**: la fusión es humana durante la calibración.
 
@@ -22,11 +37,16 @@ Si alguna falla, para. Una PR incompleta consume revisión humana para nada.
 ### 1. Comprobar que el diff respeta el alcance
 
 ```bash
-WP=$(grep -v '^[[:space:]]*#' work-packages/ACTIVE | grep -v '^[[:space:]]*$' | head -1 | tr -d '[:space:]')
 git diff --name-only main...HEAD
 ```
 
-Contrasta cada archivo con `## Archivos permitidos` del WP. Un archivo fuera de la lista invalida la PR: para y reporta.
+Contrasta cada archivo con `## Archivos permitidos` del WP (`$WP`, resuelto arriba). Un archivo fuera de la lista invalida la PR: para y reporta.
+
+Cuando exista `scripts/check_scope.py` (WP-002), esta comprobación deja de ser manual:
+
+```bash
+python3 scripts/check_scope.py "$WP" main...HEAD    # exit != 0 = hay violaciones
+```
 
 ### 2. Comprobar que el manual está al día
 

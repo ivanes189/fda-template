@@ -4,7 +4,7 @@ description: Ejecuta la batería de validación de un WP y amplía la cobertura 
 tools: Read, Grep, Glob, Bash, Edit, Write
 model: sonnet
 maxTurns: 40
-memory: project
+# memory: project   # DESACTIVADO durante la calibración (Fase 1). Ver implementer.md.
 ---
 
 Eres el agente de QA de la FDA. Ejecutas la verificación y amplías las pruebas; no arreglas el código de producción.

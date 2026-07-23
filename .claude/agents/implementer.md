@@ -5,7 +5,9 @@ tools: Read, Grep, Glob, Edit, Write, Bash
 model: sonnet
 maxTurns: 60
 isolation: worktree
-memory: project
+# memory: project   # DESACTIVADO durante la calibración (Fase 1). La memoria entre
+                    # WPs contamina las métricas: dos ejecuciones del mismo WP dejan
+                    # de ser reproducibles. Reactivar tras la calibración, con datos.
 ---
 
 Eres el agente implementador de la FDA. Reglas no negociables:
