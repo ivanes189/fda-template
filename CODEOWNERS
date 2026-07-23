@@ -1,0 +1,30 @@
+# CODEOWNERS — propiedad por componente (revisión obligatoria)
+#
+# PLACEHOLDER DE INSTALACIÓN: {{PROPIEDAD_COMPONENTES}}
+# Sustituye cada {{PROPIEDAD_COMPONENTES}} por el usuario u equipo de GitHub
+# responsable (formato @usuario o @organizacion/equipo).
+# Instrucciones completas: docs/manual/01-instalacion.md
+#
+# Este archivo solo surte efecto si en GitHub activas branch protection sobre
+# main con "Require review from Code Owners". Ver el checklist del manual.
+#
+# Regla de la FDA: ningún agente puede modificar este archivo. El deny de
+# .claude/settings.json y el hook guard.sh lo bloquean.
+
+# Propietario por defecto de todo el repositorio
+*                           {{PROPIEDAD_COMPONENTES}}
+
+# --- Gobierno: cambios aquí alteran el contrato de la fábrica ---
+/CLAUDE.md                  {{PROPIEDAD_COMPONENTES}}
+/CODEOWNERS                 {{PROPIEDAD_COMPONENTES}}
+/.claude/                   {{PROPIEDAD_COMPONENTES}}
+/.github/                   {{PROPIEDAD_COMPONENTES}}
+/specs/adr/                 {{PROPIEDAD_COMPONENTES}}
+/specs/decisions/           {{PROPIEDAD_COMPONENTES}}
+/work-packages/_TEMPLATE.md {{PROPIEDAD_COMPONENTES}}
+
+# --- Componentes del proyecto ---
+# Añade aquí una línea por componente cuando instales la plantilla. Ejemplos:
+# /src/auth/                {{PROPIEDAD_COMPONENTES}}
+# /src/payments/            {{PROPIEDAD_COMPONENTES}}
+# /migrations/              {{PROPIEDAD_COMPONENTES}}
