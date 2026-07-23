@@ -1,7 +1,7 @@
 # ADR-001 — Runtime de agentes de la FDA
 
-**Estado:** aceptado · **Fecha:** 2026-07-23 · **Ámbito:** transversal a todos los proyectos que instalen `fda-template`
-**Umbrales de activación del harness SDK:** ⚠️ **PENDIENTE DE APROBACIÓN HUMANA** (ver §Criterios)
+**Estado:** accepted · **Fecha:** 2026-07-23 · **Ámbito:** transversal a todos los proyectos que instalen `fda-template`
+**Criterios de activación del harness SDK:** aprobados (D2 del plan de Fase 1, §2.2). Revisión: al cerrar la Fase 2.
 
 ## Contexto
 
@@ -35,6 +35,14 @@ Sin interacción humana, sin TTY, con código de salida significativo. Un comand
 
 Ni agentes, ni skills, ni hooks. `guard.sh` recibe JSON por stdin y responde con un código de salida; no pregunta nada. Las skills documentan comandos, no clics.
 
+### I4 — El WP-ID se pasa como argumento explícito
+
+Skills y scripts aceptan el WP-ID como **parámetro**, no solo leyendo `work-packages/ACTIVE` de forma implícita. `ACTIVE` sigue siendo el estado operativo y el respaldo por defecto, pero nunca la única vía.
+
+*Por qué es un invariante y no un detalle:* un runner del SDK procesa una cola de WPs y necesita invocar la verificación de `WP-014` mientras `ACTIVE` apunta a otro, o sin que `ACTIVE` exista. Si las skills solo leen `ACTIVE`, el harness obliga a mutar estado global antes de cada invocación — una carrera garantizada en cuanto haya concurrencia, y un rediseño de contratos el día de la migración.
+
+*Consecuencia práctica:* incorporado en el Paso 0 de la Fase 1. Con esto, el runner futuro invoca las skills tal cual y no hay que rehacer contratos, agentes, hooks, evidencias ni workflows.
+
 ## Consecuencias
 
 **A favor:** arranque inmediato sin construir infraestructura; la integración con GitHub Actions ya existe (`claude-code-action@v1`); el gobierno es portable tal cual; si el SDK no llega a hacer falta, no se ha perdido nada.
@@ -43,25 +51,62 @@ Ni agentes, ni skills, ni hooks. `guard.sh` recibe JSON por stdin y responde con
 
 **Riesgo asumido y su mitigación:** que los invariantes I1–I3 se erosionen sin que nadie lo note, y que la migración al SDK acabe siendo un rediseño. Mitigación: el job `gobierno` de `ci.yml` verifica el estado en archivos en cada PR, y `guard.sh` es headless por construcción.
 
+## Qué resolvería realmente un harness propio
+
+Y **solo** esto:
+
+- Ejecución desatendida **en lote** (una cola de WPs sin humano delante).
+- **Orquestación entre ejecuciones**: prioridades, dependencias entre WPs, paralelismo con límites globales.
+- **Políticas programáticas en vivo**: presupuesto agregado, kill-switch, reintentos idempotentes.
+- Coordinación **multi-proyecto**.
+
+## Qué ya da Claude Code sin construir nada
+
+Verificado en documentación oficial: el agent loop completo; subagentes con permisos, modelo, turnos y aislamiento por worktree; hooks; ejecución headless scriptable (`claude -p`, invocable desde cron o CI); ejecución remota por evento (`claude-code-action@v1` — un `@claude implementa WP-014` en un issue **ya es ejecución desatendida**); y coste por sesión más telemetría OTel.
+
+**Conclusión que gobierna esta decisión:** el «desatendido» básico **ya existe**. El harness solo aporta valor cuando se necesita *orquestación entre ejecuciones*, no ejecución.
+
 ## Criterios de activación del harness SDK
 
-⚠️ **Umbrales propuestos, PENDIENTES DE APROBACIÓN.** Son la primera propuesta sobre datos que todavía no existen: la Fase 1 es calibración y no se sacan conclusiones con n=1. Revisar al terminar la Fase 2 con métricas reales.
+Aprobados en el plan de Fase 1 (§2.2). Sustituyen a los umbrales provisionales anteriores, que tenían un defecto de diseño: **el volumen por sí solo** puede disparar el harness con un proceso aún inmaduro —se automatizarían los errores— y **la calidad por sí sola** no justifica construir infraestructura.
 
-Se activa el harness cuando se cumpla **al menos uno** de los tres disparadores, y **siempre** la condición de estabilidad:
+Se exige **M1 y M2 y M3 simultáneamente**, más el veto:
 
-| # | Disparador | Umbral propuesto | Ventana | Fuente del dato |
-|---|---|---|---|---|
-| D1 | Volumen sostenido | **≥ 8 WPs aceptados/semana** | 3 semanas consecutivas | PRs fusionadas con evidencias |
-| D2 | Calidad estable | **≥ 80 % de WPs aceptados a la primera** | 2 semanas consecutivas | PRs sin ciclo de corrección / total |
-| D3 | Necesidad real de ejecución desatendida | **≥ 3 WPs/semana** que deban ejecutarse sin humano delante | 2 semanas | Registro de WPs pospuestos por falta de operador |
+### M1 — Madurez
 
-**Condición de estabilidad (obligatoria en todos los casos):**
+- **≥ 15 WPs completados**
+- **≥ 75 %** de aceptación a la primera
+- **≤ 1** ciclo medio de corrección
 
-- Ciclos de corrección medios **≤ 1,2** por WP aceptado.
-- Coste por WP aceptado con variación **< 20 %** respecto a la media de las 4 semanas previas.
-- **Cero** incidentes de gobierno abiertos (fusión con CI rojo, edición fuera de alcance no detectada, secreto expuesto).
+Todo ello en las **últimas 4 semanas**.
 
-**Anti-disparadores** — motivos que NO justifican activar el harness: curiosidad técnica; que el SDK sea nuevo; querer paralelizar antes de que un solo WP secuencial funcione de forma fiable; sustituir supervisión humana que todavía está encontrando fallos reales.
+### M2 — Dolor
+
+Al menos **una** de estas señales, **documentada con evidencia** (tiempos medidos o intento fallido registrado):
+
+- Lanzar y supervisar ejecuciones manualmente consume **> 2–3 h/semana** en pura operación.
+- Hay WPs independientes esperando por falta de paralelismo gestionado, y **el cuello de botella es lanzarlos**, no la revisión humana.
+- Se necesita una política que Actions no expresa: presupuesto agregado en vivo entre ejecuciones concurrentes, o dependencias entre WPs de repositorios distintos.
+- Hay **≥ 2 proyectos FDA activos** simultáneos y la coordinación manual empieza a producir errores.
+- Se intentó resolver una necesidad concreta con `claude -p` + Actions y **está documentado por qué no llegó**.
+
+### M3 — Economía
+
+Coste estimado de **construir + mantener** el harness **≤ ahorro operativo esperado en 3 meses**.
+
+### Veto
+
+**Nunca antes de completar la Fase 2** (primer proyecto real), se cumplan o no M1–M3.
+
+## Componentes mínimos cuando toque (y nada más)
+
+Un **runner**: script TS/Python sobre el Agent SDK con `settingSources: ['project']`, que hereda tal cual `CLAUDE.md`, agentes, settings y hooks. Toma un WP en `ready` de una cola simple (una carpeta o issues etiquetados), lo ejecuta con los límites del WP, escribe evidencias y abre PR.
+
+Más un **scheduler trivial** (cron) y **límites globales** (presupuesto diario, concurrencia máxima).
+
+## Qué NO construir todavía, en ningún caso
+
+Panel o UI · base de datos propia · colas distribuidas (Redis y similares) · multi-tenant · meta-agente que redacta WPs por su cuenta · orquestación entre repositorios.
 
 ## Notas de implementación para el harness futuro
 
