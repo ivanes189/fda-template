@@ -104,7 +104,7 @@ echo
 
 echo "--- Paso 5: comprobar que el contenido NO ha cambiado ---"
 ORIG="$(git rev-parse refs/original/refs/heads/main)"
-if [ "$(git rev-parse HEAD^{tree})" = "$(git rev-parse "$ORIG^{tree}")" ]; then
+if [ "$(git rev-parse 'HEAD^{tree}')" = "$(git rev-parse "${ORIG}"'^{tree}')" ]; then
   echo "  OK  el árbol de archivos es idéntico: solo cambió la metadata"
 else
   echo "  ERROR: el contenido ha cambiado. NO empujes."
