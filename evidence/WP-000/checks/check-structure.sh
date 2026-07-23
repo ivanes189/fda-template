@@ -75,7 +75,11 @@ LISTA
 
 echo
 echo "--- Elementos NO pactados en la raíz (deben ser cero) ---"
-for e in $(ls -A . 2>/dev/null); do
+# Se itera con globs y no con $(ls -A): recorrer la salida de ls se rompe con
+# nombres que contienen espacios o saltos de línea (SC2045).
+# '.[!.]*' y '..?*' cubren los ocultos sin arrastrar '.' ni '..'.
+for e in .[!.]* ..?* *; do
+  [ -e "$e" ] || continue          # glob sin coincidencias: queda literal
   case "$e" in
     CLAUDE.md|CODEOWNERS|.gitignore|.claude|specs|work-packages|evidence|tests|.github|docs|.git) ;;
     FDA-diagnostico-y-plan-fase1.md) ;;   # plan vinculante de la Fase 1 (versionado por decisión humana)

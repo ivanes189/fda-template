@@ -134,7 +134,7 @@ jobs:
             exit 1
           fi
           echo "Archivos analizados:"
-          printf '%s\n' "$archivos" | sed 's/^/  /'
+          echo "$archivos" | sed 's/^/  /'
           # shellcheck disable=SC2086
           shellcheck --severity=warning --shell=bash $archivos
 
