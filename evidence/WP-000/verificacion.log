@@ -1,0 +1,180 @@
+Fecha:  2026-07-23T11:55:20Z
+Commit: 1c2133a
+Host:   Darwin 24.6.0 x86_64 · bash 3.2.57 · Python 3.11.5
+
+############################################################
+=== COMANDO: bash evidence/WP-000/checks/check-structure.sh
+############################################################
+==============================================================
+ Estructura contra el §2 de docs/02-guia-fabrica-desarrollo-agentica.md
+==============================================================
+
+--- Archivos y directorios exigidos por el §2 ---
+  OK    CLAUDE.md                                      Constitución
+  OK    CODEOWNERS                                     Propiedad por componente
+  OK    .claude/settings.json                          Permisos y hooks
+  OK    .claude/agents/planner.md                      Valida DoR, no toca código
+  OK    .claude/agents/implementer.md                  Implementa 1 WP
+  OK    .claude/agents/qa.md                           Ejecuta y amplía pruebas
+  OK    .claude/agents/security-reviewer.md            Revisión de seguridad
+  OK    .claude/agents/code-reviewer.md                Revisión de la PR
+  OK    .claude/hooks/guard.sh                         PreToolUse: rutas protegidas
+  OK    .claude/skills/new-work-package/               Skill: genera WP
+  OK    .claude/skills/run-verification/               Skill: batería + evidencias
+  OK    .claude/skills/prepare-pr/                     Skill: abre PR
+  OK    specs/decisions/                               DEC-xxx.md
+  OK    specs/adr/                                     ADR-xxx.md
+  OK    specs/requirements/                            REQ por categoría
+  OK    work-packages/_TEMPLATE.md                     Contrato de hoja de encargo
+  OK    work-packages/WP-000-bootstrap.md              WP de bootstrap
+  OK    evidence/                                      Evidencias por WP
+  OK    .github/pull_request_template.md               Checklist de evidencias
+  OK    .github/workflows/ci.yml                       CI bloqueante
+  FALTA .github/workflows/claude.yml                   @claude en issues/PRs
+  FALTA .github/workflows/code-review.yml              Revisión automática
+
+--- Añadidos por el prompt de arranque (Fase 0) ---
+  OK    work-packages/ACTIVE                           Estado operativo en archivo (SDK-ready)
+  OK    docs/02-guia-fabrica-desarrollo-agentica.md    Guía fundacional versionada
+  OK    docs/manual/MANUAL.md                          Manual: índice
+  OK    docs/manual/01-instalacion.md                  Manual: instalación
+  OK    docs/manual/02-ciclo-de-un-wp.md               Manual: ciclo
+  OK    docs/manual/03-redactar-un-wp.md               Manual: redactar WP
+  OK    docs/manual/04-agentes.md                      Manual: agentes
+  OK    docs/manual/05-bloqueos-y-parada.md            Manual: bloqueos
+  OK    docs/manual/06-costes-y-metricas.md            Manual: costes
+  OK    docs/manual/07-troubleshooting.md              Manual: troubleshooting
+  OK    specs/adr/ADR-001-runtime.md                   ADR de runtime (SDK-ready)
+
+--- Elementos NO pactados en la raíz (deben ser cero) ---
+  (ninguno)
+
+==============================================================
+ RESULTADO: 2 ausentes, 0 no pactados
+==============================================================
+=== EXIT: 1
+
+############################################################
+=== COMANDO: python3 evidence/WP-000/checks/check-agents-skills.py
+############################################################
+==============================================================
+ Agentes y skills — frontmatter y rutas
+==============================================================
+
+--- Agentes (.claude/agents/) ---
+  OK     planner            model=opus     maxTurns=30    solo lectura
+  OK     implementer        model=sonnet   maxTurns=60    escribe
+  OK     qa                 model=sonnet   maxTurns=40    escribe
+  OK     security-reviewer  model=opus     maxTurns=30    solo lectura
+  OK     code-reviewer      model=opus     maxTurns=30    solo lectura
+
+--- Skills (.claude/skills/<nombre>/SKILL.md) ---
+  OK     new-work-package   Genera un work package nuevo desde la planti...
+  OK     run-verification   Ejecuta la batería de validación del WP acti...
+  OK     prepare-pr         Abre la PR de un WP con la plantilla rellena...
+
+--- Hook ---
+  OK     guard.sh ejecutable
+
+==============================================================
+ RESULTADO: 0 fallos, 0 avisos
+==============================================================
+=== EXIT: 0
+
+############################################################
+=== COMANDO: bash evidence/WP-000/checks/check-guard.sh
+############################################################
+==============================================================
+ Verificación del hook guard.sh — WP activo: WP-000
+ Convención: exit 0 = permite · exit 2 = BLOQUEA
+==============================================================
+
+--- A. Rutas DENTRO del alcance de WP-000 (deben permitirse) ---
+  OK    exit=0  CLAUDE.md
+  OK    exit=0  CODEOWNERS
+  OK    exit=0  .claude/agents/planner.md
+  OK    exit=0  docs/manual/MANUAL.md
+  OK    exit=0  specs/adr/ADR-001-runtime.md
+  OK    exit=0  .github/workflows/ci.yml
+  OK    exit=0  ruta absoluta interna
+
+--- B. REGRESIÓN: rutas permitidas que AÚN NO EXISTEN en disco ---
+    (un for con variable sin comillas expandiría los globs contra el
+     disco y bloquearía estas rutas pese a estar dentro de alcance)
+  OK    exit=0  docs/inexistente/futuro.md
+  OK    exit=0  evidence/WP-777/nuevo/log.txt
+  OK    exit=0  specs/requirements/REQ-NUEVO.md
+
+--- C. Rutas FUERA del alcance por omisión (deben bloquearse) ---
+  OK    exit=2  src/pagos/cobros.py
+  OK    exit=2  package.json
+  OK    exit=2  tests/test_x.py
+  OK    exit=2  CLAUDE.md.bak (no es prefijo)
+  OK    exit=2  docsX/otro.md (no es docs/)
+
+--- D. Rutas PROHIBIDAS explícitamente (prohibido gana a permitido) ---
+  OK    exit=2  .env.production
+  OK    exit=2  docs/secrets/clave.txt
+  OK    exit=2  specs/cert.pem
+
+--- E. Evasión (deben bloquearse) ---
+  OK    exit=2  traversal ../fuera.txt
+  OK    exit=2  traversal docs/../../fuera.txt
+  OK    exit=2  absoluta fuera del repo
+  OK    exit=2  NotebookEdit fuera de alcance
+
+--- F. FAIL-CLOSED: ante cualquier duda, denegar ---
+  OK    exit=2  sin archivo ACTIVE
+  OK    exit=2  ACTIVE vacío
+  OK    exit=2  ACTIVE apunta a WP inexistente
+  OK    exit=2  WP sin rutas permitidas
+
+==============================================================
+ RESULTADO: 26 correctas, 0 fallidas
+==============================================================
+=== EXIT: 0
+
+############################################################
+=== COMANDO: python3 .claude/skills/run-verification/validate-workflows.py .github/workflows
+############################################################
+Workflows analizados: 1
+  - .github/workflows/ci.yml
+
+
+RESULTADO: 0 errores, 0 avisos
+=== EXIT: 0
+
+############################################################
+=== COMANDO: python3 evidence/WP-000/checks/check-manual.py
+############################################################
+==============================================================
+ Manual — enlaces internos y placeholders de instalación
+==============================================================
+
+--- Enlaces internos (9 archivos) ---
+  OK    docs/manual/01-instalacion.md                
+  OK    docs/manual/02-ciclo-de-un-wp.md             
+  OK    docs/manual/03-redactar-un-wp.md             
+  OK    docs/manual/04-agentes.md                    
+  OK    docs/manual/05-bloqueos-y-parada.md          
+  OK    docs/manual/06-costes-y-metricas.md          
+  OK    docs/manual/07-troubleshooting.md            
+  OK    docs/manual/MANUAL.md                        
+  OK    CLAUDE.md                                    
+
+  Enlaces internos comprobados: 30
+
+--- Placeholders en docs/manual/01-instalacion.md ---
+  OK    {{COMANDOS_VALIDACION}}
+  OK    {{PROPIEDAD_COMPONENTES}}
+  OK    {{PRESUPUESTOS_Y_MODELOS}}
+
+--- Placeholders en los archivos parametrizados ---
+  OK    CODEOWNERS                         {{PROPIEDAD_COMPONENTES}}
+  OK    .github/workflows/ci.yml           {{COMANDOS_VALIDACION}}
+
+==============================================================
+ RESULTADO: 0 fallos
+==============================================================
+=== EXIT: 0
+
