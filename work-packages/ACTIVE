@@ -1,0 +1,6 @@
+# WP activo. La primera línea no vacía y no comentada es el WP-ID en curso.
+# Lo lee .claude/hooks/guard.sh para decidir qué rutas se pueden escribir.
+# Estado operativo en archivo, nunca en la sesión (ver specs/adr/ADR-001-runtime.md).
+#
+# Vaciar este archivo BLOQUEA toda escritura (fail-closed). Es intencionado.
+WP-000
