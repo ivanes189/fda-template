@@ -82,3 +82,19 @@ Cerrar la PR sin fusionar. O restaurar los dos archivos parcheados desde `eviden
 ---
 
 ⚠️ **La fusión es humana.** Fase 1 no iniciada: WP-001 a WP-005 siguen en `draft`.
+
+---
+
+## Hallazgo colateral (no corregido aquí): falta la GitHub App de Claude
+
+El check `code-reviewer` falla en esta PR y en la #2, con la API key ya configurada:
+
+```
+401 Unauthorized - Claude Code is not installed on this repository.
+```
+
+`claude-code-action@v1` necesita **dos** requisitos: el secreto `ANTHROPIC_API_KEY` (presente) y la **GitHub App instalada** (ausente). El manual documenta el primero y no el segundo.
+
+No se corrige en este WP: instalar la App es una acción humana, y actualizar el manual quedaría fuera del objetivo de WP-006. Análisis y opciones en `evidence/WP-006/03-hallazgo-github-app.md`.
+
+**No bloquea:** `code-reviewer` no es check obligatorio. Los tres que sí lo son están en verde.
