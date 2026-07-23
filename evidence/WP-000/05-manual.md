@@ -33,6 +33,8 @@
 --- Placeholders en los archivos parametrizados ---
   OK    CODEOWNERS                         {{PROPIEDAD_COMPONENTES}}
   OK    .github/workflows/ci.yml           {{COMANDOS_VALIDACION}}
+  OK    .github/workflows/claude.yml       {{PRESUPUESTOS_Y_MODELOS}}
+  OK    .github/workflows/code-review.yml  {{PRESUPUESTOS_Y_MODELOS}}
 ```
 
 ### Dónde vive cada placeholder y por qué
@@ -49,7 +51,7 @@ Los tres aparecen **literalmente** en `docs/manual/01-instalacion.md`, con una t
 grep -rn "{{COMANDOS_VALIDACION}}\|{{PROPIEDAD_COMPONENTES}}\|{{PRESUPUESTOS_Y_MODELOS}}" . --exclude-dir=.git
 ```
 
-> **Nota:** el marcador `{{PRESUPUESTOS_Y_MODELOS}}` vive en `claude.yml` y `code-review.yml`, que están ausentes (ver `04-workflows.md`). Al crearlos, ese marcador entra en el repositorio. `check-manual.py` no lo exige todavía en la lista de archivos parametrizados, precisamente por eso.
+Los cuatro archivos parametrizados se comprueban ahora de forma automática. `check-manual.py` exige el marcador `{{PRESUPUESTOS_Y_MODELOS}}` en `claude.yml` y `code-review.yml` desde que ambos existen: si alguien los reescribe sin él, la verificación 5 falla y el job `Gobierno FDA` bloquea la PR.
 
 ## Contenido del manual
 

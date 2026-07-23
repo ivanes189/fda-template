@@ -47,17 +47,36 @@ python3 -c "import json;print(json.load(open('.claude/settings.json'))['hooks'])
 
 Causas: falta `chmod +x`; `settings.json` con JSON inválido (se ignora entero, en silencio); o la sesión se abrió antes de crear el hook — **reinicia `claude`**, los hooks se cargan al arrancar.
 
-### Límite conocido: `Bash` se salta el hook
+### Escrituras vía `Bash`: cubiertas, pero no herméticas
 
-El matcher es `Edit|Write|MultiEdit|NotebookEdit`. **`Bash` no está.** Un agente con `Bash` puede hacer:
+El matcher de `.claude/settings.json` **incluye `Bash`**, y `guard.sh` analiza el comando en busca de vectores de escritura:
 
 ```bash
-echo "codigo" > src/fuera_de_alcance.py     # guard.sh no lo ve
+echo "codigo" > src/fuera_de_alcance.py     # BLOQUEADO
 ```
 
-Lo mismo vale para los `deny` de `settings.json`: cubren las herramientas de edición, no el shell.
+**Qué detecta:** redirecciones `>` y `>>` (también con la ruta entrecomillada), `tee`, `sed -i`, `perl -i`, `dd of=`, `cp`, `mv`, `rm`, `rmdir`, `truncate`, `touch`, `install`, `shred`, `ln`.
 
-**Red de seguridad real:** el job `Gobierno FDA` de CI, la revisión del diff completo y branch protection. Nada llega a `main` sin pasar por ahí. Si quieres cerrar el caso trivial, añade un matcher `Bash` a `settings.json` que inspeccione redirecciones (`>`, `>>`, `tee`, `sed -i`, `cp`, `mv`, `rm`) — es *best-effort*: el shell es demasiado expresivo para garantizarlo.
+**Qué NO detecta** — el shell es demasiado expresivo para garantizarlo:
+
+```bash
+python3 -c "open('src/x.py','w').write('...')"   # pasa
+eval "$(printf 'echo x > src/y.py')"              # pasa
+base64 -d fichero.b64 > src/z.py                  # se detecta la redirección, no el contenido
+```
+
+**Falsos positivos evitados:** el contenido entrecomillado se neutraliza antes de buscar, así que `git commit -m "arreglar a > b"` no dispara. Y `/dev/null`, `/dev/std*`, `/tmp` y `$TMPDIR` están exentos.
+
+Si un comando legítimo te bloquea, comprueba qué rutas está extrayendo:
+
+```bash
+echo '{"tool_name":"Bash","tool_input":{"command":"TU COMANDO AQUI"}}' \
+  | FDA_GUARD_DEBUG=1 .claude/hooks/guard.sh; echo "exit=$?"
+```
+
+⚠️ **La línea más sensible de la configuración** es el matcher. Si alguien lo deja en `Edit|Write|MultiEdit|NotebookEdit`, el hueco se reabre entero y en silencio. La suite `check-guard.sh` lo detecta: 9 de sus 42 casos fallan si falta `Bash`.
+
+**Red de seguridad de todo lo anterior:** el job `Gobierno FDA` de CI, la revisión del diff completo y branch protection. Nada llega a `main` sin pasar por ahí.
 
 ---
 

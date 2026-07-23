@@ -101,9 +101,11 @@ Conviene saber qué **no** cubren, para no confiar de más:
 
 | Límite | Alcance real | Red de seguridad |
 |---|---|---|
-| `guard.sh` solo intercepta `Edit\|Write\|MultiEdit\|NotebookEdit` | Un agente con `Bash` puede escribir con `echo > ruta` y saltárselo | CI (`Gobierno FDA`) + revisión del diff + branch protection |
+| El analizador de `Bash` de `guard.sh` es *best-effort* | Detecta `>`, `>>`, `tee`, `sed -i`, `cp`, `mv`, `rm`, `dd of=`… pero no `python -c "open(...,'w')"`, `eval` ni `base64 -d` | CI (`Gobierno FDA`) + revisión del diff + branch protection |
 | Las allowlists son por herramienta, no por ruta | `qa` puede escribir fuera de `tests/` si el WP lo permite | Redacción correcta del WP + revisión |
-| `permissions.deny` cubre las herramientas de edición, no el shell | Igual que el primero | Igual |
+| `permissions.deny` cubre las herramientas de edición, no el shell | Un `deny` de `Edit(./x)` no impide `echo > x`; ahí quien manda es `guard.sh` | El propio `guard.sh`, que sí analiza Bash |
+
+> El matcher de `.claude/settings.json` es `Edit|Write|MultiEdit|NotebookEdit|Bash`. **Si alguien quita `Bash` de esa lista, el hueco vuelve a abrirse entero.** Es la línea más sensible de toda la configuración.
 
 Ninguno de estos huecos permite **fusionar** nada: todo cambio pasa por PR, CI y revisión humana. Esa es la capa que sí es hermética.
 

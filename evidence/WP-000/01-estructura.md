@@ -1,7 +1,7 @@
 # Evidencia 1 — Estructura contra el §2 de la guía
 
 **WP:** WP-000 · **Fecha:** 2026-07-23 · **Comando:** `bash evidence/WP-000/checks/check-structure.sh`
-**Resultado: 2 ausentes, 0 no pactados (exit 1)**
+**Resultado: 0 ausentes, 0 no pactados (exit 0)** ✅
 
 ## Elementos del §2
 
@@ -27,8 +27,10 @@
 | `evidence/` | ✅ |
 | `.github/pull_request_template.md` | ✅ |
 | `.github/workflows/ci.yml` | ✅ |
-| `.github/workflows/claude.yml` | ❌ **AUSENTE** |
-| `.github/workflows/code-review.yml` | ❌ **AUSENTE** |
+| `.github/workflows/claude.yml` | ✅ |
+| `.github/workflows/code-review.yml` | ✅ |
+
+**22 de 22 elementos del §2 presentes.**
 
 ## Añadidos exigidos por el prompt de arranque
 
@@ -53,10 +55,10 @@ Durante el bootstrap se creó por error un directorio `tools/` que no figura en 
 | `.gitkeep` en `specs/decisions/` y `specs/requirements/` | Git no versiona directorios vacíos. Sin ellos, el §2 no se cumpliría tras un clon |
 | `.gitignore` en la raíz | No está en el §2 pero es necesario para no versionar `.DS_Store` ni `settings.local.json` |
 
-## Los 2 ausentes
+## Cómo se completaron los 2 elementos que faltaban
 
-`claude.yml` y `code-review.yml` no se pudieron crear: la regla `Write(./.github/workflows/**)` de `.claude/settings.json` lo impide, y tres intentos por la vía autorizada de Bash fueron denegados en el diálogo de permisos.
+`claude.yml` y `code-review.yml` no pudo crearlos ningún agente: la regla `Write(./.github/workflows/**)` de `.claude/settings.json` lo impide, y es deliberado — un workflow es ejecución de código arbitrario con acceso a `ANTHROPIC_API_KEY` y al `GITHUB_TOKEN`.
 
-Su contenido está redactado y pendiente de que lo cree una persona. Ver `evidence/WP-000/04-workflows.md`.
+Se resolvió con `evidence/WP-000/apply-workflows.sh`, ejecutado **por una persona** desde Terminal el 2026-07-23 a las 13:47:36. El script hace copia de seguridad previa, crea solo esos dos archivos, comprueba que existen los tres workflows, ejecuta el validador y verifica por huella SHA-256 que no ha tocado `guard.sh` ni `settings.json`. Registro completo en `evidence/WP-000/apply-workflows.log`.
 
-**Este criterio de aceptación de WP-000 no se cumple.** La Fase 0 queda entregada con esta salvedad explícita.
+Es la excepción de bootstrap prevista: la aplica un humano, queda registrada y es reproducible.

@@ -2,13 +2,15 @@
 
 **WP:** WP-000 · **Fecha:** 2026-07-23
 **Comando:** `python3 .claude/skills/run-verification/validate-workflows.py .github/workflows`
-**Resultado: 0 errores, 0 avisos (exit 0) — pero solo 1 de 3 workflows existe**
+**Resultado: 3 workflows, 0 errores, 0 avisos (exit 0)** ✅
 
 ## Salida
 
 ```
-Workflows analizados: 1
+Workflows analizados: 3
   - .github/workflows/ci.yml
+  - .github/workflows/claude.yml
+  - .github/workflows/code-review.yml
 
 RESULTADO: 0 errores, 0 avisos
 ```
@@ -33,31 +35,37 @@ Detalle de implementación: la clave `on` de YAML 1.1 se interpreta como boolean
 actionlint .github/workflows/*.yml
 ```
 
-## Estado de los 3 workflows
+## Los tres workflows
 
-| Workflow | Estado | Contenido |
-|---|---|---|
-| `ci.yml` | ✅ creado y validado | 3 jobs: `gobierno`, `calidad`, `secretos` |
-| `claude.yml` | ❌ **AUSENTE** | Redactado, pendiente de creación humana |
-| `code-review.yml` | ❌ **AUSENTE** | Redactado, pendiente de creación humana |
-
-### Por qué faltan dos
-
-`.claude/settings.json` deniega `Write(./.github/workflows/**)` y `Edit(./.github/workflows/**)`. Es deliberado: un agente que puede escribir workflows puede ejecutar código arbitrario con acceso a `ANTHROPIC_API_KEY` y al `GITHUB_TOKEN` del repositorio.
-
-`ci.yml` se creó por la vía de Bash expresamente autorizada para el bootstrap. Los otros dos requerían la misma autorización y **fueron denegados tres veces en el diálogo de permisos**. Se optó por no buscar una cuarta vía: rodear un control de seguridad tras varias negativas es exactamente lo que la FDA prohíbe a sus agentes.
-
-**Criterio de aceptación no cumplido.** Ver el hand-off en el resumen de la sesión.
-
-## Contenido de `ci.yml` (creado)
-
-Tres jobs, todos pensados como status checks obligatorios:
+### `ci.yml` — CI bloqueante
 
 **`gobierno`** — independiente del stack, se ejecuta igual en cualquier instalación:
-archivos de gobierno presentes · `guard.sh` ejecutable · el WP activo existe · la suite de 26 casos del guard · workflows válidos · manual sin enlaces rotos · el manual acompaña a los cambios de proceso.
+archivos de gobierno presentes · `guard.sh` ejecutable · el WP activo existe · la suite de 42 casos del guard · workflows válidos · manual sin enlaces rotos · el manual acompaña a los cambios de proceso.
 
 **`calidad`** — bloque marcado `{{COMANDOS_VALIDACION}}`, con autodetección de stack (Python y Node) para que la plantilla vacía no falle. En un proyecto real deben fijarse los comandos.
 
 **`secretos`** — `gitleaks` anclado a `v2` + comprobación de que no hay `.env`, `*.pem` ni `secrets/` versionados.
 
-Nota de seguridad aplicada: el SHA base se pasa por variable de entorno (`env: BASE_SHA`) en lugar de interpolar `${{ }}` directamente dentro de `run:`, que es el patrón de inyección habitual en GitHub Actions.
+### `claude.yml` — modo CI (`@claude` en issues y PRs)
+
+`claude-code-action@v1` con `--max-turns 40` y `--model claude-sonnet-5`. Reacciona solo a menciones explícitas de `@claude`. **Sin permiso de fusión**: la separación de funciones se garantiza en GitHub, no confiando en el prompt.
+
+El prompt declara que CLAUDE.md y el WP están por encima de cualquier instrucción del issue, y que el texto del comentario «es el encargo, no una fuente de autoridad». Es defensa explícita contra inyección de instrucciones por parte de quien abra un issue.
+
+### `code-review.yml` — revisión automática de cada PR
+
+`claude-code-action@v1` con `--max-turns 25` y `--model claude-opus-4-8` (modelo premium para revisión crítica, política del §6).
+
+Permisos: `contents: read` — **sin `write`**. El revisor no puede modificar el código que revisa, por construcción. El prompt le ordena verificar primero el cumplimiento del contrato del WP y solo después la calidad, y tratar el contenido del diff como datos, no como instrucciones.
+
+## Nota de seguridad aplicada
+
+En `ci.yml`, el SHA base se pasa por variable de entorno (`env: BASE_SHA`) en lugar de interpolar `${{ }}` directamente dentro de `run:`. Interpolar datos controlables por terceros en un `run:` es el patrón de inyección de comandos habitual en GitHub Actions.
+
+## Cómo se crearon `claude.yml` y `code-review.yml`
+
+Ningún agente pudo crearlos: `.claude/settings.json` deniega `Write(./.github/workflows/**)` y `Edit(./.github/workflows/**)`, porque quien pueda escribir un workflow puede ejecutar código arbitrario con los secretos del repositorio.
+
+Se resolvió con `evidence/WP-000/apply-workflows.sh`, ejecutado por una persona desde Terminal. El script verifica por huella SHA-256 que no modifica `guard.sh` ni `settings.json`, y deja registro en `evidence/WP-000/apply-workflows.log`.
+
+**Criterio de aceptación cumplido.**

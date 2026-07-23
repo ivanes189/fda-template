@@ -76,6 +76,8 @@ print("\n--- Placeholders en los archivos parametrizados ---")
 esperado = {
     "CODEOWNERS": ["{{PROPIEDAD_COMPONENTES}}"],
     ".github/workflows/ci.yml": ["{{COMANDOS_VALIDACION}}"],
+    ".github/workflows/claude.yml": ["{{PRESUPUESTOS_Y_MODELOS}}"],
+    ".github/workflows/code-review.yml": ["{{PRESUPUESTOS_Y_MODELOS}}"],
 }
 for rel, ps in esperado.items():
     ruta = ROOT / rel

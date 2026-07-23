@@ -1,6 +1,6 @@
-Fecha:  2026-07-23T11:55:20Z
-Commit: 1c2133a
-Host:   Darwin 24.6.0 x86_64 · bash 3.2.57 · Python 3.11.5
+Fecha:  2026-07-23T12:51:29Z
+Commit: ff98ec1
+Host:   Darwin 24.6.0 x86_64 · Python 3.11.5
 
 ############################################################
 === COMANDO: bash evidence/WP-000/checks/check-structure.sh
@@ -30,8 +30,8 @@ Host:   Darwin 24.6.0 x86_64 · bash 3.2.57 · Python 3.11.5
   OK    evidence/                                      Evidencias por WP
   OK    .github/pull_request_template.md               Checklist de evidencias
   OK    .github/workflows/ci.yml                       CI bloqueante
-  FALTA .github/workflows/claude.yml                   @claude en issues/PRs
-  FALTA .github/workflows/code-review.yml              Revisión automática
+  OK    .github/workflows/claude.yml                   @claude en issues/PRs
+  OK    .github/workflows/code-review.yml              Revisión automática
 
 --- Añadidos por el prompt de arranque (Fase 0) ---
   OK    work-packages/ACTIVE                           Estado operativo en archivo (SDK-ready)
@@ -50,9 +50,9 @@ Host:   Darwin 24.6.0 x86_64 · bash 3.2.57 · Python 3.11.5
   (ninguno)
 
 ==============================================================
- RESULTADO: 2 ausentes, 0 no pactados
+ RESULTADO: 0 ausentes, 0 no pactados
 ==============================================================
-=== EXIT: 1
+=== EXIT: 0
 
 ############################################################
 === COMANDO: python3 evidence/WP-000/checks/check-agents-skills.py
@@ -129,16 +129,40 @@ Host:   Darwin 24.6.0 x86_64 · bash 3.2.57 · Python 3.11.5
   OK    exit=2  ACTIVE apunta a WP inexistente
   OK    exit=2  WP sin rutas permitidas
 
+--- G. BASH: escrituras vía shell (el vector que saltaba el hook) ---
+    Requiere 'Bash' en el matcher de .claude/settings.json y el
+    analizador de comandos en guard.sh.
+  OK    exit=2  echo > src/y.py (redirección)
+  OK    exit=2  echo >> package.json (append)
+  OK    exit=2  tee src/z.py
+  OK    exit=2  sed -i sobre src/
+  OK    exit=2  cp hacia src/
+  OK    exit=2  mv hacia tests/
+  OK    exit=2  rm -rf src/
+  OK    exit=2  dd of=src/big.bin
+  OK    exit=2  redirección con ruta entrecomillada
+
+--- H. BASH: lo que NO debe bloquearse (falsos positivos) ---
+  OK    exit=0  echo > docs/ok.md (en alcance)
+  OK    exit=0  echo >> evidence/WP-000/log.txt
+  OK    exit=0  redirección a /dev/null
+  OK    exit=0  escritura en /tmp
+  OK    exit=0  commit con > dentro de comillas
+  OK    exit=0  pytest (sin escrituras)
+  OK    exit=0  grep con > en el patrón
+
 ==============================================================
- RESULTADO: 26 correctas, 0 fallidas
+ RESULTADO: 42 correctas, 0 fallidas
 ==============================================================
 === EXIT: 0
 
 ############################################################
 === COMANDO: python3 .claude/skills/run-verification/validate-workflows.py .github/workflows
 ############################################################
-Workflows analizados: 1
+Workflows analizados: 3
   - .github/workflows/ci.yml
+  - .github/workflows/claude.yml
+  - .github/workflows/code-review.yml
 
 
 RESULTADO: 0 errores, 0 avisos
@@ -172,6 +196,8 @@ RESULTADO: 0 errores, 0 avisos
 --- Placeholders en los archivos parametrizados ---
   OK    CODEOWNERS                         {{PROPIEDAD_COMPONENTES}}
   OK    .github/workflows/ci.yml           {{COMANDOS_VALIDACION}}
+  OK    .github/workflows/claude.yml       {{PRESUPUESTOS_Y_MODELOS}}
+  OK    .github/workflows/code-review.yml  {{PRESUPUESTOS_Y_MODELOS}}
 
 ==============================================================
  RESULTADO: 0 fallos

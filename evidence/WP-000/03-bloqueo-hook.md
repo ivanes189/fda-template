@@ -1,7 +1,7 @@
 # Evidencia 3 — Demostración de bloqueo del hook
 
 **WP:** WP-000 · **Fecha:** 2026-07-23 · **Comando:** `bash evidence/WP-000/checks/check-guard.sh`
-**Resultado: 26 casos, 26 correctos, 0 fallidos (exit 0)**
+**Resultado: 42 casos, 42 correctos, 0 fallidos (exit 0)** ✅
 
 Esta evidencia tiene dos partes: los bloqueos **provocados** con la suite de pruebas, y los bloqueos **reales** que el hook produjo contra el propio agente durante esta sesión.
 
@@ -94,8 +94,28 @@ File is in a directory that is denied by your permission settings.
   OK    exit=2  ACTIVE apunta a WP inexistente
   OK    exit=2  WP sin rutas permitidas
 
+--- G. BASH: escrituras vía shell (el vector que saltaba el hook) ---
+  OK    exit=2  echo > src/y.py (redirección)
+  OK    exit=2  echo >> package.json (append)
+  OK    exit=2  tee src/z.py
+  OK    exit=2  sed -i sobre src/
+  OK    exit=2  cp hacia src/
+  OK    exit=2  mv hacia tests/
+  OK    exit=2  rm -rf src/
+  OK    exit=2  dd of=src/big.bin
+  OK    exit=2  redirección con ruta entrecomillada
+
+--- H. BASH: lo que NO debe bloquearse (falsos positivos) ---
+  OK    exit=0  echo > docs/ok.md (en alcance)
+  OK    exit=0  echo >> evidence/WP-000/log.txt
+  OK    exit=0  redirección a /dev/null
+  OK    exit=0  escritura en /tmp
+  OK    exit=0  commit con > dentro de comillas
+  OK    exit=0  pytest (sin escrituras)
+  OK    exit=0  grep con > en el patrón
+
 ==============================================================
- RESULTADO: 26 correctas, 0 fallidas
+ RESULTADO: 42 correctas, 0 fallidas
 ==============================================================
 ```
 
@@ -146,10 +166,35 @@ Un segundo defecto previo (BSD sed trata `\` como escape dentro de clases de car
 
 ---
 
-## Límite conocido de este control
+## El bypass de Bash: encontrado, medido y cerrado
 
-`guard.sh` se dispara con `matcher: "Edit|Write|MultiEdit|NotebookEdit"`. **No cubre `Bash`.** Un agente con `Bash` puede escribir con `echo x > ruta` y saltárselo entero.
+**El hueco.** El matcher original era `Edit|Write|MultiEdit|NotebookEdit`. No incluía `Bash`, de modo que un agente con esa herramienta —el `implementer` la tiene— podía hacer `echo "codigo" > src/fuera_de_alcance.py` y saltarse el control central por completo. Los `deny` de `settings.json` tenían el mismo límite: cubren las herramientas de edición, no el shell.
 
-Cerrar ese hueco requiere modificar `.claude/settings.json` y `.claude/hooks/guard.sh`, **ambos bloqueados por el propio deny** (ver A.3). Queda pendiente de ejecución humana y documentado en `docs/manual/07-troubleshooting.md`.
+**Medición antes del arreglo.** Se añadieron 16 casos de Bash a la suite y se ejecutó contra el guard entonces instalado:
 
-Red de seguridad mientras tanto: job `Gobierno FDA` en CI, revisión del diff completo y branch protection. Nada llega a `main` sin pasar por ahí.
+```
+ RESULTADO: 33 correctas, 9 fallidas
+```
+
+Los 9 fallos son exactamente los 9 vectores de escritura del grupo G, todos devolviendo `exit=0` (permitido) cuando debían devolver `exit=2`. El hueco quedó cuantificado, no supuesto.
+
+**El arreglo.** `guard.sh` analiza ahora el comando de Bash y extrae rutas de escritura de: `>`, `>>` (incluido destino entrecomillado), `tee`, `sed -i`, `perl -i`, `dd of=`, `cp`, `mv`, `rm`, `rmdir`, `truncate`, `touch`, `install`, `shred` y `ln`. El matcher pasó a `Edit|Write|MultiEdit|NotebookEdit|Bash`.
+
+Para evitar falsos positivos, el contenido entrecomillado se neutraliza antes de buscar redirecciones —`git commit -m "arreglar a > b"` no dispara— y se exentan `/dev/null`, `/dev/std*`, `/tmp` y `$TMPDIR`. Los 7 casos del grupo H prueban justo eso.
+
+**Verificación posterior:** 42/42, sin regresión en ninguno de los 26 casos originales.
+
+**Cómo se aplicó.** El propio deny impedía a cualquier agente modificar `.claude/hooks/**` y `.claude/settings.json` — incluido el agente que construía la FDA. El parche se validó primero como candidato en `evidence/` (42/42) y lo aplicó una persona. Es la propiedad que hace que el control sea un control: **ni el agente que lo escribe puede desactivarlo.**
+
+## Límite que permanece
+
+El analizador de Bash es **best-effort, no hermético**. El shell es demasiado expresivo para garantizarlo:
+
+```bash
+python3 -c "open('src/x.py','w').write('...')"   # no se detecta
+eval "$(printf 'echo x > src/y.py')"              # no se detecta
+```
+
+Red de seguridad: job `Gobierno FDA` en CI, revisión del diff completo y branch protection. Nada llega a `main` sin pasar por ahí. Documentado en `docs/manual/07-troubleshooting.md`.
+
+⚠️ **La línea más sensible de toda la configuración** es el matcher de `settings.json`. Si alguien retira `Bash`, el hueco se reabre entero y en silencio. La suite lo detecta: 9 de los 42 casos fallan.
