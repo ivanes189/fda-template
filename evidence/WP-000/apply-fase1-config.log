@@ -1,0 +1,54 @@
+==============================================================
+ FDA — Tarea 3 del Paso 0: autoinstalación del sandbox
+ Fecha:       2026-07-23 15:33:00
+ Repositorio: /Users/ivan/Desktop/fda-template
+ Propietario: @ivanes189
+==============================================================
+
+--- Paso 0: comprobaciones previas ---
+  OK  Repositorio correcto
+  OK  settings.json parte de un estado válido
+  OK  Huellas de control registradas
+
+--- Paso 1: copias de seguridad ---
+  Guardada copia: evidence/WP-000/backups/20260723-153300/CODEOWNERS
+  Guardada copia: evidence/WP-000/backups/20260723-153300/settings.json
+  Guardada copia: evidence/WP-000/backups/20260723-153300/ci.yml
+
+--- Paso 2: CODEOWNERS ---
+  Marcadores sustituidos: 13 → quedan 0
+  Propietario efectivo:
+    *                           @ivanes189
+
+--- Paso 3: settings.json (comandos de validación del sandbox) ---
+  Reglas allow añadidas: 6
+   + Bash(actionlint*)
+   + Bash(shellcheck*)
+   + Bash(bash tests/*)
+   + Bash(python3 evidence/WP-000/checks/*)
+   + Bash(python3 .claude/skills/run-verification/validate-workflows.py*)
+   + Bash(python3 scripts/check_scope.py*)
+  Total allow: 17
+  Matcher del hook: Edit|Write|MultiEdit|NotebookEdit|Bash
+
+--- Paso 4: ci.yml (job 'calidad' con la validación real) ---
+  Job 'calidad' sustituido.
+  OK  ci.yml sigue siendo YAML válido
+Workflows analizados: 3
+  - .github/workflows/ci.yml
+  - .github/workflows/claude.yml
+  - .github/workflows/code-review.yml
+
+
+RESULTADO: 0 errores, 0 avisos
+
+--- Paso 5: comprobar que no se ha tocado nada más ---
+  OK     guard.sh SIN modificar
+  OK     agentes SIN modificar
+  OK     CLAUDE.md SIN modificar
+
+==============================================================
+ RESULTADO: TODO CORRECTO
+ CODEOWNERS, settings.json y ci.yml instanciados.
+ No se ha hecho commit, ni push, ni cambios en GitHub.
+==============================================================

@@ -31,13 +31,7 @@
       "Bash(git diff*)",
       "Bash(git log*)",
       "Bash(git add*)",
-      "Bash(git commit*)",
-      "Bash(actionlint*)",
-      "Bash(shellcheck*)",
-      "Bash(bash tests/*)",
-      "Bash(python3 evidence/WP-000/checks/*)",
-      "Bash(python3 .claude/skills/run-verification/validate-workflows.py*)",
-      "Bash(python3 scripts/check_scope.py*)"
+      "Bash(git commit*)"
     ]
   },
   "hooks": {

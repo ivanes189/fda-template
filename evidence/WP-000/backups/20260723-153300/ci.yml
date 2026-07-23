@@ -90,50 +90,71 @@ jobs:
           echo "OK"
 
   # ---------------------------------------------------------------------------
-  # Calidad — {{COMANDOS_VALIDACION}} INSTANCIADO
+  # Calidad: lint, tipos y pruebas del proyecto.
   #
-  # El fda-template se usa a sí mismo como sandbox de calibración (Fase 1), así
-  # que su "stack" es su propio gobierno. Validación = actionlint (workflows) +
-  # shellcheck (hooks y scripts) + suite del guard + link-check del manual.
-  #
-  # shellcheck corre a --severity=warning: bloquea ante problemas reales e
-  # ignora avisos de estilo. Endurecer a 'style' es un WP posterior, no algo
-  # que deba decidirse en el Paso 0.
+  # ===================== {{COMANDOS_VALIDACION}} =============================
+  # PLACEHOLDER DE INSTALACIÓN. Sustituye este bloque por los comandos reales de
+  # tu stack. Tal como está, autodetecta el stack por sus archivos de
+  # configuración y no falla si no hay ninguno (útil en la plantilla vacía).
+  # En un proyecto real, FIJA los comandos y quita los condicionales: un job que
+  # se salta en silencio no es un control.
+  # Ver docs/manual/01-instalacion.md
+  # ===========================================================================
   # ---------------------------------------------------------------------------
   calidad:
-    name: Lint · Shell · Tests · Manual
+    name: Lint · Tipos · Pruebas
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
+      # --- Stack Python: pytest / ruff / mypy ---
       - uses: actions/setup-python@v5
+        if: hashFiles('pyproject.toml', 'requirements.txt') != ''
         with:
           python-version: '3.11'
 
-      - name: Instalar PyYAML
-        run: pip install --quiet pyyaml
-
-      - name: Instalar actionlint
-        run: go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.7
-
-      - name: actionlint (workflows)
-        run: $(go env GOPATH)/bin/actionlint -color
-
-      - name: shellcheck (hooks, tests y scripts)
+      - name: Dependencias (Python)
+        if: hashFiles('pyproject.toml', 'requirements.txt') != ''
         run: |
-          set -euo pipefail
-          archivos=$(find .claude/hooks tests scripts evidence/WP-000/checks \
-                       -name '*.sh' -type f 2>/dev/null | sort)
-          if [ -z "$archivos" ]; then echo "::error::no se encontró ningún .sh"; exit 1; fi
-          echo "$archivos" | sed 's/^/  /'
-          # shellcheck está preinstalado en los runners ubuntu-latest
-          shellcheck --severity=warning --shell=bash $archivos
+          python -m pip install --upgrade pip
+          if [ -f pyproject.toml ]; then pip install -e ".[dev]" || pip install -e .; fi
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install ruff mypy pytest pytest-cov
 
-      - name: Suite adversarial del guard
-        run: bash tests/guard/run-suite.sh
+      - name: ruff
+        if: hashFiles('pyproject.toml', 'requirements.txt') != ''
+        run: ruff check .
 
-      - name: Link-check del manual
-        run: python3 evidence/WP-000/checks/check-manual.py
+      - name: mypy
+        if: hashFiles('pyproject.toml', 'requirements.txt') != ''
+        run: mypy .
+
+      - name: pytest
+        if: hashFiles('pyproject.toml', 'requirements.txt') != ''
+        run: pytest --cov --cov-report=term-missing
+
+      # --- Stack Node: npm test / eslint / tsc ---
+      - uses: actions/setup-node@v4
+        if: hashFiles('package.json') != ''
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Dependencias (Node)
+        if: hashFiles('package.json') != ''
+        run: npm ci
+
+      - name: eslint
+        if: hashFiles('package.json') != ''
+        run: npx eslint .
+
+      - name: tsc
+        if: hashFiles('tsconfig.json') != ''
+        run: npx tsc --noEmit
+
+      - name: npm test
+        if: hashFiles('package.json') != ''
+        run: npm test
 
   # ---------------------------------------------------------------------------
   # Secretos. El control primario es el secret scanning + push protection nativo
