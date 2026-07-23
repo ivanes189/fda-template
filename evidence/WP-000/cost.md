@@ -1,10 +1,22 @@
 # Coste — WP-000 (Bootstrap de la FDA, Fase 0)
 
+```
+coste_usd: 15.14          # crudo, inmutable
+tipo_eurusd: 1.1383       # specs/finops/fx-rates.md → 2026-07
+fuente: BCE ref. 2026-07-01
+coste_eur: 13.30
+presupuesto_eur: 75
+consumo: 18 %
+```
+
+> **Conversión reconstruida.** El coste se midió antes de aprobarse DEC-001. La conversión se aplicó a posteriori con el tipo del mes en curso (2026-07), conforme a la cláusula de aplicación retroactiva de la decisión. El valor en USD es el original y no se ha alterado.
+
 | Concepto | Valor |
 |---|---|
-| Coste total | **$15,14 USD** |
+| Coste total (registro) | **$15,14 USD** |
+| Coste total (gobierno) | **13,30 €** |
 | Presupuesto del WP | 75,00 € |
-| Consumo sobre presupuesto | ~18 % (ver nota de divisa) |
+| Consumo sobre presupuesto | 18 % |
 | Sesiones | 1 |
 | Ciclos de corrección | 0 / 2 |
 | Modelo principal | Opus 4.8 (`claude-opus-4-8`) |
@@ -14,16 +26,13 @@
 
 Medición: `/cost` el 2026-07-23T13:02:58Z.
 
-## ⚠️ Nota de divisa — decisión pendiente
+## Nota de divisa — RESUELTA
 
-El presupuesto de la FDA está en **euros** (75 / 100 / 150 €) y la telemetría de Claude Code reporta en **dólares**. Mezclar divisas en la métrica principal es una fuente segura de confusión a los seis meses.
+La convención está fijada en [`specs/decisions/DEC-001-divisa-costes.md`](../../specs/decisions/DEC-001-divisa-costes.md): **USD es el registro, EUR es el gobierno, el tipo se congela por mes natural**.
 
-Hay que elegir una convención y aplicarla en `_TEMPLATE.md` y en `docs/manual/06-costes-y-metricas.md`:
+El tipo aplicado (1,1383) es la referencia del BCE del 2026-07-01, registrada en [`specs/finops/fx-rates.md`](../../specs/finops/fx-rates.md). No se recalculará: aunque el euro se mueva, este coste seguirá siendo 13,30 €.
 
-- **Opción A** — mantener los umbrales en € y convertir cada medición al tipo del día del cierre del WP. Más fiel contablemente, exige registrar el tipo aplicado en cada `cost.md`.
-- **Opción B** — reexpresar los umbrales en $ (p. ej. 85 / 115 / 170 $). Elimina la conversión de la operativa diaria; los umbrales dejan de coincidir con los del contrato original.
-
-El ~18 % de la tabla asume una paridad aproximada y **no es una cifra contable**. Hasta que decidas, el dato bueno es `$15,14`.
+Para métricas de eficiencia entre WPs, la vista correcta es la **técnica** (USD crudo): elimina el ruido cambiario.
 
 ## Desglose por consumo de tokens
 
