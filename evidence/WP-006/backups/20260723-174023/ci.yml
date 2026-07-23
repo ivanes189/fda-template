@@ -54,12 +54,13 @@ jobs:
       - name: El hook guard.sh es ejecutable
         run: test -x .claude/hooks/guard.sh || { echo "::error::guard.sh no es ejecutable"; exit 1; }
 
-      # Validación del estado operativo. La lógica vive en un script versionado
-      # y con pruebas (tests/governance/), no incrustada aquí: así se ejecuta
-      # igual en local que en CI, y evolucionarla no exige tocar un workflow.
-      # Reconoce el reposo (ACTIVE vacío) como estado VÁLIDO.
-      - name: Estado operativo coherente (ACTIVE)
-        run: bash tests/governance/check-active.sh
+      - name: El WP activo existe (estado en archivos, no en sesión)
+        run: |
+          set -euo pipefail
+          wp=$(grep -v '^[[:space:]]*#' work-packages/ACTIVE | grep -v '^[[:space:]]*$' | head -1 | tr -d '[:space:]')
+          if [ -z "$wp" ]; then echo "::error::work-packages/ACTIVE vacío"; exit 1; fi
+          ls work-packages/"$wp"*.md >/dev/null 2>&1 || { echo "::error::ACTIVE apunta a $wp pero no existe su archivo"; exit 1; }
+          echo "WP activo: $wp"
 
       - name: El guard bloquea fuera de alcance (suite completa)
         run: bash evidence/WP-000/checks/check-guard.sh
@@ -139,9 +140,6 @@ jobs:
 
       - name: Suite adversarial del guard
         run: bash tests/guard/run-suite.sh
-
-      - name: Pruebas de la validación de gobierno
-        run: bash tests/governance/test-check-active.sh
 
       - name: Link-check del manual
         run: python3 evidence/WP-000/checks/check-manual.py

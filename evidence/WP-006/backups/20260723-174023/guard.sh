@@ -141,28 +141,6 @@ else
   debug "file=$TARGETS"
 fi
 
-# Los destinos exentos (/dev/null, /tmp, $TMPDIR...) no son asunto de este
-# control, y se descartan AQUI, antes de resolver el WP activo. Filtrarlos
-# despues dejaba bloqueado cualquier comando de diagnostico con "2>/dev/null"
-# mientras la fabrica estuviera en reposo, que es su estado normal entre WPs.
-# El fail-closed para escrituras reales no cambia: se comprueba mas abajo.
-if [ "$IS_BASH" = "1" ] && [ -n "$TARGETS" ]; then
-  _restantes=""
-  while IFS= read -r _t; do
-    [ -z "$_t" ] && continue
-    if is_exempt "$_t"; then
-      debug "exento (descartado antes de resolver el WP): $_t"
-      continue
-    fi
-    _restantes="$_restantes$_t
-"
-  done <<EOF
-$TARGETS
-EOF
-  TARGETS="$_restantes"
-  debug "targets tras filtrar exentos: $(printf '%s' "$TARGETS" | tr '\n' ' ')"
-fi
-
 # Herramienta sin rutas asociadas: nada que vigilar.
 [ -z "$TARGETS" ] && exit $ALLOW
 

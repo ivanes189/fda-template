@@ -274,6 +274,14 @@ xfail 2 "APFS: 'claude.md' elude el prohibido" \
 xfail 0 "falso positivo: '>' entrecomillado seguido de cadena" \
       "$(b "echo 'a->', 'b'")" "defecto del analizador Bash"
 
+# FALSO POSITIVO: el analizador trabaja sobre el TEXTO del comando, no sobre
+# rutas resueltas, así que no puede expandir variables. Un destino exento
+# escrito como "$TMPDIR/x" o "$D/x" se ve como literal y no casa con la lista
+# de exentos, de modo que un comando legítimo queda bloqueado.
+# Detectado en el Paso 0 al construir fixtures en un directorio temporal.
+xfail 0 "falso positivo: ruta exenta tras variable sin expandir" \
+      "$(b 'echo x > $TMPDIR/scratch.txt')" "defecto del analizador Bash"
+
 xfail 2 "git push -f (control en settings.json, no en guard)" \
       "$(b 'git push -f origin main')" "capa de permisos, no guard.sh"
 xfail 2 "git push --force (idem)" \
