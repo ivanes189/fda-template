@@ -226,6 +226,18 @@ WPEOF
 run   2 "APFS: CLAUDE.md prohibido se bloquea"  "$(w 'CLAUDE.md')" "$APFS"
 xfail 2 "APFS: 'claude.md' elude el prohibido" \
       "$(w 'claude.md')" "WP-002 (macOS case-insensitive)" "$APFS"
+# FALSO POSITIVO detectado en el Paso 0 de la Fase 1.
+# La extracción de "redirecciones con destino entrecomillado" opera sobre el
+# comando ORIGINAL, no sobre el desentrecomillado. Cualquier '>' dentro de una
+# cadena, seguido inmediatamente de comilla, produce un objetivo inventado y
+# bloquea un comando que no escribe nada.
+# Caso real que lo destapó:
+#   python3 -c "print('a =', round(x), 'EUR ->', round(y), '%')"
+#   -> objetivo extraído: ", round(y), "
+# Aquí se desea exit 0 (permitir); hoy devuelve 2.
+xfail 0 "falso positivo: '>' entrecomillado seguido de cadena" \
+      "$(b "echo 'a->', 'b'")" "defecto del analizador Bash"
+
 xfail 2 "git push -f (control en settings.json, no en guard)" \
       "$(b 'git push -f origin main')" "capa de permisos, no guard.sh"
 xfail 2 "git push --force (idem)" \
