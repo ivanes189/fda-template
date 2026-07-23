@@ -28,15 +28,21 @@ grep -A 20 '^## Archivos permitidos' work-packages/WP-014-*.md
 
 ### Síntoma: bloquea absolutamente todo
 
-Es **fail-closed** haciendo su trabajo. Causas, en orden de frecuencia:
+Antes de nada, pregúntale al propio sistema en qué estado está:
 
 ```bash
-cat work-packages/ACTIVE                      # ¿vacío o ausente?
-ls work-packages/WP-*.md                      # ¿existe el archivo del WP?
-grep -c '^-' work-packages/WP-014-*.md        # ¿tiene rutas permitidas?
+bash tests/governance/check-active.sh
 ```
 
-Sin WP activo no hay cambios. Es intencionado: un guard que ante la duda deja pasar no es un guard.
+| Respuesta | Significado | Qué hacer |
+|---|---|---|
+| `REPOSO` | **Normal.** No hay WP activo, así que no hay ninguna ruta autorizada | Activa el WP que toque, o no escribas nada |
+| `ACTIVO: WP-XXX` | Hay un WP en curso | El problema es el alcance de ese WP, no el estado |
+| `ERROR` | `ACTIVE` apunta a un WP inexistente, mal formado o sin rutas | Corrige `ACTIVE` o crea el WP que falta |
+
+Sin WP activo no hay cambios. Es intencionado: un guard que ante la duda deja pasar no es un guard. El reposo es un estado **válido** —el CI lo acepta en verde—, simplemente no autoriza escrituras.
+
+Si necesitas reparar el propio gobierno y el reposo te lo impide, el protocolo está en [05 — Bloqueos](05-bloqueos-y-parada.md#cuando-el-propio-gobierno-queda-bloqueado-por-el-fail-closed).
 
 ### Síntoma: no bloquea nada
 
