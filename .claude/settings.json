@@ -11,13 +11,9 @@
       "Bash(rm -rf /*)",
       "Bash(curl*|*sh)",
       "Edit(./.github/workflows/**)",
-      "Write(./.github/workflows/**)",
       "Edit(./CODEOWNERS)",
-      "Write(./CODEOWNERS)",
       "Edit(./.claude/hooks/**)",
-      "Write(./.claude/hooks/**)",
-      "Edit(./.claude/settings.json)",
-      "Write(./.claude/settings.json)"
+      "Edit(./.claude/settings.json)"
     ],
     "ask": [
       "Bash(git push*)",
