@@ -1,0 +1,27 @@
+# Ruido del sistema
+.DS_Store
+Thumbs.db
+
+# Ajustes locales de sesión de Claude Code (NUNCA se versionan: son por máquina)
+.claude/settings.local.json
+
+# Secretos: la FDA prohíbe versionarlos (ver CLAUDE.md)
+.env
+.env.*
+!.env.example
+**/secrets/**
+
+# Artefactos de stack
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+node_modules/
+dist/
+build/
+coverage/
+.coverage
+htmlcov/
