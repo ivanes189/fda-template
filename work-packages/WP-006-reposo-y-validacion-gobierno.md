@@ -1,6 +1,6 @@
 # WP-006 — Estado de reposo válido y validación de gobierno verificable
 
-estado: ready
+estado: done
 prioridad: P0
 agente_responsable: implementer     agente_revisor: code-reviewer
 requisitos: [REQ-FDA-001]           adr: []
