@@ -30,6 +30,7 @@ El índice definitivo del manual (`FDA-diagnostico-y-plan-fase1.md` §6) reserva
 ## Archivos permitidos
 
 - docs/manual/**
+- evidence/WP-001/**
 
 ## Archivos prohibidos
 
@@ -40,7 +41,7 @@ El índice definitivo del manual (`FDA-diagnostico-y-plan-fase1.md` §6) reserva
 
 ## Contratos técnicos (interfaces, schemas, eventos, invariantes)
 
-- Cada entrada del glosario: un encabezado de tercer nivel con el término y su definición debajo, en 3 líneas o menos.
+- Cada entrada del glosario: un encabezado de tercer nivel (`###`) con el término, y debajo su definición en 3 líneas físicas no vacías o menos (las líneas en blanco no cuentan).
 - El glosario queda enlazado desde `MANUAL.md`, de modo que sea alcanzable navegando desde el índice (REQ-FDA-003).
 - Los enlaces internos son relativos y resuelven a archivos existentes.
 - No cambia ningún contrato de la FDA: es documentación.
@@ -59,16 +60,19 @@ El índice definitivo del manual (`FDA-diagnostico-y-plan-fase1.md` §6) reserva
 ```bash
 python3 evidence/WP-000/checks/check-manual.py
 git diff --name-only main...HEAD
+test "$(grep -c '^### ' docs/manual/14-glosario.md)" -ge 15        # exit 0 si el glosario tiene ≥15 términos
+grep -q '14-glosario\.md' docs/manual/MANUAL.md                    # exit 0 si el glosario está enlazado desde el índice
+! git diff --name-only main...HEAD | grep -vE '^(docs/manual/|evidence/WP-001/)'   # exit 0 si no hay rutas fuera de alcance
 ```
 
 **Criterios de aceptación:**
 
 - [ ] `docs/manual/14-glosario.md` existe y contiene **≥ 15** términos
 - [ ] Ninguna entrada del glosario supera las **3 líneas** de definición
-- [ ] `check-manual.py` devuelve exit 0 (**0 enlaces rotos**)
+- [ ] `check-manual.py` devuelve exit 0 (0 enlaces rotos y los 3 placeholders de instalación presentes)
 - [ ] El glosario está enlazado desde `docs/manual/MANUAL.md`
-- [ ] `git diff --name-only main...HEAD` devuelve **únicamente** rutas bajo `docs/manual/`
-- [ ] CI en verde sobre la PR
+- [ ] `git diff --name-only main...HEAD` devuelve **únicamente** rutas bajo `docs/manual/` o `evidence/WP-001/`
+- [ ] CI en verde sobre la PR (lo verifica el humano en el paso 6 del ciclo)
 
 ## Evidencias exigidas (qué debe aparecer en evidence/WP-001/)
 
@@ -80,6 +84,7 @@ git diff --name-only main...HEAD
 
 - Cualquier necesidad de tocar un archivo fuera de `docs/manual/`.
 - Si el link-check revela enlaces rotos que apuntan a capítulos aún no redactados: parar y consultar, porque la solución podría ser crear documentos fuera del alcance de este WP.
+- Si el enlace roto está en `CLAUDE.md`: parar y consultar — es un archivo prohibido para este WP.
 
 ## Migración / rollback
 

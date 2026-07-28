@@ -1,8 +1,9 @@
 # CODEOWNERS — propiedad por componente (revisión obligatoria)
 #
-# PLACEHOLDER DE INSTALACIÓN: @ivanes189
-# Sustituye cada @ivanes189 por el usuario u equipo de GitHub
-# responsable (formato @usuario o @organizacion/equipo).
+# Instalación en un proyecto nuevo: sustituye cada @ivanes189 por el usuario
+# o equipo de GitHub responsable (formato @usuario o @organizacion/equipo).
+# En este repositorio (fda-template operando como sandbox de calibración) el
+# propietario ya está instanciado: @ivanes189.
 # Instrucciones completas: docs/manual/01-instalacion.md
 #
 # Este archivo solo surte efecto si en GitHub activas branch protection sobre
