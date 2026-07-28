@@ -148,7 +148,64 @@ sed -i '' 's/^estado: .*/estado: done/' work-packages/WP-014-validar-importes.md
 git checkout main && git pull
 ```
 
-Y deja `ACTIVE` apuntando al siguiente WP, o vacíalo para bloquear escrituras hasta que haya uno nuevo.
+Y **devuelve la fábrica al reposo**:
+
+```bash
+printf '# fabrica en reposo: sin WP activo\n' > work-packages/ACTIVE
+git add work-packages/ACTIVE && git commit -m "WP-014: devolver la fábrica al reposo"
+```
+
+---
+
+## El estado de reposo
+
+Entre dos work packages **no hay ninguno activo**, y eso es correcto. `ACTIVE` vacío no es un error ni un estado a medias: es el estado seguro por defecto.
+
+| Estado de `ACTIVE` | Qué significa | Escrituras | CI |
+|---|---|---|---|
+| **Vacío** (o solo comentarios) | Reposo: no hay trabajo en curso | **Ninguna** — el guard deniega todo | 🟢 verde |
+| **WP existente con alcance** | Trabajo en curso | Solo las rutas de ese WP | 🟢 verde |
+| **WP inexistente o mal formado** | Estado incoherente | Ninguna | 🔴 **rojo** |
+
+Compruébalo en cualquier momento:
+
+```bash
+bash tests/governance/check-active.sh
+```
+
+Responde `REPOSO`, `ACTIVO: WP-XXX` o `ERROR`, con código de salida 0, 0 y ≠0 respectivamente. Es el mismo comando que ejecuta el CI, así que lo que veas en tu terminal es lo que verá GitHub.
+
+**Por qué el reposo importa.** Mientras hay un WP activo, su alcance está abierto. Dejar activo un WP ya terminado —sobre todo uno de alcance amplio como el de bootstrap— significa dejar esa puerta abierta sin que nadie esté trabajando. El reposo la cierra.
+
+**Qué NO significa.** El reposo no relaja ningún control: el guard sigue denegando escrituras, y de hecho las deniega *todas*. Lo único que cambia respecto a un WP activo es que no hay ninguna ruta autorizada.
+
+### Iniciar un WP (salir del reposo)
+
+Escribir en `ACTIVE` es un **acto del operador humano**, no del agente. Ningún WP debe listar `work-packages/ACTIVE` entre sus archivos permitidos: un encargo que puede reescribir el archivo que define su propio alcance puede ampliárselo a voluntad, y todo el control se desmorona.
+
+```bash
+echo "WP-015" > work-packages/ACTIVE
+bash tests/governance/check-active.sh          # debe decir ACTIVO: WP-015
+git add work-packages/ACTIVE && git commit -m "WP-015: activar work package"
+```
+
+### Volver al reposo
+
+```bash
+printf '# fabrica en reposo: sin WP activo\n' > work-packages/ACTIVE
+bash tests/governance/check-active.sh          # debe decir REPOSO
+```
+
+### Qué exige aprobación humana
+
+| Acción | ¿Puede hacerla un agente? |
+|---|---|
+| Implementar dentro del alcance de un WP `ready` | Sí |
+| Pasar un WP de `draft` a `ready` | **No** — es tu firma del contrato |
+| Escribir en `ACTIVE` (activar o poner en reposo) | **No** — acto del operador |
+| Ampliar los archivos permitidos de un WP | **No** — cambio de contrato |
+| Fusionar una PR | **No** — durante la calibración, siempre humana |
+| Modificar `.claude/**`, `.github/**`, `CODEOWNERS` | **No** — denegado por `settings.json` |
 
 ## Los dos modos de ejecución
 

@@ -126,6 +126,30 @@ Tres respuestas posibles, en orden de preferencia:
 2. **El WP estaba mal definido** → amplía `## Archivos permitidos` **conscientemente**, con commit propio que deja rastro de por qué.
 3. **Nunca:** vaciar `ACTIVE`, ampliar a `**` o desactivar el hook para «desatascar». Eso no desatasca: apaga el control.
 
+## Cuando el propio gobierno queda bloqueado por el fail-closed
+
+Caso especial y desconcertante la primera vez: **hay que reparar el sistema de control, pero el sistema de control impide repararlo.** Ocurre cuando la fábrica está en reposo (`ACTIVE` vacío) y el arreglo exige escribir archivos — pero en reposo no hay ninguna ruta autorizada.
+
+No es un fallo: es el fail-closed haciendo exactamente lo que debe. Tampoco es un callejón sin salida. Protocolo, en este orden:
+
+**1. ¿El cambio no commiteado es el problema?** Si el estado bloqueante viene de una modificación sin guardar, descártala y vuelves al último estado válido:
+
+```bash
+git checkout -- work-packages/ACTIVE
+```
+
+Esto no elude nada: deshace algo que nunca llegó a formar parte del historial.
+
+**2. Abre un WP de mantenimiento con alcance mínimo.** No reabras un WP cerrado —y menos el de bootstrap, cuyo alcance es enorme—. Crea uno nuevo que liste **solo** los archivos que la reparación necesita, y actívalo. Ambos actos son del operador humano.
+
+**3. Si el arreglo toca rutas vedadas por `settings.json`** (`.github/workflows/**`, `.claude/hooks/**`, `.claude/settings.json`, `CODEOWNERS`), ningún agente podrá aplicarlo, tenga el WP el alcance que tenga. Son dos capas distintas: el WP dice *qué es del encargo*, y `settings.json` dice *qué no toca ninguna máquina*.
+
+La vía correcta es que el agente **prepare un script de parche verificado** —con copia de seguridad previa, validaciones posteriores y comprobación por huella de que no toca nada más— y que **una persona lo ejecute**. Queda auditable, es reversible, y la decisión sigue siendo humana.
+
+**4. Nunca:** desactivar el hook, vaciar el deny de `settings.json`, ampliar un WP a `**`, ni reescribir un comando para evadir la detección. Si te ves haciendo cualquiera de esas cosas, el problema es el contrato, no el control.
+
+> **Lección aprendida (2026-07-23).** Este protocolo existe porque pasó de verdad: vaciar `ACTIVE` era lo correcto, pero el CI trataba el reposo como error. Como ese job era check obligatorio, la reparación quedó bloqueada por el propio control que había que reparar. Se resolvió con un WP de mantenimiento de 5 rutas y un parche aplicado por el humano. Ver `WP-006`.
+
 ## Qué hacer con un WP bloqueado
 
 ```bash

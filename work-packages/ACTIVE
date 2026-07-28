@@ -2,5 +2,10 @@
 # Lo lee .claude/hooks/guard.sh para decidir qué rutas se pueden escribir.
 # Estado operativo en archivo, nunca en la sesión (ver specs/adr/ADR-001-runtime.md).
 #
-# Vaciar este archivo BLOQUEA toda escritura (fail-closed). Es intencionado.
-WP-000
+# Vaciar este archivo deja la fábrica EN REPOSO: fail-closed para escrituras,
+# pero es un estado VÁLIDO y el CI lo acepta.
+# Ver tests/governance/check-active.sh y docs/manual/02-ciclo-de-un-wp.md.
+#
+# Las transiciones de este archivo son actos del operador humano, no del agente:
+# ningún WP debe listarlo entre sus archivos permitidos.
+WP-006
