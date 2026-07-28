@@ -1,0 +1,37 @@
+==============================================================
+ WP-006 — Reparación del gobierno del estado de reposo
+ Fecha: 2026-07-23 17:40:23
+==============================================================
+
+--- Paso 0: comprobaciones previas ---
+  OK  repositorio correcto y script de gobierno presente
+  OK  huellas de control registradas
+
+--- Paso 1: copias de seguridad ---
+  evidence/WP-006/backups/20260723-174023/{ci.yml,guard.sh}
+
+--- Paso 2: CAMBIO 1 — ci.yml ---
+  Paso inline sustituido por la llamada al script.
+  Añadido el paso de pruebas de la validación de gobierno.
+
+--- Paso 3: CAMBIO 2 — guard.sh ---
+  Filtro de exentos movido antes de la resolución del WP activo.
+
+--- Paso 4: validaciones ---
+  OK  ci.yml es YAML válido
+  OK  actionlint sin hallazgos
+  OK  shellcheck sin hallazgos
+  OK  check-active.sh sobre este repo
+  OK  pruebas del validador
+
+--- Paso 5: integridad (nada más ha cambiado) ---
+  OK     settings.json  SIN modificar
+  OK     CLAUDE.md      SIN modificar
+  OK     CODEOWNERS     SIN modificar
+  OK     ACTIVE         SIN modificar
+  OK     agentes        SIN modificar
+
+==============================================================
+ RESULTADO: TODO CORRECTO
+ No se ha hecho commit, ni push, ni cambios en GitHub.
+==============================================================
