@@ -200,12 +200,52 @@ bash tests/governance/check-active.sh          # debe decir REPOSO
 
 | Acción | ¿Puede hacerla un agente? |
 |---|---|
+| **Redactar** un WP nuevo en `draft` (skill `/new-work-package`) | **Sí** — es una propuesta, no un contrato firmado |
 | Implementar dentro del alcance de un WP `ready` | Sí |
 | Pasar un WP de `draft` a `ready` | **No** — es tu firma del contrato |
 | Escribir en `ACTIVE` (activar o poner en reposo) | **No** — acto del operador |
+| Marcar un WP `blocked` o `done` | **No** — acto del operador: cambia el estado contractual |
 | Ampliar los archivos permitidos de un WP | **No** — cambio de contrato |
+| Modificar `work-packages/_TEMPLATE.md` | **No** — es el contrato de los contratos |
 | Fusionar una PR | **No** — durante la calibración, siempre humana |
 | Modificar `.claude/**`, `.github/**`, `CODEOWNERS` | **No** — denegado por `settings.json` |
+
+## Las PR de operador (`ops/*`)
+
+Algunos cambios no pertenecen al encargo de ningún WP, sino al **andamiaje que define los encargos**: aprobar un WP, cambiar su estado contractual, mover `ACTIVE`, corregir `_TEMPLATE.md`. Viajan en una **PR de operador**: rama `ops/<descripcion>`, sin WP asociado, y **no implementan nada**.
+
+La norma que las justifica es una sola: **un WP no puede reescribir su propio contrato ni `ACTIVE` para ampliarse el alcance.** Un encargo capaz de editar el archivo que define su alcance puede ampliárselo a voluntad, y el enforcement se desmorona. De ahí que los WPs de trabajo declaren `work-packages/**` entre sus **archivos prohibidos** —WP-002 y WP-006 lo hacen explícitamente— y que ningún WP liste `ACTIVE` entre sus permitidos.
+
+No es que `work-packages/` sea intocable en abstracto: es que **no lo toca el WP que se está ejecutando**. Quién puede hacer qué está en la tabla «Qué exige aprobación humana», más arriba. En particular, **redactar** un WP nuevo en `draft` sí es trabajo de agente —para eso está `/new-work-package`—; lo que es firma humana es **aprobarlo** pasándolo a `ready`.
+
+### PR de WP y PR de operador
+
+| | PR de WP (`wp/WP-XXX-*`) | PR de operador (`ops/*`) |
+|---|---|---|
+| Qué contiene | La implementación del WP | Cambios de contrato y de estado |
+| Quién la aplica | **El agente**, dentro del alcance del WP (ver excepción abajo) | **Una persona** |
+| Qué toca | Solo `## Archivos permitidos` del WP | `work-packages/**`, `ACTIVE`, `_TEMPLATE.md` |
+| Qué NO toca | El contrato que la gobierna | La implementación de ningún WP |
+| Fusión | Humana | Humana |
+
+**Excepción en la PR de WP.** Las rutas vedadas por `settings.json` —`.claude/hooks/**`, `.github/workflows/**`, `.claude/settings.json`, `CODEOWNERS`— **no las escribe ningún agente, tenga el WP el alcance que tenga**. Ahí el agente prepara un **parche verificado** —copia de seguridad, huella `sha256`, validaciones posteriores y prueba de que no toca nada más— y **lo ejecuta una persona**. Protocolo completo en [05 — Bloqueos y parada](05-bloqueos-y-parada.md).
+
+**Cuándo bloquea el guard.** Depende del **WP activo**, no del nombre de la rama: `guard.sh` no sabe en qué rama estás. Si el WP en curso declara `work-packages/**` entre sus prohibidos —lo habitual—, denegará al agente cualquier escritura ahí y el cambio tendrá que aplicarlo el operador. Con la fábrica en reposo deniega todo. No lo supongas: mídelo con la prueba en seco del Paso 2.
+
+### Actos habituales en una PR de operador
+
+| Acto | Qué hace |
+|---|---|
+| Preparar | Aprueba un WP `draft` → `ready` y lo activa en `ACTIVE` |
+| Bloquear | Marca un WP `blocked`, con la causa exacta y el criterio de desbloqueo |
+| Cerrar | Marca el WP `done` y devuelve la fábrica al reposo |
+| Corregir contrato | Alinea `_TEMPLATE.md` o un WP con una decisión de `specs/decisions/` |
+
+Una misma PR de operador puede **combinar varios**: la que bloqueó WP-002 preparó además WP-007, alineó `_TEMPLATE.md` con DEC-002 y movió `ACTIVE`, todo en un mismo diff.
+
+**Lo que nunca combina es implementación.** Si el cambio necesita tocar `work-packages/` y además escribir código, son **dos PRs**: la de operador primero, la del WP después. Mezclarlas devuelve el sistema al estado en que era imposible verificar el alcance — y es el motivo por el que `check_scope` (WP-002) **no** lleva exenciones nominales para `work-packages/`.
+
+> **Deuda declarada.** El contrato de WP-005 hará **fallar** el job de alcance cuando la rama no encaje en `wp/(WP-[0-9]{3})-.*`, lo que rompería toda PR de operador. Antes de marcar ese check como obligatorio, WP-005 debe decidir qué hace con las ramas `ops/*`. Registrado en `work-packages/WP-002-check-scope.md`, sección «Deuda declarada: WP-005 y las ramas `ops/*`».
 
 ## Los dos modos de ejecución
 

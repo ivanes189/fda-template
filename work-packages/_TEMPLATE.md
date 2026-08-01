@@ -70,7 +70,24 @@ PRECEDENCIA
   · Lo que no coincide con ningún patrón permitido, se deniega (lista blanca).
 
 TRAVERSAL Y ENLACES
-  · Cualquier ruta que contenga ".." se deniega, coincida o no con un patrón.
+  · Una ruta tiene TRAVERSAL si y solo si, al separarla por "/", ALGUNO de sus
+    componentes es exactamente ".." — dos puntos y nada más.
+        Traversal:     ..    ../x    docs/../x    docs/..
+        NO traversal:  notas..md   ..oculto.md   bar..   foo../bar
+    Una subcadena ".." dentro de un nombre legítimo NO es traversal.
+  · Se deniega coincida o no con un patrón, y se comprueba ANTES que
+    "Archivos prohibidos" y "Archivos permitidos": es una decisión de buena
+    formación de la ruta, no de allowlist.
+  · Un componente ".." NUNCA se resuelve contra el que le precede.
+    docs/../docs/x.md conserva su ".." y se deniega, aunque el plegado hubiera
+    caído dentro del alcance.
+  · La comprobación es puramente TEXTUAL: no se consulta el sistema de archivos
+    (nada de realpath, abspath, stat, readlink ni comprobación de existencia).
+  · Separar por "/" es la ÚNICA operación que esto introduce sobre la ruta. El
+    tratamiento de ".", de los separadores duplicados, de los iniciales y
+    finales y de las mayúsculas NO cambia.
+  · Norma vinculante y tabla de conformidad de 8 casos:
+      specs/decisions/DEC-002-semantica-de-traversal.md
   · Los symlinks NO amplían el alcance: un enlace situado dentro de una ruta
     permitida que apunte fuera de ella NO autoriza a escribir en el destino.
     Escribir a través de un symlink cuyo destino real cae fuera del alcance es
