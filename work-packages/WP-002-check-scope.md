@@ -1,12 +1,48 @@
 # WP-002 — `check-scope`: verificación determinista de alcance
 
-estado: ready
+estado: blocked
 prioridad: P0
 agente_responsable: implementer     agente_revisor: code-reviewer
 requisitos: [REQ-FDA-001]           adr: [ADR-001]
 presupuesto_max_eur: 40             max_ciclos_correccion: 2
 
 <!-- Revisores: qa (pruebas) + code-reviewer (revisión de la PR). -->
+
+## Bloqueo
+
+**`blocked` desde 2026-08-01. No se implementa.** Ninguna rama avanza y no se produce código contra este contrato.
+
+**Causa exacta.** La sección «Semántica de patrones» exigía a la vez dos cosas incompatibles:
+
+1. implementar «la semántica documentada en `_TEMPLATE.md`», cuya prosa decía «toda ruta que contenga `..` se deniega» —lectura de **subcadena**—; y
+2. cumplir el **invariante crítico** de coincidir con `.claude/hooks/guard.sh`, que implementa una tercera lectura —`case "$_rel" in *../*|*/..|..)`, §8 `check_target`— que no es ni la de subcadena ni la de componente.
+
+Medido sobre `guard.sh` con este WP activo y rutas de su propia allowlist —de modo que la única causa posible de denegación sea el traversal—, el hook **permite** `evidence/WP-002/notas..md`, `evidence/WP-002/..hidden.md` y `evidence/WP-002/bar..`, lo que contradice la prosa; y **deniega** `evidence/WP-002/foo../bar` con exit `2`, pese a que `foo..` es un nombre de directorio legítimo y ningún componente de esa ruta es `..`.
+
+Quien siguiera la prosa divergía del hook; quien copiara el hook incumplía el contrato escrito, que es lo que el `code-reviewer` comprueba. No es un problema de implementación que se resuelva con más esfuerzo: es un **defecto del contrato**, y por tanto una **Definition of Ready rota**. Se activaron las dos condiciones de parada específicas de este WP —ambigüedad en la semántica de los globs, y divergencia entre `guard.sh` y lo documentado— y la condición general n.º 2 de `CLAUDE.md`, contradicción entre requisitos.
+
+La contradicción está **resuelta** en [`DEC-002`](../specs/decisions/DEC-002-semantica-de-traversal.md): traversal es un **componente**, no una subcadena. Este contrato ya recoge esa semántica en «Semántica de patrones». Lo que sigue pendiente no es la norma, sino la **capa que todavía no la cumple**: `guard.sh`.
+
+**Criterio de desbloqueo.** Este WP puede volver a `ready` cuando se cumplan **todas** estas condiciones, verificables sobre `main` y sin interpretación:
+
+- [ ] La **PR de implementación de WP-007 está fusionada en `main`** por decisión humana (PR-3 de la migración de DEC-002).
+- [ ] En `main`, `.claude/hooks/guard.sh` juzga el traversal **por componente** conforme a DEC-002 §1–§3: el `case "$_rel" in *../*|*/..|..)` de §8 ha sido sustituido y ninguna ruta se juzga ya por subcadena.
+- [ ] En `main`, `bash tests/guard/run-suite.sh` termina en verde con las **siete** pruebas discriminantes nuevas y los **diez** `xfail` intactos —ni uno más, ni uno menos, ninguno promovido a `run`, ningún XPASS—.
+- [ ] Medido sobre `main`, `guard.sh` reproduce las **ocho** filas de la tabla de DEC-002 §7 en su columna «Tras WP-007»; en particular `evidence/WP-002/foo../bar` pasa de exit `2` a exit `0`.
+- [ ] Las validaciones de WP-007 están en verde y sus evidencias registradas en `evidence/WP-007/`.
+- [ ] `work-packages/_TEMPLATE.md` y la sección «Semántica de patrones» de este contrato describen la semántica por componente, sin resto alguno de la lectura de subcadena.
+
+**Qué NO forma parte del criterio.** No se exige que WP-007 figure ya versionado como `done`: sería circular, porque quien lo marca `done` es la misma PR que desbloquea este WP.
+
+**Cómo se materializa el desbloqueo.** Cumplido lo anterior, una **PR de operador** —PR-4 de la migración de DEC-002— realiza las **tres transiciones de estado en un mismo diff, de forma atómica**:
+
+1. `work-packages/WP-007-semantica-de-traversal.md` → `estado: done`
+2. este contrato → `estado: ready`
+3. `work-packages/ACTIVE` → `WP-002`
+
+El orden vinculante es, por tanto: **fusión humana de la implementación de WP-007 primero; PR-4 de operador después.** La implementación de este WP arranca **desde el `main` resultante**, con `guard.sh` ya alineado; nunca antes, porque hacerlo abriría exactamente la ventana de divergencia entre las dos capas que el invariante crítico existe para impedir.
+
+**Qué NO cambia con este bloqueo.** La sección «Fuente de confianza del contrato» sigue vigente **palabra por palabra**: rango exclusivamente `<base>...<head>`; revisión base `git merge-base <base> <head>`; contrato localizado y leído **solo** de esa revisión mediante objetos Git; prohibido `open()` sobre el working tree y prohibido resolver contra `HEAD`. DEC-002 cambia la semántica que interpreta el programa, **no** la fuente de confianza del contrato: `check_scope.py` **no leerá `specs/decisions/` en tiempo de ejecución**. El **caso 8** —contrato propio manipulado que añade rutas permitidas y aun así sigue siendo violación— queda **intacto** y sigue siendo la prueba de que la fuente de confianza es el `merge-base`.
 
 ## Objetivo y contexto
 
@@ -131,9 +167,15 @@ Sacar un archivo de una ruta permitida a una prohibida, y traerlo de una prohibi
 
 ### Semántica de patrones
 
-Exactamente la documentada en `work-packages/_TEMPLATE.md`, sección «Archivos permitidos». En particular: `*` no cruza `/`, `**` sí, `?` es un carácter que no sea `/`, las rutas son relativas a la raíz, un patrón terminado en `/` cubre todo su contenido, los metacaracteres de regex son literales, prohibidos gana sobre permitidos, lo que no coincide con ningún permitido se deniega, toda ruta que contenga `..` se deniega y los symlinks no amplían el alcance.
+Exactamente la documentada en `work-packages/_TEMPLATE.md`, sección «Archivos permitidos», **tal como la fija** [`DEC-002`](../specs/decisions/DEC-002-semantica-de-traversal.md). En particular: `*` no cruza `/`, `**` sí, `?` es un carácter que no sea `/`, las rutas son relativas a la raíz, un patrón terminado en `/` cubre todo su contenido, los metacaracteres de regex son literales, prohibidos gana sobre permitidos, lo que no coincide con ningún permitido se deniega y los symlinks no amplían el alcance.
 
-**Invariante crítico:** `check_scope.py` y `guard.sh` deben coincidir en su interpretación de los patrones. Una divergencia entre ambos produciría el peor resultado posible: un cambio que el hook permite y el CI rechaza, o al revés.
+**Traversal (DEC-002).** Una ruta tiene traversal **si y solo si alguno de sus componentes separados por `/` es exactamente `..`**. Una subcadena `..` dentro de un nombre legítimo —`notas..md`, `..oculto.md`, `bar..`, `foo../bar`— **no** es traversal. El componente `..` **no se resuelve** contra el anterior; la comprobación es puramente textual, sin consultar el sistema de archivos; y se hace **antes** de evaluar prohibidos y permitidos, denegando coincida o no con un patrón. DEC-002 §4 **no cambia** el tratamiento de `.`, de los separadores duplicados, de los iniciales o finales ni de las mayúsculas: en esos puntos cada implementación conserva exactamente el comportamiento que tiene hoy.
+
+La tabla de ocho casos de DEC-002 §7 es el **criterio de conformidad** y debe reproducirse como pruebas ejecutables en `tests/scope/`.
+
+Esto **no** altera la sección «Symlinks» de este contrato: allí `..` es información legítima del destino de un enlace y sí se resuelve, textualmente y contra el directorio del enlace, sin tocar disco. Son dos reglas distintas y confundirlas produce uno de dos defectos graves: un verificador de enlaces incapaz de seguir ningún destino relativo, o un verificador de rutas que se traga el traversal.
+
+**Invariante crítico:** `check_scope.py` y `guard.sh` deben coincidir en su interpretación de los patrones. Una divergencia entre ambos produciría el peor resultado posible: un cambio que el hook permite y el CI rechaza, o al revés. Por eso este WP **no se reinicia** hasta que la implementación de WP-007 esté fusionada en `main` y una PR de operador lo devuelva a `ready` (ver «Bloqueo»).
 
 ### Sin exenciones para `work-packages/`
 
