@@ -150,6 +150,39 @@ La vía correcta es que el agente **prepare un script de parche verificado** —
 
 > **Lección aprendida (2026-07-23).** Este protocolo existe porque pasó de verdad: vaciar `ACTIVE` era lo correcto, pero el CI trataba el reposo como error. Como ese job era check obligatorio, la reparación quedó bloqueada por el propio control que había que reparar. Se resolvió con un WP de mantenimiento de 5 rutas y un parche aplicado por el humano. Ver `WP-006`.
 
+## Pausa activa: la migración de DEC-002 (desde 2026-08-03)
+
+La migración de DEC-002 está **pausada tras PR-2** por [DEC-003](../../specs/decisions/DEC-003-pausa-migracion-y-contencion.md). WP-007 sigue **oficialmente `ready`** y WP-002 sigue `blocked`. Solo pueden progresar DEC-004, WP-008, WP-009 y las transiciones de operador que la decisión enumera. **Fecha de revisión: 2026-08-10.**
+
+### WP-007 está congelado, no detenido antes de empezar
+
+Existe en un worktree separado una **implementación candidata de WP-007, aplicada localmente y sin versionar**. No es un WP terminado, ni revisado, ni APTO: le faltan `cost.md`, la evidencia postcommit, la revisión que exige su contrato, y reconciliar su `PENDIENTE-HUMANO.md` con los logs 15–22.
+
+Mientras dure la pausa, sobre ese trabajo **no** se hace ninguna edición nueva, ni `git add`, `commit`, `stash`, `checkout`, `restore`, cambio de rama, `push`, apertura de PR ni fusión. Levantarlo exige una decisión humana posterior y separada.
+
+La congelación es **verificable, no solo declarada**: DEC-003 §1 registra una huella de **siete magnitudes** —`HEAD`, índice limpio, 3 archivos rastreados modificados, 32 archivos de evidencia, dos SHA-256 de contenido y **35 entradas Git visibles con su propio SHA-256**— recalculable con comandos de solo lectura. La séptima detecta la aparición, desaparición, staging o cambio de clasificación de cualquier ruta Git visible, también fuera de `evidence/WP-007/`; las de contenido detectan lo que `git status` por sí solo no ve. «0 commits» y «sin PR» no bastan: ninguno observa el árbol de trabajo.
+
+Conviene no confundir dos líneas base de la suite del guard: la **versionada** en `main` es `68 · 0 · 10 · 0`; la **candidata local** de WP-007 es `75 · 0 · 10 · 0`. Ninguna acción admitida por la pausa modifica `tests/guard/run-suite.sh`.
+
+Cuando WP-007 se reanude, su versión de este capítulo **no sobrescribe** la que introdujo DEC-003: tendrá que **reconciliarse con ella y preservar ambos contenidos**.
+
+### El ciclo de `ACTIVE` durante la pausa
+
+`ACTIVE` empieza en reposo y **no se queda vacío toda la pausa**. Cada transición es un acto del operador humano:
+
+| Paso | `ACTIVE` | Condición |
+|---|---|---|
+| 1 | Reposo | Al registrar DEC-003 |
+| 2 | `WP-008` | Contrato completo, validado y aprobado |
+| 3 | Reposo | Cierre de WP-008 |
+| 4 | `WP-009` | Contrato completo, validado y aprobado |
+| 5 | Reposo | Cierre de WP-009 |
+| 6 | `WP-007` | Solo al cumplirse el criterio de salida; cierra la pausa |
+
+Un WP activo cada vez. Entre WPs, reposo. Mientras `ACTIVE` esté vacío no hay ninguna ruta autorizada.
+
+El **WP de mantenimiento de alcance mínimo** descrito más arriba sigue siendo el protocolo general y legítimo para reparar el gobierno cuando el fail-closed lo bloquea. **Para esta pausa concreta, el operador ha decidido no emplear esa vía** y ha elegido **preparación en solo lectura más materialización humana**: los contratos de los WPs admitidos se redactan sin escribir en el repositorio, y los materializa y activa el operador.
+
 ## Qué hacer con un WP bloqueado
 
 ```bash
