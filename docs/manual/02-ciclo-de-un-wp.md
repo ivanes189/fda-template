@@ -208,7 +208,8 @@ bash tests/governance/check-active.sh          # debe decir REPOSO
 | Ampliar los archivos permitidos de un WP | **No** — cambio de contrato |
 | Modificar `work-packages/_TEMPLATE.md` | **No** — es el contrato de los contratos |
 | Fusionar una PR | **No** — durante la calibración, siempre humana |
-| Modificar `.claude/**`, `.github/**`, `CODEOWNERS` | **No** — denegado por `settings.json` |
+| Modificar `.github/workflows/**`, `CODEOWNERS`, `.claude/hooks/**` o `.claude/settings.json` | **No** — denegado por `settings.json` |
+| Modificar el resto de `.claude/**` (agentes, skills) | **Depende del WP** — no lo cubre ese deny: lo gobiernan el alcance del WP activo y el guard |
 
 ## Las PR de operador (`ops/*`)
 
@@ -254,6 +255,10 @@ Una misma PR de operador puede **combinar varios**: la que bloqueó WP-002 prepa
 | Cómo | Tú en Claude Code lanzando agentes | `@claude implementa WP-014` en un issue |
 | Cuándo | **Calibración** (recomendado al empezar) | Cuando los contratos estén rodados |
 | Contratos | Los mismos | Los mismos |
-| Control de coste | `/cost` por sesión | `--max-turns` en `claude_args` |
+| Control de coste | F1/F2/F3 según [DEC-004](../../specs/decisions/DEC-004-estados-del-coste.md) | F1/F2 según DEC-004 · `--max-turns` en `claude_args` |
 
 Mismos contratos porque el gobierno vive en archivos del repositorio, y el agente los carga igual en tu máquina que en un runner.
+
+**El contrato objetivo no depende de pantallas; durante el periodo provisional F3 todavía requiere una lectura humana de `/usage`.** La cifra se adquiere por **F1** (JSON estructurado), **F2** (OpenTelemetry) o **F3** (estimación humana con base concreta), y solo por esas tres. `/cost` existe como alias de `/usage`, pero muestra un panel de sesión: sirve como base F3 y **nunca** como adquisición automática.
+
+**Provisional y objetivo, que no son lo mismo.** Hasta que se fusione **WP-010**, la adquisición por F3 sigue siendo un acto humano previo al cierre del WP, y ningún `cost.md` está validado automáticamente. El objetivo —captura y validación headless, con código de salida significativo, conforme a [ADR-001](../../specs/adr/ADR-001-runtime.md) I2 e I3— lo entrega WP-010. Formato, campos y estados: [06 — Costes y métricas](06-costes-y-metricas.md).
