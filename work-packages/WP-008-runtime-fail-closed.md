@@ -4,7 +4,7 @@ estado: ready
 prioridad: P0
 agente_responsable: implementer     agente_revisor: code-reviewer
 requisitos: [REQ-FDA-001, REQ-FDA-003, SEC-001]  adr: [ADR-001]
-presupuesto_max_eur: 40             max_ciclos_correccion: 2
+presupuesto_max_eur: 40             max_ciclos_correccion: 3
 
 <!-- Revisores: qa (pruebas) + code-reviewer (revisión de la PR) + security-reviewer
      OBLIGATORIO, porque este WP toca CI y el sistema de permisos.
@@ -18,6 +18,25 @@ presupuesto_max_eur: 40             max_ciclos_correccion: 2
      de .claude/settings.json: NINGÚN agente escribe esos dos archivos, tenga
      este WP el alcance que tenga. Los aplica una persona con el parche
      verificado de "Contratos técnicos" §7. -->
+
+## Replanificación humana — 2026-08-08
+
+**Acto del operador.** Esta sección la escribe y la aplica **una persona**, en una PR de operador, igual que la materialización y la activación del contrato. `work-packages/**` sigue siendo ruta **prohibida** para todo agente: ningún agente edita este archivo.
+
+**Los dos ciclos sobre el contrato anterior están consumidos y cerrados.** No se abre un tercer ciclo sobre él. Lo que ocurre aquí es lo que corresponde cuando la causa está en el contrato: el operador **para**, registra la causa, **reescribe el contrato** y autoriza una **nueva iteración sobre el contrato ya corregido**. [`docs/manual/05-bloqueos-y-parada.md`](../docs/manual/05-bloqueos-y-parada.md) §8 señala esa dirección —«¿El contrato estaba mal definido? → reescribe el WP»— y **no** autoriza por sí solo ninguna iteración adicional: quien la autoriza es esta decisión humana, fechada y registrada en archivo.
+
+**Qué significa `max_ciclos_correccion: 3`.** El recuento **es acumulado y no se reinicia**: los dos ciclos ya consumidos siguen contando. El tercer hueco es la **autorización excepcional y única** que permite iterar sobre este contrato corregido, y **no debe leerse como un tercer ciclo ordinario sobre el contrato antiguo**. **Un cuarto ciclo exigiría otra decisión humana, nueva y fechada**; esta sección no lo concede.
+
+**Causa raíz, en dos capas que no se excusan entre sí.**
+
+| Capa | Defecto | Dónde se corrige |
+|---|---|---|
+| **Contrato** | Incompleto: exigía usar el evento del hook y decía para qué capacidades, pero **no definía el esquema oficial** de los mensajes de `--include-hook-events` **ni ninguna regla determinista de asociación** entre un evento y una llamada concreta | §5c, nueva y contractual |
+| **Implementación y pruebas** | Se trabajó sobre un **esquema sintético incorrecto** —`type` igual a `hook_event`, con `hook_event_name`, `tool_name`, `tool_use_id` y `tool_input`— y la asociación se decidió por **búsqueda de subcadenas**, que **acepta colisiones** como `tu_1` dentro de `tu_10` o `cd sub` dentro de `cd sub2`. Las pruebas heredaron ese mismo esquema inventado y por eso salieron en verde sin demostrar nada | §5c, más las **seis** pruebas negativas obligatorias |
+
+Ninguna de las dos capas disculpa a la otra: el contrato no dijo qué forma tenía el evento, **y** la implementación dio por buena una forma inventada sin verificarla contra la salida real. Ambas quedan registradas aquí y se replican en `evidence/WP-008/` conforme a [`docs/manual/05-bloqueos-y-parada.md`](../docs/manual/05-bloqueos-y-parada.md) §8.
+
+**Qué NO se autoriza.** No cambia el objetivo funcional de WP-008, ni sus archivos permitidos, ni sus prohibidos, ni el presupuesto, ni la composición exigida al runner —14 · 13 · 1 · 0—, ni los fixtures, ni el protocolo del parche, ni la cronología de los tres commits. No se reactiva ningún workflow, no se toca `main`, no se levanta la congelación de WP-007 y no se altera la lista cerrada de [`DEC-003`](../specs/decisions/DEC-003-pausa-migracion-y-contencion.md) §4, dentro de la cual WP-008 ya figura.
 
 ## Objetivo y contexto
 
@@ -42,6 +61,7 @@ Este WP es la primera de las dos condiciones del **criterio de salida de [`DEC-0
 - **`tests/runtime/test-check-config.sh`**: pruebas del preflight sobre fixtures propios, con contadores propios.
 - **`tests/runtime/test-protocolo.sh`**: prueba headless de la máquina de estados del parche, con contadores propios, ejecutada íntegramente sobre fixtures.
 - **`tests/runtime/runner-empirico.sh`**: runner versionado y headless que ejecuta las **catorce sondas lógicas** —los siete contextos de la matriz y las siete capacidades C1 a C7— mediante `claude -p`, decide cada veredicto de forma automática y devuelve un código de salida agregado significativo.
+- **`tests/runtime/test-runner-empirico.sh`**: pruebas deterministas de la lógica de decisión del runner —analizador del flujo `stream-json`, esquema contractual de eventos de §5c, asociación por ventana de orden, igualdad estructurada, y los dos regímenes de C1–C5/C7 y C6—, headless, **sin red, sin coste y sin ninguna invocación de `claude -p`**, con contadores propios.
 - **`tests/runtime/capturar-ci-rojo.sh`**: comprobador headless de las dos barreras de CI, con adquisición acotada en el tiempo y validación pura.
 - **`tests/runtime/test-capturar-ci-rojo.sh`**: pruebas del comprobador, headless y sin red, con contadores propios.
 - **`tests/runtime/check-alcance-wp008.sh`**: comprobaciones locales de conformidad de este WP —alcance del diff e invariante de cuarentena—, headless y con contadores propios.
@@ -337,7 +357,7 @@ claude -p "<instrucción de la subsonda>" \
 
 **Cómo decide el veredicto, sin intervención.** Para cada subsonda el runner exige que aparezca la **llamada de herramienta esperada** y clasifica: `BLOQUEADO` si la impidió el control aplicable —el hook `PreToolUse` para las herramientas incluidas en su matcher, o una regla `permissions.deny` para la lectura de C6—, y `PERMITIDO` si se ejecutó. **Si la llamada esperada no aparece, si aparece una llamada de herramienta inesperada, o si los eventos no permiten decidir automáticamente, la subsonda cuenta como fallida.** No existe la categoría de resultado no concluyente que pasa.
 
-**Uso de los eventos de hook.** C1 a C5, y la propia C7, exigen un evento `PreToolUse` procesable y asociado a su llamada decisiva. **C6 es la excepción explícita:** su llamada decisiva es `Read`, herramienta que no pertenece al matcher contractual, y el bloqueo lo emite `permissions.deny`; por tanto, para esa llamada no se espera ni se exige un evento de hook. En la subsonda de C6 posterior a `cd`, el evento de la llamada `Bash` acredita que el cambio de directorio atravesó el hook, pero no sustituye al `tool_result` de error de `Read`, que es el que decide la denegación.
+**Uso de los eventos de hook.** C1 a C5, y la propia C7, exigen un **ciclo de hook `PreToolUse` completo**, procesable y asociado a su llamada decisiva **conforme al esquema y a la regla de asociación de §5c, que son contractuales**: no se admite ninguna otra forma de asociar. **C6 es la excepción explícita:** su llamada decisiva es `Read`, herramienta que no pertenece al matcher contractual, y el bloqueo lo emite `permissions.deny`; por tanto, para esa llamada **no se espera ni se exige** ciclo de hook alguno. En la subsonda de C6 posterior a `cd`, el **único** ciclo exigido es el de la llamada `Bash` inicial, asociado a esa misma llamada por ventana de orden: acredita que el cambio de directorio atravesó el hook, y **no sustituye** al `tool_result` de error de `Read`, que es el que decide la denegación.
 
 **Entradas del matcher no expuestas.** Una entrada del matcher ausente del inventario de C2 se registra como **`legacy no disponible`**. No es una subsonda fallida, no resta de las conformes y no bloquea el WP.
 
@@ -399,6 +419,60 @@ Cada contexto es una **sonda lógica del runner de §5a**, especificada en `test
 - **Circularidad de arranque, resuelta por orden.** El agente se inicia **en la raíz** y comprueba **en solo lectura** que `.claude/hooks/guard.sh` existe y es ejecutable; implementa **primero** el runner y su especificación; el operador lo ejecuta; y **solo si sale `0`** continúa el resto. La comprobación de alcance de esta PR es además **headless y deliberadamente redundante**: la ejecuta `tests/runtime/check-alcance-wp008.sh`.
 - **Resultado esperado y su contrario.** Si la matriz demuestra que el hook **siempre** se ejecutó en los contextos de directorio, se registra que la hipótesis de `DEC-003` §1 **no se materializó** y el WP **se completa igualmente**: el anclaje de la ruta y el bloqueo ante hook ausente o no ejecutable son invariantes de robustez independientes del directorio de trabajo.
 
+#### 5c. Esquema contractual de los eventos de hook y asociación determinista
+
+Los dos ciclos anteriores trabajaron sobre un esquema **sintético e incorrecto**, inventado en las pruebas y nunca verificado contra la salida real. Aquí quedan fijados el esquema **contractual** y la **única** forma admitida de asociar un ciclo de hook a una llamada. El runner lo implementa y `tests/runtime/test-runner-empirico.sh` lo prueba. Si la versión instalada emitiera otra forma, **el WP para** y se solicita decisión: no se adivina, no se relaja y no se infiere por parecido textual.
+
+**Forma de los mensajes.** Con `--include-hook-events`, los mensajes de ciclo de vida del hook aparecen en el flujo `stream-json` con estos campos, comparados por **igualdad exacta**:
+
+| Campo | Valor contractual |
+|---|---|
+| `type` | `system` |
+| `subtype` | `hook_started`, `hook_progress` o `hook_response` |
+| `hook_event` | `PreToolUse` |
+| `hook_id` | Identificador del ciclo, presente en los tres subtipos |
+
+**Qué forma un ciclo, y qué no.** Un ciclo lo forman **exactamente dos** mensajes: un `hook_started` y un `hook_response` cuyos `hook_id` sean **idénticos carácter a carácter**. **`hook_progress` es opcional e informativo: no es necesario para formar un ciclo**, no lo completa, no lo sustituye y su ausencia no es un defecto; se procesa **solo si aparece**. Un `hook_started` sin su `hook_response`, un `hook_response` sin su `hook_started`, o un par con `hook_id` distintos **no forman ciclo**, y la subsonda que dependiera de él no es conforme.
+
+**Los mensajes de hook NO llevan `tool_use_id`.** Es el hecho que gobierna todo lo demás: ni `hook_started`, ni `hook_progress`, ni `hook_response` contienen el identificador de la llamada. Por tanto **no existe** ninguna igualdad de identificador entre un mensaje de hook y una llamada de herramienta, y construirla —por el medio que sea— es precisamente el error que esta replanificación corrige.
+
+**Las dos igualdades, y la que no existe.**
+
+| # | Igualdad exacta | Qué empareja |
+|---|---|---|
+| 1 | `tool_use.id` = `tool_result.tool_use_id` | Una llamada con **su** resultado |
+| 2 | `hook_started.hook_id` = `hook_response.hook_id` | Los **dos extremos** de un ciclo de hook |
+
+**No hay una tercera.** Entre el ciclo de hook y la llamada **no existe ningún identificador común**, y no debe fabricarse uno.
+
+**Asociación por ventana de orden, y por nada más.** Un ciclo de hook pertenece a una llamada **únicamente** porque aparece **después** del objeto `tool_use` de esa llamada y **antes** de su `tool_result` correspondiente, emparejado por la igualdad 1. `hook_started` y `hook_response` deben quedar **ambos** dentro de esa ventana. Un ciclo entero anterior al `tool_use`, entero posterior al `tool_result`, o con un extremo fuera, **no está asociado**.
+
+**Prohibida la búsqueda dentro del JSON serializado.** Queda **expresamente prohibido** buscar un `tool_use_id`, un comando o una ruta **dentro del JSON serializado** de un mensaje de hook —o de cualquier otra representación textual suya— para decidir la asociación. Además de no ser determinista, busca algo que **no está**. Las colisiones que esa técnica acepta son reales y están probadas abajo: `tu_1` casa dentro de `tu_10`, `cd sub` casa dentro de `cd sub2`, y la ruta del `.env` de la raíz casa dentro de la de `sub/anidado/.env`.
+
+**Identificación estructurada de la llamada.** La llamada concreta se identifica **leyendo campos**, nunca buscando texto:
+
+| Qué | Campo | Comparación |
+|---|---|---|
+| Herramienta | `tool_use.name` | Igualdad **exacta** de la cadena completa |
+| Comando de `Bash` | `tool_use.input.command` | Igualdad **exacta** del valor, tras recortar los extremos y **nada más** |
+| Ruta de `Read` | `tool_use.input.file_path` | Igualdad **exacta** de la ruta **canonicalizada físicamente**, contra la del archivo objetivo canonicalizada igual |
+| Identificadores | `tool_use.id`, `tool_result.tool_use_id`, `hook_id` | Igualdad **exacta** de la cadena completa. Nunca prefijo, sufijo ni contención |
+
+**Las seis pruebas negativas obligatorias.** Deterministas, sin red, sin coste y sin `claude -p`, sobre flujos sintéticos, en `tests/runtime/test-runner-empirico.sh`:
+
+| # | Prueba negativa | Debe |
+|---|---|---|
+| 1 | `tu_1` frente a `tu_10`, **en ambas direcciones** | **No emparejar** la llamada con el resultado |
+| 2 | `cd sub` frente a `cd sub2`, **en ambas direcciones** | **No identificar** la llamada |
+| 3 | `.env` de la raíz frente a `sub/anidado/.env`, **en ambas direcciones** | **No identificar** la llamada |
+| 4 | Ciclo **fuera de la ventana**: entero antes del `tool_use`, entero después del `tool_result`, y con un solo extremo fuera | **No asociar** |
+| 5 | `hook_started` y `hook_response` con `hook_id` **distintos** | **No formar ciclo** |
+| 6 | Mensaje con el **esquema sintético antiguo** —`type` igual a `hook_event`, con `hook_event_name`, `tool_name`, `tool_use_id` y `tool_input`— | **Rechazarlo**: no es un mensaje de ciclo de vida de `--include-hook-events` y no cuenta como `hook_started` ni como `hook_response` |
+
+Cada una **debe dejar no conforme** a la subsonda que dependiera de esa asociación. Un código distinto del esperado hace fallar el test con exit `1`.
+
+**C6 no cambia.** Este apartado fija **cómo** se asocia un ciclo de hook cuando se exige, no **a quién** se le exige. Para la llamada `Read` **no se exige ninguno**, y en `C6.tras-cd` el único ciclo exigido es el de la llamada `Bash` inicial, dentro de la ventana de esa misma llamada.
+
 ### 6. El smoke test de capacidades
 
 Especificado en `tests/runtime/smoke-capacidades.md` y **ejecutado por el runner de §5a**, como siete de sus catorce sondas lógicas. **La versión mínima se deriva de las capacidades demostradas, no de la versión observada en una auditoría.**
@@ -410,8 +484,8 @@ Especificado en `tests/runtime/smoke-capacidades.md` y **ejecutado por el runner
 | C3 | `CLAUDE_PROJECT_DIR` llega al proceso del hook y vale la raíz | El hook lo imprime con `FDA_GUARD_DEBUG=1` en el fixture |
 | C4 | `exit 2` bloquea y `exit 0` permite | Dos fixtures de hook trivial, uno por código |
 | C5 | Un código distinto de `0` y de `2` **no** bloquea | Fixture de hook trivial con `exit 1`. Es lo que justifica la normalización de §1a |
-| C6 | Una regla anclada con `/ruta` en settings de proyecto resuelve a la raíz del proyecto | Denegación efectiva desde la raíz y tras un `cd` a un subdirectorio |
-| C7 | Los eventos de ciclo de vida del hook llegan al flujo procesable | El evento del hook aparece en la salida `stream-json` con `--include-hook-events`; el runner lo exige para decidir C1 a C5 y C7. C6 se decide mediante `permissions.deny` sobre `Read`, que queda fuera del matcher y no dispara ese hook |
+| C6 | Una regla anclada con `/ruta` en settings de proyecto resuelve a la raíz del proyecto | Denegación efectiva desde la raíz y tras un `cd` a un subdirectorio. **No se exige ciclo de hook para `Read`**; el único exigido en la subsonda posterior a `cd` es el de la llamada `Bash` inicial |
+| C7 | Los eventos de ciclo de vida del hook llegan al flujo procesable | Aparece en la salida `stream-json` con `--include-hook-events` un ciclo con el **esquema contractual de §5c**: un `hook_started` y un `hook_response`, con `type` igual a `system`, `hook_event` igual a `PreToolUse` y el **mismo `hook_id`**, **ambos dentro de la ventana** de su llamada. **`hook_progress` no se exige**: es opcional y solo se procesa si aparece. El runner exige ese ciclo para decidir C1 a C5 y C7. C6 se decide mediante `permissions.deny` sobre `Read`, que queda fuera del matcher y no dispara ese hook |
 
 **Sobre `MultiEdit`.** El catálogo actual de herramientas de la documentación oficial **no incluye `MultiEdit`**: es una entrada **legacy** que las reglas de permiso y los matchers siguen aceptando. La comprobación **estructural** 3 del preflight sigue exigiendo las **cinco** entradas del matcher; el smoke **empírico** prueba solo las que el runtime exponga; si `MultiEdit` no está expuesta, se registra como `legacy no disponible`, **no resta de las 13 conformes** y **no bloquea el WP**; y si la versión medida sí la expusiera, **entonces debe probarse**. **Nada de esto autoriza a eliminarla del matcher ni a modificarlo en WP-008.**
 
@@ -818,6 +892,7 @@ Esta formulación es la **aclaración de un invariante ya exigido**, no una ampl
 
 ```bash
 bash -n tests/runtime/runner-empirico.sh
+bash -n tests/runtime/test-runner-empirico.sh
 bash -n tests/runtime/check-config.sh
 bash -n tests/runtime/test-check-config.sh
 bash -n tests/runtime/test-protocolo.sh
@@ -825,13 +900,14 @@ bash -n tests/runtime/capturar-ci-rojo.sh
 bash -n tests/runtime/test-capturar-ci-rojo.sh
 bash -n tests/runtime/check-alcance-wp008.sh
 bash -n evidence/WP-008/parche/aplicar.sh
-shellcheck --severity=warning --shell=bash tests/runtime/runner-empirico.sh tests/runtime/check-config.sh tests/runtime/test-check-config.sh tests/runtime/test-protocolo.sh tests/runtime/capturar-ci-rojo.sh tests/runtime/test-capturar-ci-rojo.sh tests/runtime/check-alcance-wp008.sh evidence/WP-008/parche/aplicar.sh
+shellcheck --severity=warning --shell=bash tests/runtime/runner-empirico.sh tests/runtime/test-runner-empirico.sh tests/runtime/check-config.sh tests/runtime/test-check-config.sh tests/runtime/test-protocolo.sh tests/runtime/capturar-ci-rojo.sh tests/runtime/test-capturar-ci-rojo.sh tests/runtime/check-alcance-wp008.sh evidence/WP-008/parche/aplicar.sh
 bash tests/runtime/check-config.sh
 bash tests/runtime/test-check-config.sh
 bash tests/runtime/test-protocolo.sh
 bash tests/runtime/test-capturar-ci-rojo.sh
 bash tests/runtime/check-alcance-wp008.sh
 bash tests/runtime/check-alcance-wp008.sh --cuarentena
+bash tests/runtime/test-runner-empirico.sh
 bash tests/runtime/runner-empirico.sh
 python3 .claude/skills/run-verification/validate-workflows.py .github/workflows
 python3 -m json.tool .claude/settings.json > /dev/null
@@ -883,6 +959,10 @@ De estos comandos, solo `runner-empirico.sh` usa la red y solo él no puede ejec
 - [ ] Las invocaciones usan `--setting-sources project`, `--tools` con el conjunto mínimo disponible y `--allowedTools` explícito por CLI, y **no** los `allow` del fixture
 - [ ] Cada sonda que necesita más de una herramienta declara en `matriz-empirica.md` su **allowlist mínima completa**
 - [ ] **Cualquier llamada de herramienta inesperada hace fallar la subsonda**
+- [ ] `bash tests/runtime/test-runner-empirico.sh` termina en **exit `0`** con **0 fallidas**, sin red, sin coste y sin ninguna invocación de `claude -p`, y cubre las **seis** pruebas negativas de §5c
+- [ ] Los ciclos de hook que el runner acepta cumplen el **esquema contractual de §5c** —`type` igual a `system`, `hook_event` igual a `PreToolUse`, y un `hook_started` y un `hook_response` con el **mismo `hook_id`**— y se asocian a su llamada **solo** por la **ventana de orden**; `hook_progress` **no se exige** y solo se procesa si aparece
+- [ ] **Ninguna** asociación se decide buscando `tool_use_id`, comandos ni rutas **dentro del JSON serializado** de un mensaje de hook, verificable por lectura del runner; las comparaciones de identificadores, comandos y rutas son **estructuradas y de igualdad exacta**, sobre `tool_use.name`, `tool_use.input.command` y `tool_use.input.file_path`
+- [ ] `C6` **no exige** ciclo de hook para `Read`; el único exigido en `C6.tras-cd` es el de la llamada `Bash` inicial, dentro de la ventana de esa misma llamada
 - [ ] El control neutral previo confirmó que `Edit`, `Write`, `NotebookEdit` y `Bash` están disponibles y superan su operación neutral, y cubre además cada **combinación mínima**
 - [ ] Toda sonda fallida o bloqueada de forma inesperada lleva anotado el resultado de su **control neutral equivalente**
 - [ ] `MultiEdit` es la **única** entrada que puede aparecer como `legacy no disponible`
@@ -972,6 +1052,7 @@ De estos comandos, solo `runner-empirico.sh` usa la red y solo él no puede ejec
 ## Evidencias exigidas (qué debe aparecer en evidence/WP-008/)
 
 - [ ] `empirico/runner.log` — **resumen saneado** del runner: una línea por sonda con veredicto, coste y código, más el resultado agregado
+- [ ] `empirico/test-runner.log` — salida íntegra de `test-runner-empirico.sh` con su código de salida, incluidas las **seis** pruebas negativas de §5c y el recuento de correctas y fallidas
 - [ ] `empirico/matriz/` — un extracto **derivado y saneado** por contexto: comando exacto, eventos pertinentes al veredicto, y el veredicto
 - [ ] `empirico/smoke/` — el mismo extracto por capacidad C1 a C7, con el registro automático de cualquier entrada del matcher no expuesta
 - [ ] `empirico/recuentos.md` — sondas lógicas, subsondas e invocaciones físicas, y la composición del resultado agregado
@@ -1010,6 +1091,7 @@ De estos comandos, solo `runner-empirico.sh` usa la red y solo él no puede ejec
 - Si `runner-empirico.sh` sale **distinto de cero** en el paso 3 del orden de aplicación: **parar**. El resto de la implementación no continúa.
 - Si el resultado agregado del runner no fuese exactamente 14 ejecutadas, 13 conformes, 1 `REGISTRADA_FUERA_DE_CONTRATO` y 0 no conformes: **parar**.
 - Si alguna sonda resultara **no decidible** automáticamente: **parar**. Se corrige el criterio de veredicto del runner.
+- Si los mensajes de hook observados **no cumplen el esquema contractual de §5c**, o si el par `hook_started`/`hook_response` no puede asociarse a su llamada por **ventana de orden**: **parar** y solicitar decisión. No se infiere el esquema por parecido textual, no se acepta el esquema sintético antiguo y no se vuelve a la búsqueda dentro del JSON serializado.
 - Si faltara `Edit`, `Write`, `NotebookEdit` o `Bash` en el catálogo efectivo, o si alguna no superara su operación neutral: **parar** con **error de entorno**. No se degrada a `legacy no disponible`.
 - Si un hook inesperado o una restricción gestionada alterase la capacidad medida: **parar** con exit `2`.
 - Si una sonda fallase y su control neutral equivalente también fallase: **parar**. Hay interferencia externa.
@@ -1054,8 +1136,8 @@ De estos comandos, solo `runner-empirico.sh` usa la red y solo él no puede ejec
 ### Orden de aplicación obligatorio
 
 1. El agente se inicia **en la raíz del repositorio** y comprueba **en solo lectura** que `.claude/hooks/guard.sh` existe y es ejecutable.
-2. El agente implementa **primero y conjuntamente** `tests/runtime/runner-empirico.sh`, `tests/runtime/matriz-empirica.md`, `tests/runtime/smoke-capacidades.md` y **únicamente los fixtures que esas sondas necesitan**. Los dos Markdown son la **especificación versionada que el runner aplica**: no pueden redactarse después de ejecutarlo.
-3. El operador ejecuta `bash tests/runtime/runner-empirico.sh` en modo headless. La salida va a un directorio **externo al repositorio**, cuya ruta física imprime el runner y **se conserva hasta `C_EVIDENCIA`**. **Solo si sale `0`** continúa el resto de la implementación.
+2. El agente implementa **primero y conjuntamente** `tests/runtime/runner-empirico.sh`, `tests/runtime/test-runner-empirico.sh`, `tests/runtime/matriz-empirica.md`, `tests/runtime/smoke-capacidades.md` y **únicamente los fixtures que esas sondas necesitan**. Los dos Markdown son la **especificación versionada que el runner aplica**: no pueden redactarse después de ejecutarlo. El paso se cierra ejecutando `bash tests/runtime/test-runner-empirico.sh` —determinista, sin red y sin coste—, que debe salir **`0`**.
+3. El operador ejecuta `bash tests/runtime/runner-empirico.sh` en modo headless, **solo después** de que el paso 2 haya cerrado con ese test en `0`: ninguna invocación de `claude -p` se lanza sobre una lógica de asociación no probada. La salida va a un directorio **externo al repositorio**, cuya ruta física imprime el runner y **se conserva hasta `C_EVIDENCIA`**. **Solo si sale `0`** continúa el resto de la implementación.
 4. Escribir `check-config.sh`, sus dos oráculos, sus pruebas, `test-protocolo.sh`, `capturar-ci-rojo.sh`, `test-capturar-ci-rojo.sh`, `check-alcance-wp008.sh`, el archivo de patrones y los fixtures restantes.
 5. Preparar los dos candidatos y `evidence/WP-008/parche/`, y ejecutar `test-protocolo.sh` sobre fixtures.
 6. Actualizar los cinco archivos de `docs/manual/`, la guía fundacional y `SEC-001`.
