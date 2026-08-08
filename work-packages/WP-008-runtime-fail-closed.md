@@ -4,7 +4,7 @@ estado: ready
 prioridad: P0
 agente_responsable: implementer     agente_revisor: code-reviewer
 requisitos: [REQ-FDA-001, REQ-FDA-003, SEC-001]  adr: [ADR-001]
-presupuesto_max_eur: 40             max_ciclos_correccion: 3
+presupuesto_max_eur: 40             max_ciclos_correccion: 4
 
 <!-- Revisores: qa (pruebas) + code-reviewer (revisión de la PR) + security-reviewer
      OBLIGATORIO, porque este WP toca CI y el sistema de permisos.
@@ -37,6 +37,37 @@ presupuesto_max_eur: 40             max_ciclos_correccion: 3
 Ninguna de las dos capas disculpa a la otra: el contrato no dijo qué forma tenía el evento, **y** la implementación dio por buena una forma inventada sin verificarla contra la salida real. Ambas quedan registradas aquí y se replican en `evidence/WP-008/` conforme a [`docs/manual/05-bloqueos-y-parada.md`](../docs/manual/05-bloqueos-y-parada.md) §8.
 
 **Qué NO se autoriza.** No cambia el objetivo funcional de WP-008, ni sus archivos permitidos, ni sus prohibidos, ni el presupuesto, ni la composición exigida al runner —14 · 13 · 1 · 0—, ni los fixtures, ni el protocolo del parche, ni la cronología de los tres commits. No se reactiva ningún workflow, no se toca `main`, no se levanta la congelación de WP-007 y no se altera la lista cerrada de [`DEC-003`](../specs/decisions/DEC-003-pausa-migracion-y-contencion.md) §4, dentro de la cual WP-008 ya figura.
+
+## Replanificación humana — 2026-08-09: orden causal del flujo
+
+La auditoría independiente del tercer ciclo ha demostrado que el analizador
+empareja `tool_use` y `tool_result` por igualdad exacta del identificador, pero
+no exige que el `tool_result` aparezca después de su `tool_use`. Como
+consecuencia, C6 puede aceptar un flujo sintético causalmente invertido.
+
+El tercer ciclo queda consumido. Esta decisión humana autoriza un cuarto y
+último ciclo de corrección, sin ampliar el alcance funcional de WP-008.
+
+Para toda llamada esperada, su `tool_result` correspondiente debe aparecer
+estrictamente después del `tool_use` en el flujo. La igualdad de identificadores
+es necesaria, pero no suficiente. Un resultado anterior, ausente o no
+emparejable deja la subsonda no conforme o no decidible.
+
+Un ciclo de hook exige además este orden:
+
+`tool_use < hook_started < hook_response < tool_result`
+
+Los dos extremos mantienen el mismo `hook_id` y deben estar dentro de la ventana
+de la llamada. `hook_progress` continúa siendo opcional.
+
+`tests/runtime/test-runner-empirico.sh` debe incluir pruebas negativas que
+demuestren el rechazo de:
+
+- un `tool_result` de Read anterior a su `tool_use` en C6;
+- ese mismo orden invertido en el Read de C6.tras-cd;
+- un `hook_response` anterior a su `hook_started`.
+
+No se autoriza ningún quinto ciclo sin otra decisión humana nueva y fechada.
 
 ## Objetivo y contexto
 
