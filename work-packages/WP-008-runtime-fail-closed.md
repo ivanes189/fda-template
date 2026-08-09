@@ -4,7 +4,7 @@ estado: ready
 prioridad: P0
 agente_responsable: implementer     agente_revisor: code-reviewer
 requisitos: [REQ-FDA-001, REQ-FDA-003, SEC-001]  adr: [ADR-001]
-presupuesto_max_eur: 40             max_ciclos_correccion: 6
+presupuesto_max_eur: 40             max_ciclos_correccion: 7
 
 <!-- Revisores: qa (pruebas) + code-reviewer (revisión de la PR) + security-reviewer
      OBLIGATORIO, porque este WP toca CI y el sistema de permisos.
@@ -151,6 +151,41 @@ No se autoriza otra ejecución empírica hasta que la corrección pase todas las
 validaciones deterministas y la auditoría independiente la declare apta.
 
 No se autoriza ningún séptimo ciclo sin otra decisión humana nueva y fechada.
+
+## Replanificación humana — 2026-08-09: causa empírica no demostrada
+
+La auditoría independiente del sexto ciclo confirma que la implementación y
+sus 152 pruebas deterministas son conformes, pero detecta una contradicción
+documental.
+
+smoke-capacidades.md y matriz-empirica.md presentan la falta de lectura previa
+como causa confirmada del error observado en Edit y NotebookEdit. La primera
+ejecución empírica no demostró esa causa: únicamente observó tool_result de
+error. La lectura preparatoria es una condición contractual introducida para
+eliminar una posible fuente de error, no una explicación empírica ya probada.
+
+El sexto ciclo queda consumido. Esta decisión humana autoriza un séptimo y
+último ciclo, exclusivamente documental y sin ampliar el alcance funcional de
+WP-008.
+
+El séptimo ciclo debe modificar únicamente:
+
+- tests/runtime/smoke-capacidades.md
+- tests/runtime/matriz-empirica.md
+
+Debe eliminar cualquier afirmación de que la lectura previa fue la causa real o
+de que Edit y NotebookEdit la requieren categóricamente por naturaleza. Debe
+explicar que el contrato exige la lectura preparatoria para descartar esa
+posible precondición y hacer interpretable la medición.
+
+No se modifica el runner, el analizador, las pruebas ni los nueve fixtures. Se
+deben repetir las validaciones deterministas existentes y conservar exactamente
+152 pruebas correctas y 0 fallidas.
+
+No se autoriza otra ejecución empírica hasta que la auditoría independiente
+declare conforme esta corrección documental.
+
+No se autoriza ningún octavo ciclo sin otra decisión humana nueva y fechada.
 
 ## Objetivo y contexto
 
