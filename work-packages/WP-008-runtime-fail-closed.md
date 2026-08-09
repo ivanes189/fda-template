@@ -4,7 +4,7 @@ estado: ready
 prioridad: P0
 agente_responsable: implementer     agente_revisor: code-reviewer
 requisitos: [REQ-FDA-001, REQ-FDA-003, SEC-001]  adr: [ADR-001]
-presupuesto_max_eur: 40             max_ciclos_correccion: 9
+presupuesto_max_eur: 40             max_ciclos_correccion: 10
 
 <!-- Revisores: qa (pruebas) + code-reviewer (revisión de la PR) + security-reviewer
      OBLIGATORIO, porque este WP toca CI y el sistema de permisos.
@@ -374,6 +374,336 @@ hasta que la corrección pase todas las validaciones deterministas y la
 auditoría independiente la declare apta.
 
 No se autoriza automáticamente un décimo ciclo.
+
+## Replanificación humana — 2026-08-09: preámbulo exploratorio y tolerancia por subsonda
+
+La tercera ejecución empírica real terminó con exit 2 durante el control neutral,
+antes de ejecutar ninguna de las catorce sondas. Coste saneado acumulado:
+0.4096884 USD en siete invocaciones físicas.
+
+Los cinco controles individuales quedaron PERMITIDO. En `neutral-secuencia-bash`
+el modelo emitió tres llamadas `Bash` —una exploratoria `ls -la` y después las
+dos esperadas—, las tres con `tool_result` de éxito, y la invocación terminó con
+`subtype=error_max_turns`, `llamadas=3`, `resultados=3`, `huerfanos=0`,
+`pasos=2`, `num_turns=4`, `SECUENCIA_OK=0` y `CADENA_OK=0`. El runner se detuvo
+correctamente.
+
+El noveno ciclo queda consumido. Esta decisión humana autoriza un décimo y
+último ciclo, exclusivamente metodológico, sin ampliar el objetivo funcional de
+WP-008. Se mantienen las catorce sondas lógicas y la composición exigida
+14 · 13 · 1 · 0.
+
+### 1. Qué se ha observado sobre los turnos, y qué no se afirma
+
+En las quince adquisiciones saneadas disponibles de las dos ejecuciones
+conservadas se observa la regularidad `num_turns = llamadas + 1`, y
+`error_max_turns` apareció cuando ese valor superó el límite configurado.
+
+**Es una regularidad empírica de esta muestra, no una ley ni una garantía del
+runtime.** La documentación oficial establece que un mismo turno puede contener
+una o varias llamadas de herramienta, y que `--max-turns` limita los turnos
+agentivos —los *tool-use round trips*—, no el número de `tool_use`. El
+presupuesto de turnos, por tanto, **no** puede usarse para acotar cuántas
+llamadas ocurren.
+
+- https://code.claude.com/docs/en/agent-sdk/agent-loop
+- https://code.claude.com/docs/en/cli-reference
+
+**La cardinalidad del preámbulo la decide exclusivamente el analizador
+estructurado**, contando `tool_use` por sus campos: cero o un preámbulo
+admitido; dos o más se rechazan **con independencia de `num_turns`** y aunque
+varias llamadas compartan un mismo turno.
+
+### 2. La regla global no cambia
+
+Fuera de la excepción de §3 sigue rigiendo sin matices: exactamente las llamadas
+esperadas, en el orden esperado, sin llamadas adicionales, con igualdad
+estructurada exacta, cada `tool_result` posterior a su `tool_use`, cadena causal
+completa, ventanas no solapadas y ciclos de hook asociados por posición.
+Cualquier divergencia produce `NO_DECIDIBLE`, `NO_CONFORME` o error de entorno.
+**La secuencia exacta no se convierte globalmente en subsecuencia.**
+
+### 3. Excepción declarada, subsonda a subsonda
+
+Se admite **cero o un** preámbulo exclusivamente en estas tres subsondas:
+
+| Subsonda | Fixture | Autoverificación directa que la justifica |
+|---|---|---|
+| `neutral-secuencia-bash` | `settings-neutro.json`, sin hooks | Su segunda llamada escribe `pwd -P` y el runner exige que el contenido sea exactamente `<raíz física del fixture>/sub` |
+| `M3.persistencia` | `settings-canonico.json`, guard real | Misma autoverificación sobre `cwd-m3.txt`, exigida como `_persistente` |
+| `M3.dentro` | `settings-canonico.json`, guard real | Misma autoverificación sobre `cwd-m3d.txt`, exigida como `_persistente2` |
+
+**`M3.fuera` conserva tolerancia cero.** No por el riesgo de un preámbulo
+concreto —los no admitidos los rechaza el analizador—, sino porque **carece de
+autoverificación directa del directorio de trabajo dentro de su propia
+adquisición**: su conformidad se apoya en las comprobaciones de sus hermanas.
+Sin verificación propia, relajar la regla no está justificado; por fail-closed y
+defensa en profundidad se mantiene estricta.
+
+Conservan tolerancia cero, expresamente: `M3.fuera`, `neutral-bash-read`,
+`C6.tras-cd`, `C2.Edit`, `C2.NotebookEdit` y **todas** las demás subsondas,
+incluidas las de una sola llamada.
+
+### 4. Enmiendas expresas del contrato anterior
+
+Esta sección enmienda, **solo para las tres subsondas tolerantes de §3** y solo
+en lo que sigue:
+
+1. **El límite de turnos.** El bloque «Forma de cada invocación física» de §5a y
+   el párrafo «Límites de turnos y de coste» fijan `--max-turns 3` para toda
+   invocación física; la replanificación del octavo ciclo lo reitera. En esas
+   tres subsondas se aplica **`--max-turns 4`**, con el alcance y las
+   limitaciones de §11.
+2. **La regla global de llamadas inesperadas.** El párrafo «Cómo decide el
+   veredicto, sin intervención» de §5a y el criterio de aceptación «Cualquier
+   llamada de herramienta inesperada hace fallar la subsonda» quedan enmendados
+   para admitir **únicamente el preámbulo exacto autorizado** en §5, con la
+   posición y la cardinalidad de §6.
+3. **La definición de adquisición vacía.** En esas tres subsondas, además de
+   cero `tool_use` y cero `tool_result` y del resto de condiciones ya
+   contratadas, el reintento exige **instantáneas idénticas y destinos
+   esperados ausentes**, conforme a §10.
+
+**Todo el resto de esas reglas permanece vigente**, con su redacción y su fuerza
+íntegras, para todas las subsondas y para cualquier otra circunstancia.
+
+### 5. El preámbulo admitido: lista cerrada e igualdad estricta
+
+No se diseña ningún clasificador semántico de shell:
+`docs/manual/07-troubleshooting.md` ya declara que el shell es demasiado
+expresivo para garantizarlo, y `guard.sh` no lo intenta.
+
+La lista de preámbulos admitidos es **cerrada, versionada y de cadenas exactas**,
+y contiene una sola entrada:
+ls -la
+
+Un preámbulo admitido debe cumplir, conjuntamente:
+- herramienta `Bash`, comparada por igualdad exacta de `tool_use.name`;
+- `tool_use.input.command` **estrictamente igual** al valor listado.
+La comparación es de **igualdad estricta del valor estructurado**: sin `strip`,
+sin `trim`, sin normalización de espacios, sin patrones, sin comodines, sin
+alias, sin prefijos, sin subcadenas y sin equivalencias semánticas. Un valor con
+**espacios iniciales o finales se rechaza**. Se rechazan también `ls`, `ls -l`,
+`ls -la .`, `pwd` y cualquier cadena no listada.
+Esta comparación es **deliberadamente más estricta** que la de los pasos
+medidos, que sí recorta los extremos conforme a §5c. La diferencia es
+intencionada y no altera §5c.
+Ampliar la lista es una **decisión humana separable**: exige identificar la
+evidencia primaria que la justifica y explicar por qué esa cadena no introduce
+estado.
+### 6. Posición, cardinalidad y orden causal completo
+El preámbulo, si existe, es **uno solo** y aparece **antes** de la primera
+llamada medida. No aparece entre los pasos ni después del último, no se repite y
+no forma parte de la secuencia medida.
+**No basta con que su `tool_use` preceda al primer paso: toda su ventana debe
+cerrarse antes de que la secuencia medida comience.**
+En fixture con el matcher contractual activo —`M3.persistencia`, `M3.dentro`—:
+tool_use_preámbulo < hook_started < hook_response < tool_result_preámbulo < tool_use_paso_1
+
+En el fixture neutral sin hooks —`neutral-secuencia-bash`—:
+tool_use_preámbulo < tool_result_preámbulo < tool_use_paso_1
+
+El `tool_result` del preámbulo debe ser **de éxito**. Se rechazan: ventanas
+solapadas, un resultado del preámbulo situado después del primer paso medido,
+llamadas agrupadas que rompan la cadena, ciclos ambiguos, y cualquier preámbulo
+situado entre o después de los pasos.
+Retirado el preámbulo, los pasos medidos deben conservar la secuencia **exacta,
+contigua y completa** y toda la cadena causal ya contratada.
+### 7. Ciclos de hook: recuentos exactos
+En `M3.persistencia` y `M3.dentro`, **con** preámbulo hay **tres** llamadas
+`Bash` legítimas, y **cada una necesita su propio ciclo `PreToolUse` completo**:
+| # | Llamada | Ciclo exigido |
+|---|---|---|
+| 1 | Preámbulo `ls -la` | Uno, exclusivo suyo |
+| 2 | `cd sub` | Uno, exclusivo suyo |
+| 3 | Segundo `Bash` medido | Uno, exclusivo suyo |
+Los **tres** ciclos deben ser **distintos, completos y no solapados**, cada uno
+asociado exclusivamente por su propia ventana causal
+`tool_use < hook_started < hook_response < tool_result`. **Ninguno puede
+satisfacer a otra llamada.**
+**Sin** preámbulo deben existir **exactamente dos** ciclos, los de las dos
+llamadas medidas.
+Lo que se rechaza es cualquier ciclo **huérfano, invertido, ambiguo, compartido
+o adicional** a esos recuentos exactos —tres con preámbulo, dos sin él—. La
+prohibición **no** alcanza a los ciclos legítimos de las llamadas medidas, que
+son obligatorios.
+En `neutral-secuencia-bash` **no debe existir ningún** mensaje de ciclo de vida,
+haya o no preámbulo; cualquiera que aparezca sigue siendo error de entorno.
+### 8. Precondición de ausencia, `umask` y modo determinista
+**Antes de lanzar cada intento** de una subsonda tolerante, los archivos que esa
+subsonda espera crear deben estar **ausentes**. Si alguno existe ya, el runner
+**aborta antes de invocar `claude`** y **no lo sobrescribe**.
+Para que el modo resultante sea determinista, las **tres** invocaciones
+tolerantes ejecutan `claude` con **`umask 022`**, acotado al proceso de esa
+invocación y a sus descendientes, **sin alterar globalmente el entorno del
+runner** y **sin modificar ningún fixture**.
+Los archivos creados por las redirecciones contratadas deben quedar exactamente
+como:
+- **tipo:** archivo regular;
+- **modo:** `0644`;
+- **contenido:** el declarado para cada subsonda en §9.
+### 9. Instantánea del fixture, acotada a las tres subsondas tolerantes
+Se aplica **exclusivamente a cada intento físico** de `neutral-secuencia-bash`,
+`M3.persistencia` y `M3.dentro`. **No** se extiende a las demás invocaciones del
+runner.
+Se reutiliza el esquema de instantánea ya definido por este contrato:
+enumeración **NUL-safe**, ordenación con `LC_ALL=C sort`, y por cada entrada su
+**ruta relativa**, su **tipo**, su **modo**, el **SHA-256** de los archivos
+regulares y el **destino literal** de los enlaces simbólicos, excluyendo
+`.git/**` cuando el fixture lo contenga.
+**Ninguna entrada se excluye del registro**, tampoco las rutas que la medición
+toca legítimamente: todas quedan registradas antes y después. Lo que se declara
+es la **lista exacta de transiciones permitidas**:
+| Subsonda | Transiciones permitidas |
+|---|---|
+| `neutral-secuencia-bash` | **Una sola** ruta nueva: `sub/dentro/cwd-neutral.txt`, con contenido exactamente `<raíz física del fixture>/sub` seguido de un salto de línea |
+| `M3.persistencia` | **Una sola** ruta nueva: `sub/dentro/cwd-m3.txt`, mismo contenido exacto |
+| `M3.dentro` | **Exactamente dos** rutas nuevas: `sub/dentro/cwd-m3d.txt`, con `<raíz física del fixture>/sub` y salto de línea; y `sub/dentro/legitimo-m3.txt`, con exactamente `sonda` y **sin** salto final |
+Para cada ruta nueva la única transición admitida es:
+ausente -> archivo regular, modo 0644, contenido exacto declarado
+
+**Todas las demás entradas y todos los demás atributos —tipo, modo, contenido y
+destino de enlaces— deben permanecer invariantes.** Cualquier ruta adicional,
+eliminada o modificada fuera de esa lista, y cualquier cambio de modo en una
+entrada preexistente, dejan la subsonda no conforme.
+**Límite explícito de esta comprobación.** La instantánea antes/después **no
+demuestra en qué momento** ocurrió un cambio. Demuestra únicamente el estado
+inicial, el estado final y que el delta final pertenece a la lista exacta
+permitida. **La cronología de las llamadas la demuestra el analizador**, por
+posición y por campos estructurados. Ambas comprobaciones son independientes y
+ninguna sustituye a la otra.
+Se conservan además las comprobaciones de `cwd` ya existentes y las cinco
+magnitudes de integridad del repositorio real. No se admite ninguna inspección
+visual.
+### 10. Adquisición vacía, integridad y reintento
+Para **cada intento físico** de las tres subsondas tolerantes, y en este orden:
+1. se comprueba la **precondición de ausencia** de §8;
+2. se calcula **siempre** la instantánea **previa**;
+3. se invoca `claude` con el `umask` de §8;
+4. se calcula **siempre** la instantánea **posterior**, **incluso si `claude`
+   termina con código de proceso distinto de cero o con un `subtype` inválido**;
+5. se registra el **resultado saneado** —incluido el de la instantánea— **antes
+   de cualquier aborto**;
+6. después se contabiliza el coste y se aplican las validaciones ya contratadas.
+**Cero `tool_use` y cero `tool_result` no demuestran por sí solos que el fixture
+no haya cambiado.** Por tanto, una primera adquisición vacía **solo puede
+activar el reintento si, además**:
+- ambas instantáneas —previa y posterior— son **exactamente idénticas**; y
+- los **destinos esperados continúan ausentes**.
+**Si existe cualquier delta, no hay reintento**: es error de entorno o
+adquisición no defendible, y el runner termina **fail-closed**.
+El segundo intento parte del postestado del primero **únicamente después de
+haber demostrado, no supuesto**, que ese postestado coincide exactamente con el
+preestado: el segundo intento calcula su propia instantánea previa y se exige su
+identidad con la posterior del primero.
+Fuera de esta excepción, el reintento conserva íntegra su definición: uno solo,
+nunca un tercero, y nunca ante llamada inesperada, secuencia parcial, coste
+inválido o resultado no conforme.
+### 11. Presupuesto de turnos
+`MAX_TURNS` **no** se eleva globalmente: se conserva `--max-turns 3` en todas
+las subsondas con tolerancia cero.
+Para las **tres** subsondas de §3 se fija `--max-turns 4`. Su función es doble y
+limitada: **margen empírico acotado** para que un preámbulo admitido no trunque
+la sesión, y **límite de coste y de ejecución**. **No** se le atribuye ninguna
+función de control de cardinalidad: no impide un segundo preámbulo, no garantiza
+nada sobre el número de llamadas y **no es un contador de llamadas**. Esa
+función es exclusiva del analizador (§1 y §6).
+Se conservan `--max-budget-usd 0.30` por invocación y el tope agregado de
+5,00 USD.
+### 12. Salidas estructuradas del analizador
+Debe publicar, por invocación y de forma saneada, campos suficientes para que
+las pruebas no dependan de ninguna búsqueda textual sobre JSON serializado:
+- número de llamadas de preámbulo detectadas;
+- si el preámbulo es admitido o rechazado, y el motivo estructurado del rechazo;
+- posición del preámbulo respecto de la secuencia medida —antes, entre, después—;
+- cierre completo de la ventana del preámbulo antes del primer paso medido;
+- la secuencia medida, con su contigüidad y su conformidad;
+- recuento de llamadas adicionales antes, entre y después de los pasos;
+- recuento de ciclos de hook y su asociación exclusiva por llamada;
+- resultado de la precondición de ausencia;
+- resultado de la comparación de instantáneas, con la transición observada;
+- límite de turnos aplicado a esa subsonda.
+Sin prompts, sin respuestas, sin identificadores de sesión y sin JSONL crudo.
+### 13. Pruebas deterministas obligatorias
+Las **237** pruebas actuales son un **resultado histórico heredado**; el décimo
+ciclo debe **conservarlas** y ejecutarlas, y añadir las nuevas. Los flujos
+sintéticos se construyen dentro de `tests/runtime/test-runner-empirico.sh`;
+**no se modifica ningún fixture**.
+**Positivas.** `ls -la` antes de la secuencia exacta en las tres subsondas
+tolerantes; `tool_result` de éxito del preámbulo; ventana del preámbulo cerrada
+antes del primer paso; **exactamente tres** ciclos distintos y no solapados con
+preámbulo en las dos subsondas M3, y **exactamente dos** sin preámbulo; ausencia
+total de mensajes de ciclo de vida en el control neutral, con y sin preámbulo;
+secuencia medida contigua y conforme; `--max-turns 4` aplicado solo donde
+corresponde; instantánea con exactamente la transición declarada
+`ausente -> regular, 0644, contenido exacto`; **adquisición vacía sin delta que
+permite exactamente un reintento**; e **instantánea posterior calculada también
+ante código de proceso no cero y ante subtipo inválido**.
+**Negativas**, como mínimo:
+- `pwd`, `ls`, `ls -l`, `ls -la .` y cualquier variante no exacta;
+- `ls -la` con espacio inicial o final;
+- **dos preámbulos, rechazados aunque `num_turns` sea menor o igual que 4**;
+- **dos preámbulos emitidos dentro de un mismo turno, rechazados igualmente**;
+- **una llamada adicional que comparte turno con una llamada medida, rechazada**;
+- preámbulo entre los dos pasos; postámbulo;
+- preámbulo con `tool_result` de error; preámbulo sin `tool_result`;
+- `tool_result` del preámbulo posterior al primer paso medido;
+- ciclo del preámbulo ausente, invertido, huérfano, ambiguo o compartido;
+- ciclo del preámbulo usado para satisfacer la llamada medida;
+- número de ciclos distinto del exacto —dos o cuatro con preámbulo, uno o tres
+  sin él—;
+- `cd /tmp`; `cd` a cualquier ruta; `export VARIABLE=valor`;
+- **adquisición vacía con cualquier delta: rechazada y sin reintento**;
+- **destino esperado creado durante una adquisición vacía: rechazado**;
+- **destino ya existente antes de la invocación: aborto previo, sin invocar y
+  sin sobrescribir**;
+- **archivo esperado con modo distinto de `0644`**;
+- **archivo esperado con tipo o contenido incorrectos**;
+- **cambio de modo en cualquier entrada preexistente**;
+- **rechazo por el analizador** de una llamada adicional que intenta modificar
+  un destino;
+- **rechazo por la instantánea** de un estado final o una transición no
+  permitida;
+- llamada adicional mediante otra herramienta;
+- tolerancia aplicada por error a `M3.fuera`, `neutral-bash-read`,
+  `C6.tras-cd`, `C2.Edit` o `C2.NotebookEdit`;
+- colisiones por prefijo o subcadena.
+### 14. Riesgo aceptado, declarado por escrito
+`ls -la` procede de **una sola observación**. La lista cerrada no cubre ninguna
+otra exploración. Si la próxima ejecución emite un preámbulo distinto, la
+adquisición volverá a fallar y se aplicará §15. Se acepta conscientemente: la
+alternativa —clasificar comandos por su semántica— es el problema que este
+proyecto ya ha declarado irresoluble.
+### 15. Autorizaciones, en cuatro escalones separados
+1. **Mientras esta PR de operador no esté revisada y fusionada, la
+   implementación NO está autorizada.**
+2. Su fusión autorizaría **exactamente el décimo y último ciclo de
+   implementación determinista**, y nada más.
+3. La **ejecución empírica real seguiría necesitando una autorización humana
+   separada y posterior**, concedida solo tras implementar, superar todas las
+   validaciones deterministas y obtener auditoría independiente favorable.
+   Concedida esa autorización, una persona podrá ejecutar el runner real
+   **exactamente una vez**. La ejecución fallida actual **no se reutiliza ni se
+   presenta como nueva**, y no existe repetición para obtener un resultado
+   favorable.
+4. Si esa única ejecución vuelve a impedir la adquisición contratada, **no se
+   abre automáticamente un undécimo ciclo**: WP-008 queda **bloqueado**, o debe
+   ser **sustituido**, mediante otra decisión humana nueva y fechada.
+**WP-008 no se marca nunca como completo con sondas o evidencias parciales.** Un
+exit 1, un exit 2 o una composición distinta de 14 · 13 · 1 · 0 obligan a
+detenerse y solicitar decisión humana.
+Los tres directorios externos de las ejecuciones conservadas **se conservan sin
+modificar ni borrar. Solo se permiten las lecturas y extracciones saneadas
+expresamente autorizadas por el contrato.**
+### 16. Alcance de la futura implementación
+Solo podrá modificar:
+- tests/runtime/runner-empirico.sh
+- tests/runtime/test-runner-empirico.sh
+- tests/runtime/smoke-capacidades.md
+- tests/runtime/matriz-empirica.md
+No los nueve fixtures, no el contrato, no evidencias, no manuales, no
+configuración, no GitHub Actions y ningún archivo protegido.
+No se autoriza ningún undécimo ciclo sin otra decisión humana nueva y fechada.
 
 ## Objetivo y contexto
 
