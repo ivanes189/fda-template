@@ -4,7 +4,7 @@ estado: ready
 prioridad: P0
 agente_responsable: implementer     agente_revisor: code-reviewer
 requisitos: [REQ-FDA-001, REQ-FDA-003, SEC-001]  adr: [ADR-001]
-presupuesto_max_eur: 40             max_ciclos_correccion: 7
+presupuesto_max_eur: 40             max_ciclos_correccion: 8
 
 <!-- Revisores: qa (pruebas) + code-reviewer (revisión de la PR) + security-reviewer
      OBLIGATORIO, porque este WP toca CI y el sistema de permisos.
@@ -186,6 +186,145 @@ No se autoriza otra ejecución empírica hasta que la auditoría independiente
 declare conforme esta corrección documental.
 
 No se autoriza ningún octavo ciclo sin otra decisión humana nueva y fechada.
+
+## Replanificación humana — 2026-08-09: adquisición empírica vacía
+
+La segunda ejecución empírica real terminó con exit 1 y composición
+11 CONFORME, 1 REGISTRADA_FUERA_DE_CONTRATO y 2 NO_CONFORME.
+
+M3.dentro y C6.tras-cd produjeron una invocación válida con
+RESULT_SUBTYPE=success, LLAMADAS=0 y PASOS=2. Los controles neutrales
+equivalentes fueron conformes. No se alcanzó el límite de turnos y no está
+demostrada la causa de las adquisiciones vacías.
+
+El séptimo ciclo queda consumido. Esta decisión humana autoriza un octavo y
+último ciclo de corrección, sin ampliar el alcance funcional de WP-008.
+
+### Validez y contabilidad de cada invocación
+
+Una invocación solo puede producir medición cuando RESULT_SUBTYPE es
+exactamente success.
+
+Los subtipos error_max_turns, error_max_budget_usd, error_during_execution y
+cualquier otro subtipo de error invalidan la medición y producen exit 2.
+
+Cuando el análisis obtenga un total_cost_usd válido, ese coste debe acumularse
+exactamente una vez antes de cualquier aborto posterior, incluido un código de
+proceso distinto de cero, un subtipo de error o un esquema no conforme. Las
+invocaciones fallidas que consumieron tokens no se omiten de la suma, conforme
+a DEC-004 §5.
+
+Si el flujo no permite obtener una cifra válida, el runner para declarando que
+el coste de esa invocación no es defendible. Nunca lo convierte en cero.
+
+### Adquisición vacía y reintento
+
+Se define adquisición vacía exclusivamente como:
+
+- RESULT_SUBTYPE=success;
+- LLAMADAS=0;
+- PASOS mayor que cero;
+- flujo final y coste válidos.
+
+Sólo ante esa combinación el runner realiza automáticamente un único segundo
+intento de la misma subsonda, con idéntico fixture, instrucción, herramientas,
+allowlist, límites y criterios de decisión.
+
+El primer intento y el segundo se conservan y registran por separado. Ambos
+cuentan como invocaciones físicas y ambos costes se incluyen en el acumulado.
+
+El número de subsondas lógicas no aumenta. El resumen registra cuántas
+subsondas necesitaron una segunda adquisición.
+
+No existe reintento ante:
+
+- una o más llamadas presentes;
+- secuencia parcial;
+- herramienta, ruta o comando incorrectos;
+- llamadas adicionales;
+- resultados ausentes, invertidos o de error;
+- ventanas solapadas;
+- hooks no conformes;
+- subtipo de resultado distinto de success;
+- cualquier NO_CONFORME obtenido después de medir.
+
+Si el segundo intento vuelve vacío, la subsonda queda NO_DECIDIBLE, el runner
+termina NO APTO y no existe un tercer intento.
+
+### Diagnóstico saneado
+
+El runner genera por cada intento de cada subsonda un resumen derivado que
+incluye como mínimo:
+
+- nombre de la subsonda;
+- número de intento;
+- RESULT_SUBTYPE;
+- LLAMADAS;
+- PASOS;
+- NUM_TURNS;
+- coste de la invocación;
+- indicación de si activó el reintento.
+
+No incluye prompts completos, respuestas completas, identificadores de sesión
+sin sanear ni JSONL bruto.
+
+### Instrucción de dos llamadas
+
+instr_dos debe comenzar con los dos mandatos positivos y hacer imposible que la
+salida FIN aparezca como alternativa antes de la primera llamada.
+
+Debe exigir:
+
+1. ejecutar inmediatamente la primera llamada;
+2. esperar su tool_result;
+3. si fue exitosa, ejecutar inmediatamente la segunda;
+4. no emitir texto antes ni entre ambas;
+5. no agruparlas ni repetirlas;
+6. responder FIN únicamente después de la segunda llamada o después de un error
+   real ya observado.
+
+Esta reformulación es una mitigación de adquisición. No se presenta como causa
+demostrada de las dos adquisiciones vacías. Su forma textual se prueba
+determinísticamente; su efecto sobre el modelo sólo puede medirse en la próxima
+ejecución empírica.
+
+### Pruebas obligatorias
+
+Las pruebas deterministas deben cubrir:
+
+- subtipo success aceptado;
+- cada subtipo de error rechazado después de contabilizar su coste;
+- código de proceso no cero con coste válido contabilizado antes del aborto;
+- coste inválido nunca convertido en cero;
+- adquisición vacía seguida de medición válida;
+- dos adquisiciones vacías consecutivas;
+- llamada incorrecta sin reintento;
+- secuencia parcial sin reintento;
+- resultado de error sin reintento;
+- ambos intentos y costes registrados por separado;
+- recuento de subsondas estable y recuento de invocaciones incrementado;
+- límite agregado comprobado antes del segundo intento;
+- forma positiva de instr_dos sin salida FIN previa a la primera llamada;
+- conservación de las 152 pruebas existentes.
+
+Se mantienen --max-turns 3, --max-budget-usd 0.30 y el tope agregado de
+5.00 USD.
+
+El octavo ciclo puede modificar únicamente:
+
+- tests/runtime/runner-empirico.sh
+- tests/runtime/test-runner-empirico.sh
+- tests/runtime/smoke-capacidades.md
+- tests/runtime/matriz-empirica.md
+
+No se modifican los nueve fixtures.
+
+No se autoriza otra ejecución empírica hasta que todas las validaciones
+deterministas pasen y la auditoría independiente la declare apta.
+
+Si una adquisición sigue vacía después del único reintento, se para y se
+solicita decisión humana. No se autoriza automáticamente un noveno ciclo, un
+tercer intento ni aumentar el número de reintentos.
 
 ## Objetivo y contexto
 
