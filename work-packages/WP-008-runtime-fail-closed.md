@@ -4,7 +4,7 @@ estado: ready
 prioridad: P0
 agente_responsable: implementer     agente_revisor: code-reviewer
 requisitos: [REQ-FDA-001, REQ-FDA-003, SEC-001]  adr: [ADR-001]
-presupuesto_max_eur: 40             max_ciclos_correccion: 4
+presupuesto_max_eur: 40             max_ciclos_correccion: 5
 
 <!-- Revisores: qa (pruebas) + code-reviewer (revisión de la PR) + security-reviewer
      OBLIGATORIO, porque este WP toca CI y el sistema de permisos.
@@ -68,6 +68,44 @@ demuestren el rechazo de:
 - un `hook_response` anterior a su `hook_started`.
 
 No se autoriza ningún quinto ciclo sin otra decisión humana nueva y fechada.
+
+## Replanificación humana — 2026-08-09: secuencia causal completa
+
+La auditoría independiente del cuarto ciclo ha demostrado que el analizador
+valida correctamente el orden entre cada `tool_use` y su propio `tool_result`,
+pero el veredicto general solo exige un resultado asociado para el último paso.
+
+Como consecuencia, una secuencia de dos pasos puede producir `PERMITIDO` o
+`BLOQUEADO` aunque el resultado del primer paso esté ausente o aparezca antes de
+su `tool_use`. También puede aceptar ventanas solapadas cuando la segunda
+llamada aparece antes del resultado de la primera.
+
+El cuarto ciclo queda consumido. Esta decisión humana autoriza un quinto y
+último ciclo de corrección, sin ampliar el alcance funcional de WP-008.
+
+Para una secuencia de N pasos, cada llamada esperada debe tener un
+`tool_result` asociado y posterior. Para dos pasos consecutivos se exige:
+
+`tool_use_1 < tool_result_1 < tool_use_2 < tool_result_2`
+
+La regla se aplica igualmente a controles neutrales, M3 y C6.tras-cd. Las
+ventanas de dos llamadas esperadas no pueden solaparse y un mismo ciclo de hook
+no puede satisfacer simultáneamente a dos llamadas.
+
+Si falta el resultado de cualquier paso, está invertido o la siguiente llamada
+comienza antes del resultado del paso anterior, la subsonda queda
+`NO_DECIDIBLE` o `NO_CONFORME`, independientemente del resultado del paso
+decisivo y del sistema de archivos.
+
+`tests/runtime/test-runner-empirico.sh` debe demostrar el rechazo de:
+
+- una secuencia de dos pasos cuyo primer resultado esté invertido;
+- una secuencia de dos pasos cuyo primer resultado esté ausente;
+- dos llamadas agrupadas antes del resultado de la primera;
+- C6.tras-cd con Bash y Read en ventanas solapadas;
+- y debe conservar un control positivo con ambos pasos completos y ordenados.
+
+No se autoriza ningún sexto ciclo sin otra decisión humana nueva y fechada.
 
 ## Objetivo y contexto
 
