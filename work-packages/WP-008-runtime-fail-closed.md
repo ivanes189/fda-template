@@ -4,7 +4,7 @@ estado: ready
 prioridad: P0
 agente_responsable: implementer     agente_revisor: code-reviewer
 requisitos: [REQ-FDA-001, REQ-FDA-003, SEC-001]  adr: [ADR-001]
-presupuesto_max_eur: 40             max_ciclos_correccion: 8
+presupuesto_max_eur: 40             max_ciclos_correccion: 9
 
 <!-- Revisores: qa (pruebas) + code-reviewer (revisión de la PR) + security-reviewer
      OBLIGATORIO, porque este WP toca CI y el sistema de permisos.
@@ -325,6 +325,55 @@ deterministas pasen y la auditoría independiente la declare apta.
 Si una adquisición sigue vacía después del único reintento, se para y se
 solicita decisión humana. No se autoriza automáticamente un noveno ciclo, un
 tercer intento ni aumentar el número de reintentos.
+
+## Replanificación humana — 2026-08-09: resultados huérfanos y diagnóstico de coste no defendible
+
+La auditoría independiente del octavo ciclo confirma que las validaciones
+deterministas declaradas pasan, pero demuestra dos divergencias contractuales.
+
+Primero, un flujo con cero `tool_use` pero con un `tool_result` huérfano puede
+ser clasificado como adquisición vacía y activar el reintento. Esto contradice
+la prohibición de reintentar ante resultados ausentes, invertidos o de error.
+
+Segundo, cuando `total_cost_usd` no es defendible, el runner aborta antes de
+generar el diagnóstico saneado del intento. El contrato exige un resumen por
+cada invocación física lanzada, también cuando termina en exit 2.
+
+El octavo ciclo queda consumido. Esta decisión humana autoriza un noveno y
+último ciclo de corrección, sin ampliar el alcance funcional de WP-008.
+
+El analizador debe contabilizar los mensajes `tool_result` y detectar los que
+no tengan un `tool_use` anterior asociado por identificador exacto. Una
+adquisición solo puede considerarse vacía cuando no contiene ningún `tool_use`
+ni ningún `tool_result`. La presencia de cualquier `tool_result` en un flujo
+con cero llamadas invalida la adquisición vacía, no activa reintento y deja la
+subsonda no conforme o no decidible.
+
+Toda invocación física lanzada debe producir exactamente un diagnóstico
+saneado antes de cualquier aborto. Cuando el coste no sea válido, el diagnóstico
+debe registrar `coste_valido=no` y `coste=no_defendible`, sin copiar el valor
+crudo no válido y sin convertirlo en cero.
+
+Las pruebas deterministas deben demostrar:
+
+- `tool_result` huérfano de error sin reintento;
+- `tool_result` huérfano sin `is_error=true` sin reintento;
+- cero llamadas y cero resultados seguido de medición válida: un único reintento;
+- coste no defendible: exit 2 y exactamente un diagnóstico saneado;
+- conservación de las 205 pruebas existentes.
+
+El noveno ciclo puede modificar únicamente:
+
+- tests/runtime/runner-empirico.sh
+- tests/runtime/test-runner-empirico.sh
+- tests/runtime/smoke-capacidades.md
+- tests/runtime/matriz-empirica.md
+
+No se modifican los nueve fixtures. No se autoriza otra ejecución empírica
+hasta que la corrección pase todas las validaciones deterministas y la
+auditoría independiente la declare apta.
+
+No se autoriza automáticamente un décimo ciclo.
 
 ## Objetivo y contexto
 
