@@ -4,7 +4,7 @@ estado: ready
 prioridad: P0
 agente_responsable: implementer     agente_revisor: code-reviewer
 requisitos: [REQ-FDA-001, REQ-FDA-003, SEC-001]  adr: [ADR-001]
-presupuesto_max_eur: 40             max_ciclos_correccion: 10
+presupuesto_max_eur: 40             max_ciclos_correccion: 11
 
 <!-- Revisores: qa (pruebas) + code-reviewer (revisión de la PR) + security-reviewer
      OBLIGATORIO, porque este WP toca CI y el sistema de permisos.
@@ -704,6 +704,290 @@ Solo podrá modificar:
 No los nueve fixtures, no el contrato, no evidencias, no manuales, no
 configuración, no GitHub Actions y ningún archivo protegido.
 No se autoriza ningún undécimo ciclo sin otra decisión humana nueva y fechada.
+
+## Replanificación humana — 2026-08-09: cierre fail-closed de la adquisición y del veredicto
+
+**Acto del operador.** Esta sección la escribe y la aplica **una persona**, en una PR de
+operador. `work-packages/**` sigue siendo ruta **prohibida** para todo agente: ningún
+agente edita este archivo.
+
+**Autorización humana, transcrita literalmente:**
+
+> Autorizo una replanificación humana de WP-008 para corregir las divergencias detectadas
+> por la auditoría independiente del décimo ciclo, incluyendo el tratamiento fail-closed
+> de las instantáneas y de delta_permitido, y para resolver expresamente el requisito de
+> ciclos de M3.fuera. No autorizo todavía un undécimo ciclo de implementación ni la
+> ejecución del runner real.
+
+**El décimo ciclo queda consumido.** Su implementación pasó las **365** pruebas
+deterministas declaradas, y ese verde **no demostraba el rechazo final**: varias pruebas
+comprobaban el valor de un contador sin comprobar que ese contador **decidiera** nada, y
+varias funciones de integridad **devolvían éxito ante su propio fallo**. Después de esa
+implementación **el runner real no se ejecutó**: no hay adquisición empírica nueva, ni
+coste nuevo, ni evidencia nueva.
+
+**Esta modificación es exclusivamente contractual.** No toca implementación, pruebas,
+fixtures, evidencias, manuales, configuración ni workflows: su diff es **un solo archivo**.
+
+1. **Antes de fusionarla no existe autorización para implementar.**
+2. Su fusión autoriza **exactamente un undécimo y último ciclo determinista**, y nada más.
+3. **No autoriza ninguna ejecución empírica.** El runner real sigue necesitando una
+   **autorización humana separada y posterior**, concedida solo tras implementar, superar
+   todas las validaciones deterministas y obtener auditoría independiente favorable.
+4. **No existe un duodécimo ciclo automático.** Abrirlo exigiría otra decisión humana
+   nueva y fechada.
+
+`max_ciclos_correccion` pasa de **10** a **11**. El recuento **es acumulado y no se
+reinicia**: los diez ciclos consumidos siguen contando, y el undécimo hueco es esta
+autorización excepcional, no un ciclo ordinario.
+
+### 1. Los ocho defectos demostrados por la auditoría
+
+| # | Defecto demostrado | Evidencia |
+|---|---|---|
+| 1 | `M3.persistencia` y `M3.dentro` podían quedar `PERMITIDO` **sin los ciclos exactos exigidos**: el veredicto de `M3` no consume ningún recuento de ciclos | `M3_SIN_CICLOS ciclos=0 veredicto=PERMITIDO` |
+| 2 | `neutral-secuencia-bash` podía quedar `PERMITIDO` **con mensajes de hook**, en un fixture que no declara ninguno | `NEUTRAL_CON_HOOKS mensajes=2 veredicto=PERMITIDO` |
+| 3 | La instantánea **enumeraba con NUL** pero **serializaba y comparaba con tabuladores y saltos de línea** | Un registro por línea, con campos separados por tabulador |
+| 4 | `instantanea_fixture` **devolvía éxito** ante una raíz inexistente o ante un fallo interno | `SNAPSHOT_RAIZ_INEXISTENTE rc=0 bytes=0` |
+| 5 | `precondicion_ausencia` **no detectaba un symlink colgante**: `-e` es falso sobre un enlace roto | `PRECONDICION_SYMLINK_COLGANTE rc=0 es_enlace=si` |
+| 6 | La identidad entre el **postestado del primer intento** y el **preestado del segundo** se comprobaba **después** de lanzar la segunda invocación | Orden de llamada en el motor de adquisición |
+| 7 | `delta_permitido` **ignoraba sus propios fallos** y podía **aprobar entradas inexistentes** | `TRES_ENTRADAS_INEXISTENTES_RC=0` |
+| 8 | Las pruebas **J13–J17** comprobaban **contadores de ciclos**, pero **ninguna demostraba el rechazo final** | Las aserciones terminan en el campo, no en el veredicto |
+
+**Tres familias, no ocho incidencias.** Los defectos 1, 2 y 8 son **campos publicados que
+ninguna decisión consume**. Los defectos 3, 4, 5 y 7 son **funciones que confunden un error
+con un resultado favorable**. El defecto 6 es un **orden**. Las tres se cierran abajo.
+
+### 2. Campo vinculante: se consume y se prueba hasta el rechazo final
+
+Cierra los defectos 1, 2 y 8, y rige de aquí en adelante sin excepción:
+
+> **Todo campo estructurado que este contrato declare vinculante debe ser consumido por el
+> veredicto correspondiente, y debe tener una prueba positiva y al menos una prueba
+> negativa que alcance el rechazo final.**
+
+**Rechazo final** es el veredicto que el runner emite —`NO_DECIDIBLE`, `NO_CONFORME`, error
+de entorno, o el código de salida agregado—, **no** el valor del campo. Una prueba que solo
+comprueba que un contador vale lo esperado **no satisface esta regla**: hay que demostrar
+que ese valor **cambia la decisión**.
+
+| Clase | Definición | Obligación |
+|---|---|---|
+| **Vinculante** | Su valor **decide**: participa en el veredicto de una subsonda, en la conformidad de una sonda, en la validez de una invocación o en un aborto | Consumido por el veredicto + prueba positiva + prueba negativa **hasta el rechazo final** |
+| **Diagnóstico** | Solo **informa**: alimenta el resumen saneado y la interpretación humana posterior | Se publica y se prueba su valor; **no decide**, y no puede ser la única razón de un veredicto |
+
+Un campo **no puede ser ambas cosas**. En caso de duda **es diagnóstico**, y entonces
+ninguna decisión puede apoyarse en él. Un campo que se creía vinculante y que ninguna
+decisión consume es un **defecto**, no una redundancia.
+
+### 3. Política expresa de ciclos de hook, subsonda a subsonda
+
+Los recuentos de ciclos dejan de ser diagnóstico y pasan a ser **vinculantes** en el
+sentido de §2: el veredicto los consume y su incumplimiento **rechaza**.
+
+#### 3a. `M3.persistencia` y `M3.dentro`
+
+- **Con preámbulo:** exactamente **tres** ciclos `PreToolUse` **completos, distintos y
+  exclusivos**, uno por cada llamada `Bash` —el preámbulo `ls -la`, el `cd sub` y el
+  segundo `Bash` medido—.
+- **Sin preámbulo:** exactamente **dos**, uno por cada llamada `Bash` medida.
+- Cada ciclo se asocia **solo** por su propia ventana causal
+  `tool_use < hook_started < hook_response < tool_result`, y **ninguno puede satisfacer a
+  otra llamada**.
+
+**Rechaza la subsonda** cualquier ciclo **ausente, adicional, huérfano, invertido,
+ambiguo, compartido o perteneciente a otra ventana**, respecto de esos recuentos exactos.
+
+#### 3b. `neutral-secuencia-bash`
+
+- Exactamente **cero** mensajes `hook_started`, `hook_progress` y `hook_response`, **haya o
+  no preámbulo**.
+- El fixture `settings-neutro.json` no declara ningún hook. Cualquier mensaje de ciclo de
+  vida —del evento contratado o **de otro evento**, **adicional** o **malformado**— es
+  **error de entorno**, con exit `2`, y **no puede producir `PERMITIDO`**.
+
+Es evidencia estructurada en el sentido de §5a punto 6: acredita una capa que
+`--setting-sources project` no puede excluir.
+
+#### 3c. `M3.fuera`
+
+- **Tolerancia cero**: ningún preámbulo admitido.
+- **`--max-turns 3`**, como el resto de subsondas de tolerancia cero.
+- **Sin la instantánea especial** de las tres subsondas tolerantes.
+- Exactamente **dos** ciclos `PreToolUse` **completos, distintos y exclusivos**: uno para la
+  llamada `Bash` `cd sub` y otro para el **segundo** `Bash`, que es el decisivo.
+- **Rechaza la subsonda** cualquier ciclo **ausente, adicional, huérfano, invertido,
+  ambiguo o compartido**.
+
+**Por qué esta cláusula no contradice ninguna fuente versionada superior.** `M3.fuera` usa
+`settings-canonico.json` con el guard real, y sus **dos** llamadas son `Bash`, que pertenece
+al matcher contractual: **ambas atraviesan el hook necesariamente**. Que la segunda quede
+**bloqueada** no suprime su ciclo —el `exit 2` del guard **es** el `hook_response`—, y este
+contrato ya exige esa misma forma para una llamada bloqueada en `C7.eventos` y en
+`C4.exit2`. La replanificación del décimo ciclo fijó en su §7 el recuento de **dos** ciclos
+para las **dos llamadas medidas** de las subsondas M3, y en su §2 mantiene sin matices,
+fuera de la excepción del preámbulo, «ciclos de hook asociados por posición». Esta cláusula
+**rellena un silencio** sobre `M3.fuera` con la misma aritmética y el mismo régimen, y **no
+rebaja ninguna regla anterior**.
+
+### 4. Instantánea NUL-safe y byte-safe de extremo a extremo
+
+Cierra el defecto 3. La enumeración NUL-safe deja de bastar por sí sola: la garantía debe
+recorrer **enumeración, serialización, ordenación, escritura y comparación**.
+
+1. **Representación inequívoca** de **ruta**, **tipo**, **modo** y **contenido** de cada
+   entrada: dos estados distintos del fixture no pueden producir la misma instantánea.
+2. Soporta **nombres con espacios, tabuladores y saltos de línea**.
+3. Soporta **destinos de enlace simbólico con tabuladores y saltos de línea, incluidos los
+   finales**.
+4. **No** usa registros delimitados por líneas ni por tabuladores.
+5. **No** usa `command substitution` que elimine bytes finales de `readlink`.
+6. **Ordenación y comparación byte-safe**, estables ante el locale.
+7. **Salida atómica o explícitamente inválida**: o la instantánea está completa, o queda
+   marcada como no utilizable.
+8. **Ninguna instantánea parcial puede tratarse como válida**, ni para declarar identidad,
+   ni para calcular un delta, ni para autorizar un reintento.
+
+**No se impone ninguna tecnología concreta.** Varias representaciones satisfacen estas
+propiedades; se exige la propiedad, no la implementación. Queda prohibida cualquier
+representación que no las satisfaga.
+
+### 5. Semántica fail-closed de tres estados
+
+Cierra los defectos 4 y 7. Toda adquisición y toda comparación de instantáneas devuelve
+**uno de tres estados, nunca dos**:
+
+| Estado | Significado |
+|---|---|
+| **Igualdad** | Las dos instantáneas son válidas y **exactamente** idénticas |
+| **Diferencia válida** | Las dos instantáneas son válidas y difieren; el delta es interpretable |
+| **Error** | La adquisición o la comparación **falló**: no se sabe si hay delta |
+
+**Un error nunca equivale a igualdad.** En estado de error no hay identidad, no hay
+«sin delta», no hay «delta permitido» y **no hay permiso para reintentar**: el runner
+termina **fail-closed** con exit `2`.
+
+Deben comprobarse, y propagarse como error, **todos** los fallos de: **raíz** inexistente o
+inaccesible, **creación** del archivo de instantánea, **`cd`**, **`find`**, **ordenación**,
+**`stat`**, lectura del **modo**, cálculo del **hash**, **`readlink`**, **escritura**,
+**parseo** y **comparación**. Ninguno puede quedar silenciado ni degradado a un resultado
+favorable.
+
+### 6. `delta_permitido`
+
+Cierra el defecto 7. La función:
+
+1. **Valida** que sus **tres** entradas **existan** y sean **archivos regulares legibles,
+   completos y procesables**, antes de comparar nada.
+2. **Diferencia una transición no permitida de un error interno**: son dos resultados
+   distintos y no se confunden.
+3. Ante **cualquier error interno** provoca **exit `2`**. Nunca devuelve «permitido» ni
+   «no permitido» por un fallo suyo.
+4. **Nunca aprueba por efecto de archivos auxiliares vacíos o parciales**: la coincidencia
+   de dos ficheros vacíos producidos por un fallo no es una transición conforme.
+
+### 7. Precondición de ausencia y symlink colgante
+
+Cierra el defecto 5.
+
+> Una salida esperada está **ausente** únicamente si **no existe con `-e`** y **tampoco es
+> un enlace con `-L`**.
+
+Ante un **symlink colgante** en la ruta de una salida esperada, el runner:
+
+- **aborta antes de invocar** `claude`;
+- **no lo sigue**;
+- **no lo sobrescribe**;
+- **no puede crear su objetivo**, ni dentro ni fuera de la raíz del fixture;
+- deja su **diagnóstico saneado** con la causa, como cualquier intento abortado.
+
+Queda cubierto por una prueba determinista con **cero invocaciones** y con el objetivo
+externo comprobadamente **ausente** al terminar.
+
+### 8. Orden previo al segundo intento
+
+Cierra el defecto 6. La comprobación deja de ser una constatación posterior y pasa a ser
+una **precondición de lanzamiento**. Antes de lanzar el segundo intento, en este orden
+estricto:
+
+1. **conservar** la instantánea **posterior válida** del primer intento;
+2. **repetir** la precondición de ausencia de §7;
+3. **calcular** la instantánea **previa válida** del segundo intento;
+4. **compararla** con la posterior del primero;
+5. **solo si son idénticas** puede lanzarse la segunda invocación.
+
+Si **difieren**, o si la **comparación falla**:
+
+- **no se lanza la segunda invocación**;
+- el **contador de invocaciones físicas permanece en uno**;
+- se registra el **diagnóstico saneado** correspondiente;
+- el runner termina **fail-closed** con **exit `2`**.
+
+### 9. Pruebas deterministas obligatorias del undécimo ciclo
+
+Las **365** pruebas actuales **se conservan** y se ejecutan. A ellas se añaden pruebas
+**negativas e integradas** que demuestren el **rechazo final** —no el valor de un campo—
+para cada uno de los ocho defectos de §1, como mínimo:
+
+**Ciclos**
+
+- recuentos **correctos** e **incorrectos** de `M3.persistencia` y `M3.dentro`, con y sin
+  preámbulo;
+- ciclos **ausentes, adicionales, huérfanos, invertidos, ambiguos, compartidos o
+  pertenecientes a otra ventana**;
+- el flujo en que **solo el preámbulo tiene ciclo** y las llamadas medidas no: rechazado;
+- `neutral-secuencia-bash` **sin** mensajes de hook: aceptado; **con cualquiera** —del
+  evento contratado, de otro evento, adicional o malformado—: **error de entorno**;
+- `M3.fuera` con **exactamente dos** ciclos válidos: aceptado;
+- `M3.fuera` con **cero, uno o tres** ciclos, o con ciclos inválidos: rechazado.
+
+**Instantánea, delta y precondición**
+
+- **nombres** con tabuladores y saltos de línea;
+- **destinos de symlink** con tabuladores y saltos de línea, incluidos los finales;
+- **raíz de instantánea inexistente**;
+- **salida de instantánea inválida** o parcial;
+- entradas de `delta_permitido` **inexistentes o inválidas**;
+- **comparación triestado**: igualdad, diferencia válida y error, distinguidas entre sí;
+- **ningún error de instantánea** produce igualdad, ausencia de delta, delta permitido ni
+  reintento;
+- **symlink colgante**: aborto previo, **cero invocaciones** y objetivo externo ausente;
+- **mutación entre intentos**: la segunda invocación **no se lanza**.
+
+**Regla general**
+
+- **cada campo vinculante** cuenta con al menos un **rechazo final probado**, conforme a §2.
+
+Los casos se construyen **en temporales** desde `tests/runtime/test-runner-empirico.sh`,
+conforme a §11 de este contrato. **No se modifican los nueve fixtures.**
+
+### 10. Alcance exclusivo del undécimo ciclo
+
+Solo podrá modificar:
+
+- tests/runtime/runner-empirico.sh
+- tests/runtime/test-runner-empirico.sh
+- tests/runtime/smoke-capacidades.md
+- tests/runtime/matriz-empirica.md
+
+**No** se autoriza ningún cambio en los **nueve fixtures**, en evidencias, en manuales, en
+configuración, en workflows, en archivos protegidos ni en ningún otro archivo.
+
+### 11. Lo que se conserva, sin un matiz de cambio
+
+- Las **catorce sondas lógicas** y la composición exigida **14 · 13 · 1 · 0**.
+- Los **topes de coste**: `--max-budget-usd 0.30` por invocación y **5,00 USD** agregado.
+- **`--max-turns 4`** únicamente en las **tres** subsondas tolerantes; **`--max-turns 3`**
+  en `M3.fuera` y en todas las demás.
+- El **preámbulo admitido**: lista **cerrada** de una entrada y cadena **exacta**, `ls -la`.
+- La **ejecución empírica** queda sujeta a **autorización humana separada y posterior**.
+- El **criterio de abandono**: si la adquisición contratada vuelve a fallar en esa única
+  ejecución, WP-008 queda **bloqueado** o debe ser **sustituido** por otra decisión humana
+  nueva y fechada. **WP-008 no se marca nunca como completo con sondas o evidencias
+  parciales.**
+
+La **brecha documental global** queda **fuera del alcance de WP-008** y se repara en su
+propio encargo. Esta sección **no introduce ningún otro cambio de contenido**.
 
 ## Objetivo y contexto
 
