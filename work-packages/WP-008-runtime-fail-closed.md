@@ -4,7 +4,7 @@ estado: ready
 prioridad: P0
 agente_responsable: implementer     agente_revisor: code-reviewer
 requisitos: [REQ-FDA-001, REQ-FDA-003, SEC-001]  adr: [ADR-001]
-presupuesto_max_eur: 40             max_ciclos_correccion: 5
+presupuesto_max_eur: 40             max_ciclos_correccion: 6
 
 <!-- Revisores: qa (pruebas) + code-reviewer (revisión de la PR) + security-reviewer
      OBLIGATORIO, porque este WP toca CI y el sistema de permisos.
@@ -106,6 +106,51 @@ decisivo y del sistema de archivos.
 - y debe conservar un control positivo con ambos pasos completos y ordenados.
 
 No se autoriza ningún sexto ciclo sin otra decisión humana nueva y fechada.
+
+## Replanificación humana — 2026-08-09: controles neutrales de edición
+
+La primera ejecución empírica real terminó con exit 2 durante el control
+neutral, antes de ejecutar cualquiera de las catorce sondas. Write, Bash y Read
+quedaron PERMITIDO, mientras que Edit y NotebookEdit produjeron un tool_result
+de error. No se observaron mensajes de hooks inesperados.
+
+El quinto ciclo queda consumido. Esta decisión humana autoriza un sexto y último
+ciclo de corrección, sin ampliar el alcance funcional de WP-008.
+
+El resultado observado no demuestra por sí solo la existencia de una
+restricción gestionada: un tool_result de error también puede proceder de una
+precondición o validación propia de la herramienta. El runner no debe atribuir
+una causa concreta sin evidencia estructurada que la demuestre.
+
+Los controles neutrales de Edit y NotebookEdit, y las subsondas C2.Edit y
+C2.NotebookEdit, deben realizar una lectura preparatoria del archivo objetivo y
+después la llamada decisiva de edición, dentro de la misma sesión.
+
+Las secuencias exigidas son:
+
+- Read exitoso seguido de Edit;
+- Read exitoso seguido de NotebookEdit.
+
+Read queda fuera del matcher contractual y no exige ciclo de hook. La llamada
+decisiva Edit o NotebookEdit mantiene la exigencia de un ciclo PreToolUse
+completo dentro de su propia ventana.
+
+Las allowlists y los conjuntos mínimos de herramientas deben incluir,
+respectivamente, Read+Edit y Read+NotebookEdit. Cada tool_use debe tener su
+tool_result posterior y las ventanas no pueden solaparse.
+
+Las pruebas deterministas deben cubrir los flujos positivos y rechazar lectura
+ausente, fallida o invertida, llamadas solapadas, ciclo asociado a la lectura en
+vez de a la edición y resultado decisivo ausente.
+
+Si el control vuelve a fallar después de cumplir estas precondiciones, el runner
+debe detenerse con error de entorno sin atribuirlo específicamente a ajustes
+gestionados o a un hook salvo que exista evidencia estructurada de ello.
+
+No se autoriza otra ejecución empírica hasta que la corrección pase todas las
+validaciones deterministas y la auditoría independiente la declare apta.
+
+No se autoriza ningún séptimo ciclo sin otra decisión humana nueva y fechada.
 
 ## Objetivo y contexto
 
