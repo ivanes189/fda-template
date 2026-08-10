@@ -152,7 +152,24 @@ La vía correcta es que el agente **prepare un script de parche verificado** —
 
 ## Pausa activa: la migración de DEC-002 (desde 2026-08-03)
 
-La migración de DEC-002 está **pausada tras PR-2** por [DEC-003](../../specs/decisions/DEC-003-pausa-migracion-y-contencion.md). WP-007 sigue **oficialmente `ready`** y WP-002 sigue `blocked`. Solo pueden progresar DEC-004, WP-008, WP-009 y las transiciones de operador que la decisión enumera. **Fecha de revisión: 2026-08-10.**
+La migración de DEC-002 está **pausada tras PR-2** por [DEC-003](../../specs/decisions/DEC-003-pausa-migracion-y-contencion.md), revisada y prorrogada por [DEC-005](../../specs/decisions/DEC-005-troceado-de-wp-008-y-revision-de-la-pausa.md). WP-007 sigue **oficialmente `ready`** y WP-002 sigue `blocked`. Solo pueden progresar DEC-004, DEC-005, WP-008, WP-009, WP-012 y las transiciones de operador que la decisión enumera. **Punto de control: 2026-09-07.**
+
+### La revisión del 2026-08-10 y el troceado de WP-008
+
+En su fecha de revisión, el criterio de salida **no estaba cumplido y no podía estarlo**: WP-009 no tenía contrato redactado, y la secuencia impone un WP activo cada vez. DEC-005 registró el análisis de causa que DEC-003 §5 exige.
+
+**La causa raíz no fue la calidad del trabajo.** Los once ciclos de corrección de WP-008 cerraron defectos reales —unos del contrato, otros de la implementación—, y la auditoría independiente los detectó todos antes de cualquier fusión. Lo que falló fue sistémico: tras varios ciclos consecutivos sobre la misma capa, **nadie reevaluó el troceado**. Las diez replanificaciones eligieron siempre la primera causa raíz de este capítulo —«¿El contrato estaba mal definido? → reescribe el WP»— y ninguna evaluó la segunda: **«¿El alcance estaba mal troceado? → pártelo.»**
+
+De ahí el troceado, por **capa** y no por sondas:
+
+| WP | Qué contiene | Naturaleza |
+|---|---|---|
+| **WP-008** (núcleo) | Reanclaje de `settings.json`, comando canónico fail-closed, preflight estructural, protocolo de parche y evidencia real de CI | Determinista, reproducible en CI |
+| **WP-012** (instrumento) | El runner empírico íntegro: catorce sondas y su motor de adquisición, análisis, instantáneas, reintentos y diagnósticos | Empírico, no reproducible en CI |
+
+**El contrato actual de WP-008 queda congelado** hasta que su versión reducida esté materializada, validada y aprobada. Sus alcances y sus evidencias son **físicamente disjuntos** de los de WP-012: nada de `tests/runtime/**` ni de `evidence/` se comparte entre ambos.
+
+**Lo que la evidencia del núcleo no demuestra.** Los casos deterministas del preflight acreditan el comportamiento del **comando canónico**; el preflight acredita que la **configuración** es la contratada; y la ejecución roja de CI acredita que el **preflight bloquea**. Ninguno de los tres demuestra que **Claude Code aplique realmente esa configuración**: eso lo demuestra WP-012, y por eso es condición de salida y no un requisito informal.
 
 ### WP-007 está congelado, no detenido antes de empezar
 
@@ -164,7 +181,11 @@ La congelación es **verificable, no solo declarada**: DEC-003 §1 registra una 
 
 Conviene no confundir dos líneas base de la suite del guard: la **versionada** en `main` es `68 · 0 · 10 · 0`; la **candidata local** de WP-007 es `75 · 0 · 10 · 0`. Ninguna acción admitida por la pausa modifica `tests/guard/run-suite.sh`.
 
-Cuando WP-007 se reanude, su versión de este capítulo **no sobrescribe** la que introdujo DEC-003: tendrá que **reconciliarse con ella y preservar ambos contenidos**.
+Cuando WP-007 se reanude, su versión de este capítulo **no sobrescribe** la que introdujeron DEC-003 y DEC-005: tendrá que **reconciliarse con ella y preservar ambos contenidos**.
+
+### El trabajo candidato de WP-012
+
+Los trece archivos sin versionar del undécimo ciclo de WP-008 —cuatro principales y nueve fixtures— son **trabajo candidato de WP-012** y **no se revierten**. Antes de que el núcleo empiece a escribir en `tests/runtime/`, se aíslan mediante **respaldo externo recuperable y worktree independiente**, con un manifiesto que registra y verifica **conjunto de rutas, tipo, modo —incluido el bit ejecutable— y SHA-256**. El procedimiento está en DEC-005 §9 y es un acto humano en tres fases.
 
 ### El ciclo de `ACTIVE` durante la pausa
 
@@ -172,14 +193,18 @@ Cuando WP-007 se reanude, su versión de este capítulo **no sobrescribe** la qu
 
 | Paso | `ACTIVE` | Condición |
 |---|---|---|
-| 1 | Reposo | Al registrar DEC-003 |
-| 2 | `WP-008` | Contrato completo, validado y aprobado |
+| 1 | Reposo | Al materializar DEC-005 |
+| 2 | `WP-008` (núcleo) | Contrato reducido, validado y aprobado, y aislamiento completado |
 | 3 | Reposo | Cierre de WP-008 |
 | 4 | `WP-009` | Contrato completo, validado y aprobado |
 | 5 | Reposo | Cierre de WP-009 |
-| 6 | `WP-007` | Solo al cumplirse el criterio de salida; cierra la pausa |
+| 6 | `WP-012` | Contrato completo, validado y aprobado, y precondiciones verificadas |
+| 7 | Reposo | Cierre de WP-012 |
+| 8 | `WP-007` | Solo al cumplirse las **tres** condiciones de salida; cierra la pausa |
 
 Un WP activo cada vez. Entre WPs, reposo. Mientras `ACTIVE` esté vacío no hay ninguna ruta autorizada.
+
+El **criterio de salida tiene tres condiciones**: WP-008 fusionado —protección instalada con su ejecución roja de CI—, WP-009 fusionado —acciones fijadas por SHA— y WP-012 fusionado —runner empírico en exit `0` con la composición 14 · 13 · 1 · 0—.
 
 El **WP de mantenimiento de alcance mínimo** descrito más arriba sigue siendo el protocolo general y legítimo para reparar el gobierno cuando el fail-closed lo bloquea. **Para esta pausa concreta, el operador ha decidido no emplear esa vía** y ha elegido **preparación en solo lectura más materialización humana**: los contratos de los WPs admitidos se redactan sin escribir en el repositorio, y los materializa y activa el operador.
 

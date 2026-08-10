@@ -120,16 +120,20 @@ De ahí tres consecuencias, que no se sustituyen entre sí:
 
 | Paso | `ACTIVE` | Condición para pasar al siguiente |
 |---|---|---|
-| 1 | **Reposo** (en esta misma PR) | — |
-| 2 | `WP-008` | Su contrato **completo, validado y aprobado** |
+| 1 | **Reposo** | Materialización de [`DEC-005`](DEC-005-troceado-de-wp-008-y-revision-de-la-pausa.md) |
+| 2 | `WP-008` (núcleo) | Su contrato **reducido**, validado y aprobado, y el aislamiento de `DEC-005` §9 completado |
 | 3 | **Reposo** | Cierre de WP-008 |
 | 4 | `WP-009` | Su contrato **completo, validado y aprobado** |
 | 5 | **Reposo** | Cierre de WP-009 |
-| 6 | `WP-007` | **Solo** al cumplirse el criterio de salida de §6; cierra la pausa |
+| 6 | `WP-012` | Su contrato **completo, validado y aprobado**, y las precondiciones de `DEC-005` §9 verificadas |
+| 7 | **Reposo** | Cierre de WP-012 |
+| 8 | `WP-007` | **Solo** al cumplirse las **tres** condiciones del criterio de salida de §6; cierra la pausa |
 
 **Un WP activo cada vez.** Nunca hay dos. Entre WPs, reposo.
 
 Al pasar a reposo, el archivo resultante es byte a byte idéntico al que ya tuvo en `8190976`.
+
+**El contrato actual de WP-008 queda congelado.** `DEC-005` trocea WP-008 en un **núcleo de protección**, que conserva el identificador, y un **instrumento empírico**, que pasa a `WP-012`. Mientras `ACTIVE` esté en reposo no hay ninguna ruta autorizada y ningún agente escribe sobre WP-008. **Solo podrá reactivarse cuando su versión reducida esté materializada, validada y aprobada**, en el paso 2. Hasta entonces el contrato vigente permanece como estado histórico y **no gobierna ningún trabajo**.
 
 **Desviación explícita y firmada.** El plan externo de continuación pedía para este paso una PR de operador con «solo la decisión». Esta composición —decisión, manual y `ACTIVE` en un mismo diff— es una **desviación aprobada por el operador el 2026-08-03**, amparada en [`docs/manual/02-ciclo-de-un-wp.md`](../../docs/manual/02-ciclo-de-un-wp.md), que permite a una PR de operador combinar varios actos, con precedente en la PR #7. Se registra porque una desviación no escrita es lo que esta decisión existe para impedir.
 
@@ -155,20 +159,29 @@ Los tres checks obligatorios son jobs de `ci.yml` y siguen operando. La contenci
 |---|---|
 | `DEC-003` | Registro de la pausa |
 | `DEC-004` | Estados del coste. Decisión sola, sin implementación |
-| `WP-008` | Runtime realmente fail-closed |
+| `DEC-005` | Revisión de la pausa y troceado de WP-008 |
+| `WP-008` | Runtime realmente fail-closed. Tras `DEC-005`, **solo el núcleo de protección** |
 | `WP-009` | Cadena de suministro |
+| `WP-012` | Instrumento empírico, troceado desde WP-008 por `DEC-005` |
 | Transiciones de operador | Estrictamente las de §2 |
 
 Cualquier otra cosa exige enmendar esta DEC. La lista es cerrada, no ilustrativa.
 
-### 5. Fecha de revisión de la pausa: 2026-08-10
+**Cómo se ha enmendado esta lista, y por qué importa la forma.** [`DEC-004`](DEC-004-estados-del-coste.md) §2 enmendó **por declaración** la entrada `DEC-004`, que **ya figuraba** en esta lista, para ampliar la composición de su PR. Ese mecanismo no sirve para admitir lo que no está: una decisión ausente no puede admitirse a sí misma sin circularidad. Por eso las entradas `DEC-005` y `WP-012` se han incorporado **modificando directamente esta sección**, en el mismo diff atómico que introdujo `DEC-005`.
 
-Siete días naturales. En esa fecha: o el criterio de §6 está cumplido y la pausa termina, o **parada y análisis de causa registrado por escrito**. Esta caducidad rige **la pausa**, no el estado externo de §3.
+### 5. Punto de control de la pausa: 2026-09-07
+
+Sustituye a la fecha original del 2026-08-10, cuya revisión se practicó y quedó registrada en [`DEC-005`](DEC-005-troceado-de-wp-008-y-revision-de-la-pausa.md) §1: el criterio de §6 no estaba cumplido y no podía estarlo, porque `WP-009` no tenía siquiera contrato redactado.
+
+Es un **punto de control, no una promesa de finalización**. En esa fecha: o el criterio de §6 está cumplido y la pausa termina, o **parada y análisis de causa registrado por escrito**. Llegar sin haberlo cumplido **no es un incumplimiento**: es el disparador de ese análisis, exactamente como ocurrió el 2026-08-10. Esta caducidad rige **la pausa**, no el estado externo de §3.
 
 ### 6. Criterio de salida
 
-- [ ] **Runtime fail-closed probado.** WP-008 fusionado: hook ausente o no ejecutable → exit `2`; invocación anclada al proyecto; preflight estructural bloqueante en el job `Gobierno FDA`, con una ejecución real de CI que demuestre el bloqueo, capturada como evidencia.
-- [ ] **Acciones fijadas por SHA.** WP-009 fusionado: el criterio de verificación n.º 2 de `REQ-FDA-002` devuelve vacío.
+Tres condiciones. **Ninguna sustituye a otra**: la primera instala, la segunda cierra la cadena de suministro y la tercera demuestra.
+
+- [ ] **Runtime fail-closed instalado.** `WP-008` fusionado: comando canónico anclado con `CLAUDE_PROJECT_DIR` y normalizado a `exit 2`; ocho reglas reancladas a la raíz del proyecto; preflight estructural bloqueante en el job `Gobierno FDA`, con una **ejecución roja real de CI** que demuestre el bloqueo, capturada como evidencia.
+- [ ] **Acciones fijadas por SHA.** `WP-009` fusionado: el criterio de verificación n.º 2 de `REQ-FDA-002` devuelve vacío.
+- [ ] **Runtime fail-closed demostrado empíricamente.** `WP-012` fusionado: el runner empírico termina en **exit `0`** con la composición exacta **14 sondas lógicas · 13 CONFORME · 1 REGISTRADA_FUERA_DE_CONTRATO · 0 NO_CONFORME**, sin errores de entorno, con sus resultados saneados incorporados como evidencia bajo `evidence/WP-012/**`.
 
 Criterio literal de `REQ-FDA-002`:
 
@@ -178,7 +191,9 @@ grep -rn 'uses:' .github/workflows/ \
   | grep -v 'uses: \./'
 ```
 
-Cumplido, una PR de operador cierra esta decisión y ejecuta el paso 6 de §2.
+**La tercera condición no es una recomendación ni un requisito informal previo a WP-007.** La evidencia determinista del núcleo demuestra el comportamiento del comando canónico, la conformidad de la configuración y el bloqueo del preflight; **no demuestra que Claude Code aplique realmente esa configuración**. Esa demostración es exclusivamente de `WP-012`, y por eso figura aquí en pie de igualdad. Detalle del reparto en `DEC-005` §§4, 5 y 7.
+
+Cumplidas las tres, una PR de operador cierra esta decisión y ejecuta el **paso 8** de §2.
 
 ### 7. `tests/guard/run-suite.sh`: dos líneas base, y una prohibición hacia adelante
 
