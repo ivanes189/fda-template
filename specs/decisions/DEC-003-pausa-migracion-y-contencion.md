@@ -135,6 +135,15 @@ Al pasar a reposo, el archivo resultante es byte a byte idéntico al que ya tuvo
 
 **El contrato actual de WP-008 queda congelado.** `DEC-005` trocea WP-008 en un **núcleo de protección**, que conserva el identificador, y un **instrumento empírico**, que pasa a `WP-012`. Mientras `ACTIVE` esté en reposo no hay ninguna ruta autorizada y ningún agente escribe sobre WP-008. **Solo podrá reactivarse cuando su versión reducida esté materializada, validada y aprobada**, en el paso 2. Hasta entonces el contrato vigente permanece como estado histórico y **no gobierna ningún trabajo**.
 
+**Interrupción excepcional del paso 2.** [`DEC-006`](DEC-006-abandono-y-reinicio-controlado-de-wp-008.md)
+registra que la primera cadena del núcleo se detuvo en S1, con una barrera roja no
+conforme, y autoriza devolver `ACTIVE` a reposo **sin presentar WP-008 como
+cerrado**. Tras cerrar la PR abandonada sin fusionar y corregir el contrato en una
+PR de operador de un solo archivo, el mismo paso 2 se reanuda una sola vez sobre
+`wp/WP-008-runtime-fail-closed-r2`. La reactivación vuelve a ser un acto de
+operador posterior y separado. Esta excepción no adelanta el paso 3 ni ningún WP
+posterior.
+
 **Desviación explícita y firmada.** El plan externo de continuación pedía para este paso una PR de operador con «solo la decisión». Esta composición —decisión, manual y `ACTIVE` en un mismo diff— es una **desviación aprobada por el operador el 2026-08-03**, amparada en [`docs/manual/02-ciclo-de-un-wp.md`](../../docs/manual/02-ciclo-de-un-wp.md), que permite a una PR de operador combinar varios actos, con precedente en la PR #7. Se registra porque una desviación no escrita es lo que esta decisión existe para impedir.
 
 ### 3. Registro del estado creado fuera del repositorio
@@ -163,11 +172,14 @@ Los tres checks obligatorios son jobs de `ci.yml` y siguen operando. La contenci
 | `WP-008` | Runtime realmente fail-closed. Tras `DEC-005`, **solo el núcleo de protección** |
 | `WP-009` | Cadena de suministro |
 | `WP-012` | Instrumento empírico, troceado desde WP-008 por `DEC-005` |
+| `DEC-006` | Abandono y reinicio controlado de la primera cadena del núcleo WP-008 |
 | Transiciones de operador | Estrictamente las de §2 |
 
 Cualquier otra cosa exige enmendar esta DEC. La lista es cerrada, no ilustrativa.
 
 **Cómo se ha enmendado esta lista, y por qué importa la forma.** [`DEC-004`](DEC-004-estados-del-coste.md) §2 enmendó **por declaración** la entrada `DEC-004`, que **ya figuraba** en esta lista, para ampliar la composición de su PR. Ese mecanismo no sirve para admitir lo que no está: una decisión ausente no puede admitirse a sí misma sin circularidad. Por eso las entradas `DEC-005` y `WP-012` se han incorporado **modificando directamente esta sección**, en el mismo diff atómico que introdujo `DEC-005`.
+La entrada `DEC-006` se incorpora por el mismo mecanismo atómico en la PR que la
+materializa; no se autoautoriza.
 
 ### 5. Punto de control de la pausa: 2026-09-07
 
@@ -249,6 +261,7 @@ Sin versionar en el árbol de trabajo a fecha de hoy:
 
 - [`DEC-002`](DEC-002-semantica-de-traversal.md) — su § Migración es lo que aquí se pausa
 - [`DEC-001`](DEC-001-divisa-costes.md) — intacta
+- [`DEC-006`](DEC-006-abandono-y-reinicio-controlado-de-wp-008.md) — recuperación excepcional de WP-008
 - [`REQ-FDA-002`](../requirements/REQ-FDA-002-workflows-endurecidos.md) — incumplido, punto 2
 - [`ADR-001`](../adr/ADR-001-runtime.md) — ejecución headless
 - [`work-packages/WP-007-semantica-de-traversal.md`](../../work-packages/WP-007-semantica-de-traversal.md) — `ready`, congelado
