@@ -39,15 +39,30 @@ ejecuta y no se usa como evidencia**; únicamente **se identifica WP-012 para
 delimitar el alcance y las rutas prohibidas**. Este contrato no describe su
 diseño interno, que corresponde a `DEC-005` y al futuro contrato de WP-012.
 
-**`max_ciclos_correccion: 2` es un presupuesto operativo expresamente concedido
-a este contrato reducido**, por decisión humana del **2026-08-11**. No es una
-renumeración ni un reinicio: **los once ciclos consumidos siguen siendo historia de WP-008** y
-permanecen registrados en `DEC-005` como historia del contrato anterior, con sus
-causas y sus resultados. Lo que la decisión humana del **2026-08-11** concede es
-un presupuesto **nuevo y acotado, de hasta dos ciclos propios**, para el contrato
-reducido, sin borrar ni renumerar nada. Es el valor ordinario de
-[`docs/manual/02-ciclo-de-un-wp.md`](../docs/manual/02-ciclo-de-un-wp.md) y de
-`CLAUDE.md`. **Un tercer ciclo exigiría otra decisión humana, nueva y fechada.**
+**Contabilidad de ciclos tras `DEC-006`.** Los once ciclos del contrato anterior
+siguen registrados en `DEC-005`. El primer intento del contrato reducido quedó
+abandonado en S1; como su recuento no era derivable de ningún archivo versionado,
+el operador resolvió conservadoramente su presupuesto como **agotado: 2 / 2**.
+Esa cifra es una decisión de gobierno, no un hallazgo fabricado.
+
+[`DEC-006`](../specs/decisions/DEC-006-abandono-y-reinicio-controlado-de-wp-008.md)
+concede a este contrato corregido y a la rama
+`wp/WP-008-runtime-fail-closed-r2` un presupuesto **nuevo, explícito y máximo de
+dos ciclos de corrección**, sin borrar ni renumerar los anteriores. El cómputo es
+cerrado:
+
+- La implementación inicial no consume ciclo.
+- Se consume uno cuando, tras una pasada completa, una revisión independiente o
+  una validación contractual exige cambios y la persona abre una nueva pasada de
+  edición.
+- Corregir y revalidar el mismo hallazgo dentro de esa pasada no abre otro.
+- Una petición nueva posterior al cierre de la pasada abre el siguiente.
+- Una parada de operación humana conserva su clasificación y exige decisión; no
+  se recategoriza para alterar el contador.
+
+`evidence/WP-008/cost.md` registra nominalmente la cifra final `N / 2` y la
+relación de ciclos dentro de `C_EVIDENCIA`. **Un tercer ciclo exige otra decisión
+humana, nueva, fechada y versionada.**
 
 **Qué demuestra este WP y qué no.** Demuestra, de forma determinista y
 reproducible en CI, tres cosas: la **aritmética del comando canónico**, la
@@ -789,6 +804,9 @@ bash tests/runtime/capturar-ci-rojo.sh --fixture-root RUTA --verde RUN_ID C_VERD
 #### 6a. Modo de adquisición
 
 - Usa `gh` **exclusivamente en lectura**.
+- La adquisición usa el conjunto exacto
+  `status,conclusion,headSha,databaseId,url,event,jobs`. Tanto el run rojo como el
+  verde exigen `event=pull_request`.
 - **Rechaza con exit `2` un directorio de salida no conforme ANTES de invocar
   `gh`**: la comprobación de rutas precede a todo acceso a la red.
 - Sin `DIRECTORIO_SALIDA` lo crea conforme a la **sección 9**, e imprime su ruta
@@ -808,26 +826,93 @@ bash tests/runtime/capturar-ci-rojo.sh --fixture-root RUTA --verde RUN_ID C_VERD
 
 #### 6c. Las ocho validaciones del run rojo
 
+Antes de evaluar conclusiones, el validador exige una **forma cerrada**. El
+conjunto de jobs debe ser exactamente, sin ausencias, extras ni duplicados:
+
+1. `Gobierno FDA`.
+2. `Lint · Shell · Tests · Manual`.
+3. `Escaneo de secretos`.
+
+Dentro de `Gobierno FDA`, el campo `number` no es contractual. Sí lo son los
+nombres exactos, la unicidad y el orden relativo de estos oráculos:
+
+**Housekeeping previo:**
+
+- `Set up job` → `success`.
+
+**Pasos declarados anteriores al preflight:**
+
+1. `Run actions/checkout@v4`.
+2. `Run actions/setup-python@v5`.
+3. `Instalar PyYAML`.
+4. `Archivos de gobierno presentes`.
+5. `El hook guard.sh es ejecutable`.
+
+**Preflight, exactamente una vez:**
+
+- `Configuración del runtime fail-closed (preflight)` → `failure`.
+
+**Pasos declarados posteriores al preflight:**
+
+1. `Estado operativo coherente (ACTIVE)`.
+2. `El guard bloquea fuera de alcance (suite completa)`.
+3. `Workflows válidos`.
+4. `Manual sin enlaces rotos`.
+5. `El manual acompaña a los cambios de proceso`.
+
+**Housekeeping posterior:**
+
+1. `Post Run actions/setup-python@v5` → `skipped`.
+2. `Post Run actions/checkout@v4` → `success`.
+3. `Complete job` → `success`.
+
+Los cinco pasos declarados anteriores deben estar en `success`; los cinco
+posteriores, en `skipped`. Falta, sobra, duplicación, nombre o versión distinta,
+orden relativo distinto, job desconocido o conjunto de jobs distinto producen
+exit `2`: la forma del run es desconocida y no se interpreta. Una forma exacta
+con una conclusión incorrecta produce exit `1`.
+
 | # | Validación |
 |---|---|
 | 1 | El run ha **terminado** |
 | 2 | `headSha` es igual a `C_ROJO` |
-| 3 | `conclusion` es `failure`, y **nunca** `cancelled` |
-| 4 | En `Gobierno FDA`, los pasos **anteriores** al preflight están en `success` |
-| 5 | El paso del **preflight** está en `failure` |
-| 6 | Los pasos **posteriores del mismo job** están en `skipped` |
-| 7 | Los **demás jobs** del workflow están en `success` |
+| 3 | `event` es `pull_request`; `conclusion` es `failure`, y **nunca** `cancelled` |
+| 4 | El housekeeping previo y los cinco pasos declarados anteriores tienen sus conclusiones exactas |
+| 5 | El único paso del **preflight** y el job `Gobierno FDA` están en `failure` |
+| 6 | Los cinco pasos declarados posteriores y el housekeeping posterior tienen sus conclusiones exactas |
+| 7 | Los otros dos jobs exactos del workflow están en `success` |
 | 8 | **No existe una segunda causa de fallo** en todo el run |
 
 **Códigos de salida, comunes a todos los modos:** **`0`** solo cuando la
 composición es exacta; **`1`** ante composición no conforme; **`2`** ante
 argumentos inválidos, entorno inválido, JSON malformado, respuesta de `gh`
-inutilizable, directorio de salida no conforme o expiración del tiempo máximo.
+inutilizable, **forma desconocida**, directorio de salida no conforme o expiración
+del tiempo máximo.
+
+Todo exit `2` imprime exactamente una línea estable `motivo=VALOR`. El conjunto
+cerrado es `forma_desconocida`, `argumentos`, `entorno`, `json_inutilizable`,
+`adquisicion`, `salida_no_conforme` y `timeout`. La barrera conserva esa línea:
+una persona puede distinguir un cambio de forma de un problema operativo sin
+interpretar el JSON ni convertir el resultado en verde.
+
+En modo `--verde`, `event` es una **puerta de procedencia de la adquisición**,
+común al modo real y al fixture, no una cuarta condición de composición de la
+sección 6f. Ausente produce exit `2` con `motivo=forma_desconocida`; presente pero
+distinto de `pull_request`, exit `1`. Las tres condiciones de 6f permanecen
+terminación, `headSha` y `conclusion`.
+
+La condición 8 recorre todos los pasos de todos los jobs, incluido el
+housekeeping, y excluye únicamente el objeto exacto del preflight. La clasificación
+de housekeeping no puede ocultar una segunda causa de fallo.
+
+El fixture conforme reproduce sintéticamente esta forma real, con `run_id`, URL y
+hashes de prueba. La captura del run abandonado no se copia como fixture: se
+conserva únicamente como evidencia histórica conforme a `DEC-006`.
 
 **La persona únicamente lanza el comprobador.** No interpreta la salida de `gh` y
 no emite el veredicto.
 
-#### 6d. `tests/runtime/test-capturar-ci-rojo.sh` — diecinueve casos
+#### 6d. `tests/runtime/test-capturar-ci-rojo.sh` — treinta y dos casos
 
 Headless, **sin red**, con contadores propios, sobre respuestas de `gh` **grabadas**
 en `tests/runtime/fixtures/ci/`.
@@ -836,18 +921,20 @@ en `tests/runtime/fixtures/ci/`.
 bash tests/runtime/test-capturar-ci-rojo.sh
 ```
 
-**Casos 1 a 12: el modo puro `--validar`.** Los diez negativos cubren, una a una,
-las ocho validaciones:
+**Casos 1 a 12: el modo puro `--validar`.** El conforme y los negativos se
+reexpresan con la forma sintética real y cubren, una a una, las ocho validaciones:
+las dos variantes del caso 7 se derivan determinísticamente del fixture conforme
+dentro del temporal externo y no exigen otro fixture versionado.
 
 | # | Fixture | Validación que debe bloquear | Esperado |
 |---|---|---|---|
-| 1 | JSON completamente conforme | — | exit **`0`** |
+| 1 | JSON sintético de forma real completamente conforme | — | exit **`0`** |
 | 2 | Run **no terminado** | 1 | exit `1` |
 | 3 | `headSha` incorrecto | 2 | exit `1` |
 | 4 | `conclusion` igual a `success` | 3 | exit `1` |
 | 5 | `conclusion` igual a `cancelled` | 3 | exit `1` |
 | 6 | Un paso **anterior** al preflight distinto de `success` | 4 | exit `1` |
-| 7 | Preflight distinto de `failure` | 5 | exit `1` |
+| 7 | Preflight o conclusión del job `Gobierno FDA` distintos de `failure` | 5 | dos subcomprobaciones, ambas exit `1` |
 | 8 | Un paso **posterior** del mismo job distinto de `skipped` | 6 | exit `1` |
 | 9 | Otro job distinto de `success` | 7 | exit `1` |
 | 10 | **Segunda causa de fallo** en el run | 8 | exit `1` |
@@ -878,7 +965,7 @@ subcomprobación tiene nombre propio en la salida:
 | `real-con-timeout` | `FDA_CI_TEST_TIMEOUT_SECONDS` presente en adquisición **real** |
 | `fixture-variable-ausente` | Modo fixture con una de las tres variables ausente |
 | `duracion-invalida` | Duración no numérica, cero o negativa |
-| `raiz-dentro-del-repo` | Raíz de fixture que canonicaliza dentro del repositorio real |
+| `raiz-dentro-del-repo` | Raíz de fixture que canonicaliza dentro del repositorio real. Como aserción subordinada, una raíz hermana externa que solo comparte su prefijo textual y carece de `.fda-fixture` sale `2` con `motivo=entorno` por marcador ausente, **nunca por contención**; ni el stub ni el `gh` real se ejecutan |
 | `marcador-ausente` | Raíz sin `.fda-fixture`, o con un `.fda-fixture` que no es archivo regular |
 | `marcador-symlink` | `.fda-fixture` es un **enlace simbólico**, aunque su destino sea un archivo regular |
 | `stub-fuera-o-symlink` | Stub situado fuera de la raíz física del fixture, o enlace simbólico hacia un ejecutable externo |
@@ -888,10 +975,30 @@ subcomprobación tiene nombre propio en la salida:
 | # | Escenario | Esperado |
 |---|---|---|
 | 17 | Adquisición verde por stub: primero **no terminado** y después **`success` conforme** | exit **`0`** |
-| 18 | Verde terminado con **`headSha` incorrecto** | exit **`1`** |
-| 19 | Verde terminado con **conclusión distinta de `success`** | exit **`1`** |
+| 18 | Verde terminado con **`headSha` incorrecto** | exit **`1`**, validación 2 |
+| 19 | Verde sin `event`, con evento distinto o con conclusión distinta de `success` | tres subcomprobaciones: exit `2` con `motivo=forma_desconocida`, exit `1` por puerta de procedencia y exit `1` por validación 3 |
 
-El test termina en **exit `0`** con **19 correctas y 0 fallidas**. La invocación
+**Casos 20 a 32: forma real cerrada y conclusiones del housekeeping.** Las
+variaciones se derivan determinísticamente del fixture conforme dentro del
+temporal externo del test; no copian la captura real ni crean evidencia.
+
+| # | Variación | Esperado |
+|---|---|---|
+| 20 | Falta `event`, o es distinto de `pull_request` | dos subcomprobaciones: exit `2` con `motivo=forma_desconocida` y exit `1` por validación 3 |
+| 21 | Falta un paso declarado anterior | exit `2`, `motivo=forma_desconocida` |
+| 22 | Falta un paso declarado posterior | exit `2`, `motivo=forma_desconocida` |
+| 23 | Falta un paso de housekeeping | exit `2`, `motivo=forma_desconocida` |
+| 24 | Aparece un paso desconocido | exit `2`, `motivo=forma_desconocida` |
+| 25 | Cambia la versión de una acción declarada o de su post-paso | exit `2`, `motivo=forma_desconocida` |
+| 26 | Cambia el orden relativo contratado | exit `2`, `motivo=forma_desconocida` |
+| 27 | Se duplica un paso declarado | exit `2`, `motivo=forma_desconocida` |
+| 28 | `Set up job` no está en `success` | exit `1`, validación 4 |
+| 29 | `Post Run actions/setup-python@v5` no está en `skipped` | exit `1`, validación 6 |
+| 30 | `Post Run actions/checkout@v4` no está en `success` | exit `1`, validación 6 |
+| 31 | `Complete job` no está en `success` | exit `1`, validación 6 |
+| 32 | Falta o sobra un job | dos subcomprobaciones, ambas exit `2` con `motivo=forma_desconocida` |
+
+El test termina en **exit `0`** con **32 correctas y 0 fallidas**. La invocación
 **real** de `capturar-ci-rojo.sh`, en cualquiera de sus dos modos de adquisición, no
 forma parte de la batería de validación: vive **exclusivamente en la cronología**.
 
@@ -958,8 +1065,9 @@ de salida y de costura. Comprueba **tres** condiciones:
 | 3 | `conclusion` es `success` |
 
 Devuelve **`0`** si es conforme; **`1`** si el run terminó pero la composición no es
-conforme; **`2`** ante argumentos, entorno, adquisición inutilizable o expiración
-del tiempo máximo.
+conforme o si la puerta de procedencia de la sección 6c recibe un `event` presente
+distinto de `pull_request`; **`2`** ante argumentos, entorno, adquisición
+inutilizable, expiración del tiempo máximo o forma desconocida por `event` ausente.
 
 **Por qué existe.** Sin él, una sesión de agente o el empujón de `C_EVIDENCIA`
 podrían llegar **antes** de que el run verde acabe: la concurrencia del workflow lo
@@ -969,7 +1077,11 @@ no interpreta su salida.** El contrato de parada es exacto:
 - **Exit `1` — el run terminó pero no es conforme.** **Parar.** No se reabre ninguna
   sesión de agente, no se prepara `C_EVIDENCIA`, no se empuja nada, no hay `amend`,
   `rebase` ni force-push. Se **solicita decisión humana**. El contrato **no autoriza
-  automáticamente** ni relanzar el run en GitHub ni reiniciar la rama o la PR.
+  automáticamente** ni relanzar el run en GitHub ni reiniciar la rama o la PR. El
+  mismo protocolo se aplica si `event` está presente pero no es `pull_request`.
+- **Exit `2` con `motivo=forma_desconocida` por `event` ausente.** **Parar** y
+  **solicitar decisión humana**. No se repite la consulta, no se amplía el oráculo
+  por patrón y no se interpreta el JSON manualmente.
 - **Exit `2` por expiración del tiempo máximo, por adquisición inutilizable o por
   entorno inválido.** **Parar** y **solicitar decisión humana**. Solo podrá
   repetirse la comprobación —que es de **solo lectura**— sobre **el mismo `RUN_ID`
@@ -1172,16 +1284,22 @@ esos directorios:
 5. En ese caso **solo elimina el directorio recién creado y todavía vacío**, y
    **nunca continúa usándolo**.
 
+Toda comparación de contención física es **con límite de componente**: una ruta
+`A` está dentro de `B` solo si `A == B` o si empieza por `B/`. Una ruta hermana
+cuyo nombre solo comparte el prefijo textual —por ejemplo, un respaldo llamado
+`fda-template-respaldo-*` junto a `fda-template`— sigue siendo externa. Se prohíbe
+una comparación de prefijo simple.
+
 Las pruebas correspondientes se integran **como subcomprobaciones de escenarios y
 casos ya existentes**: en `test-protocolo.sh` dentro de los doce escenarios, y en
 `test-capturar-ci-rojo.sh` dentro del caso 13, con el nombre
-`tmpdir-dentro-del-repo`. **Ni los doce escenarios ni los diecinueve casos
-aumentan.**
+`tmpdir-dentro-del-repo`. La corrección de `DEC-006` eleva el comprobador a
+treinta y dos casos; esta subcomprobación sigue dentro del caso 13 y no añade otro.
 
 Esta formulación es la **aclaración de un invariante ya exigido**, no una ampliación
 funcional: no cambian los archivos permitidos, ni los doce escenarios de
 `test-protocolo.sh`, ni los veintidós casos de `test-check-config.sh`, ni los
-diecinueve del comprobador, ni las trece subcomprobaciones del caso 13, ni ningún
+treinta y dos del comprobador, ni las trece subcomprobaciones del caso 13, ni ningún
 otro contador del WP.
 
 ## Entorno autorizado (herramientas, comandos, red, secretos)
@@ -1326,8 +1444,17 @@ el commit correspondiente está empujado: es un paso de la cronología, y su sal
 
 *Comprobadores de barrera y de alcance*
 
-- [ ] `bash tests/runtime/test-capturar-ci-rojo.sh` termina en **exit `0`** con **19 correctas y 0 fallidas**
+- [ ] `bash tests/runtime/test-capturar-ci-rojo.sh` termina en **exit `0`** con **32 correctas y 0 fallidas**
 - [ ] Cada una de las **ocho** validaciones del run rojo tiene **al menos un caso negativo** que demuestra que bloquea
+- [ ] El fixture rojo conforme es sintético, contiene `event=pull_request` y reproduce los tres jobs y la secuencia completa de pasos de la sección 6c
+- [ ] El conjunto de jobs y los oráculos de pasos se comparan positivamente: falta, sobra, duplicación, nombre, versión u orden relativo distintos salen `2`
+- [ ] El campo `number` de los pasos no interviene en ninguna decisión
+- [ ] Toda comparación de contención usa rutas físicas y límites de componente; la aserción subordinada del caso 13 usa una raíz hermana externa sin `.fda-fixture`, obtiene exit `2` con `motivo=entorno` por marcador ausente —nunca por contención— y demuestra que ni el stub ni el `gh` real se ejecutaron
+- [ ] Los cuatro pasos de housekeeping se exigen con sus conclusiones exactas y la condición 8 sigue alcanzándolos
+- [ ] Los casos 20 a 32 cubren evento, ausencias, extras, versión, orden, duplicación, conjunto de jobs y las cuatro conclusiones de housekeeping
+- [ ] `tests/runtime/fixtures/ci/README.md` declara **quince respuestas versionadas**, todas sintéticas; documenta la adquisición exacta `--json status,conclusion,headSha,databaseId,url,event,jobs`; la captura real abandonada no figura como fixture
+- [ ] Todo exit `2` emite exactamente un `motivo=` del conjunto cerrado de la sección 6c; los tests comprueban el valor, incluido `forma_desconocida`
+- [ ] El modo `--verde` exige `event=pull_request` como puerta de procedencia de adquisición; el caso 19 cubre evento ausente, evento distinto y conclusión no conforme sin alterar sus tres condiciones de composición
 - [ ] Las **trece** subcomprobaciones nombradas del caso 13 salen `2`, y en las trece se demuestra que no se ejecutó ni el stub ni el `gh` real
 - [ ] Un directorio de salida proporcionado pero inexistente se **rechaza sin crearlo**
 - [ ] El test se ejecuta **sin red**: usa respuestas grabadas y un stub inyectado por costura explícita
@@ -1348,8 +1475,9 @@ el commit correspondiente está empujado: es un paso de la cronología, y su sal
 
 - [ ] `.github/workflows/ci.yml` añade **exactamente un** paso, en el job `Gobierno FDA`, que invoca `tests/runtime/check-config.sh` y no replica su lógica
 - [ ] El diff de `.github/workflows/ci.yml` no toca ningún otro job ni paso, y no añade ninguna acción ni dependencia
-- [ ] En la ejecución roja, el job `Gobierno FDA` presenta: pasos anteriores al preflight en `success`, preflight en `failure`, pasos posteriores del mismo job en `skipped`
-- [ ] En la ejecución roja, los **demás jobs** del workflow terminan en `success`
+- [ ] La ejecución roja tiene `event=pull_request` y el conjunto exacto de tres jobs de la sección 6c
+- [ ] `Gobierno FDA` presenta los oráculos completos, únicos y en orden: housekeeping previo y declarados anteriores conformes, preflight en `failure`, declarados posteriores en `skipped` y housekeeping posterior con su mapa exacto
+- [ ] Los otros dos jobs exactos terminan en `success`
 - [ ] En la ejecución roja **no hay ninguna segunda causa de fallo**
 - [ ] La barrera roja terminó en **exit `0`**, validando automáticamente las **ocho** condiciones, **antes** de la fase verde y de empujar `C_VERDE`
 - [ ] El run rojo **no fue cancelado**: su `conclusion` es `failure`
@@ -1416,7 +1544,7 @@ el commit correspondiente está empujado: es un paso de la cronología, y su sal
 
 *Coste*
 
-- [ ] `evidence/WP-008/cost.md` cumple `DEC-001` y `DEC-004`, **sin marcador alguno**
+- [ ] `evidence/WP-008/cost.md` cumple `DEC-001` y `DEC-004`, **sin marcador alguno**, y contiene la fila nominal `Ciclos de corrección | N / 2` con la relación de las pasadas consumidas
 - [ ] El `estado_coste` corresponde a la **procedencia real** de la cifra, según `DEC-004` §12: F1 o F2 conformes producen `medido`; F1 o F2 incompletas o no conformes producen `estimado`; F3 produce `estimado`; sin cifra defendible produce `no_disponible`, y entonces el WP es **NO APTO**
 - [ ] Los campos obligatorios del estado declarado están completos según `DEC-004` §4
 
@@ -1441,10 +1569,11 @@ bajo `evidence/WP-012/**`.
 - [ ] `parche/08-rollback-verde.log` — sobre fixture: `ROLLBACK APLICADO`, exit distinto de cero y par restaurado a **S1**
 - [ ] `parche/09-alcance.log` — las huellas `H_OTROS` y `H_STAGED` antes y después de cada fase real, y la transición de huella del archivo objetivo
 - [ ] `ci/rojo/` — extracto **saneado** de la captura: `run_id`, URL, `headSha`, `conclusion` distinta de `cancelled`, la tabla de estados de todos los jobs y pasos, el log del paso fallido y el **código de salida `0`** del comprobador, con `modo=real`
-- [ ] `ci/verde/` — entrada **única** con, conjuntamente: `run_id`, URL, `headSha`, `conclusion`, el log del modo `--verde` con `modo=real` en su primera línea, y el **código de salida `0`** de ese modo
-- [ ] `ci/comprobador/test.log` — salida íntegra de `test-capturar-ci-rojo.sh`, con los **19** casos, sus códigos y el resultado agregado
+- [ ] `ci/verde/` — entrada **única** con, conjuntamente: `run_id`, URL, `event=pull_request`, `headSha`, `conclusion`, el log del modo `--verde` con `modo=real` en su primera línea, y el **código de salida `0`** de ese modo
+- [ ] `ci/comprobador/test.log` — salida íntegra de `test-capturar-ci-rojo.sh`, con los **32** casos, sus códigos y el resultado agregado
 - [ ] `ci/comprobador/cobertura.md` — correspondencia entre las **ocho** validaciones del run rojo y el caso negativo que cubre cada una
 - [ ] `ci/procedimiento.md` — los hashes completos de `C_ROJO` y `C_VERDE`, los dos `run_id` con su `headSha` y su `conclusion`, la salida de `gh pr view PR_NUMERO --json commits` previa a `C_EVIDENCIA` mostrando **exactamente esos dos commits en ese orden**, y las dos comprobaciones de ascendencia con su código de salida. **No registra el hash de `C_EVIDENCIA`**: un commit no puede contener su propio hash, y la forma final de tres commits se comprueba con **Git local antes del push** y, ya publicada, en la **revisión de la PR**
+- [ ] `historico/intento-1-abandonado.md` — referencia a `DEC-006`, PR #24, `C_ROJO=f745b5d15b269f2dbc34b9716a07eea9cf4a7dd0`, run `33246993973`, digest del respaldo estable, las huellas de `ACTO1_OK`, `barrera-roja.salida.txt`, `run-rojo.json` y `registro.log`, y la relación cronológica cerrada de las sesiones S1 de auditoría hasta materializar A. No incorpora ni reutiliza lanzadores `.command`, prompts íntegros ni respuestas íntegras
 - [ ] `alcance/staged-C_ROJO.log` — la salida de `check-alcance-wp008.sh --lista ARCHIVO_NUL` sobre la lista staged real de `C_ROJO`, con **exit `0`**, fechada **antes** del commit. **Generado en un temporal externo al repositorio durante S1** e incorporado aquí; conserva su **ruta física de origen**, su **SHA-256 de S1** y el **hash completo de `C_ROJO`**
 - [ ] `alcance/diff-post-commit-C_ROJO.log` — la salida de `check-alcance-wp008.sh` sin argumentos sobre `main...HEAD` **después** de crear `C_ROJO` y **antes** de empujarlo, con **exit `0`**. **También generado fuera del repositorio durante S1** e incorporado aquí, con los mismos tres datos de correlación
 - [ ] `alcance/revalidacion-staged.log` — la lista NUL del área staged y su SHA-256 calculados en el **paso 2** y de nuevo en el **paso 6**, con la constatación de que **son idénticos**
@@ -1455,7 +1584,7 @@ bajo `evidence/WP-012/**`.
 - [ ] `alcance/cuarentena.log` — salida íntegra de la invocación **agregada** `--cuarentena`: el escaneo real de los **siete** scripts con **cero hallazgos**, las **seis** pruebas con su código obtenido frente al esperado, y el **código agregado `0`**
 - [ ] `no-regresion/` — salidas de `run-suite.sh`, `check-guard.sh`, `check-active.sh`, `test-check-active.sh` y `check-manual.py`
 - [ ] `diff/` — el diff por nombre y estado de la rama contra `main`, y los diffs completos de `.claude/settings.json` y `.github/workflows/ci.yml`
-- [ ] `cost.md` conforme a `DEC-001` y `DEC-004`
+- [ ] `cost.md` conforme a `DEC-001` y `DEC-004`, con la fila nominal y la relación de ciclos exigidas por `DEC-006`
 - [ ] Ningún archivo bajo `evidence/WP-008/` contiene prompts íntegros, respuestas íntegras ni cadenas con forma de credencial
 
 ## Condiciones de parada específicas
@@ -1492,16 +1621,18 @@ bajo `evidence/WP-012/**`.
 - Si se intentara activar el failpoint contra el repositorio real o contra una raíz sin el marcador `.fda-fixture`: **parar**.
 - Si `aplicar.sh` fuera a escribir su log dentro de `evidence/WP-008/` durante una fase: **parar**.
 - Si `H_OTROS` o `H_STAGED` cambiaran durante una fase: **parar**.
-- Si algún agente fuese a trabajar mientras el par está en **S1**: **parar**. Esa ventana es de operación humana exclusiva.
+- Mientras S1 esté **operativo**, si se abre cualquier sesión de agente: **parar**. Esa ventana es de operación humana exclusiva.
+- Si un lanzador o una barrera deja S1 **detenido**, la cadena queda congelada. Se permiten auditorías de agente solo de lectura para explicar la parada y preparar una decisión humana, pero no escrituras, red, Git mutable, ejecución de `.command`, fase verde ni reanudación automática. Cualquiera de esas operaciones: **parar**.
 - Si se ejecutase la fase verde o se empujase `C_VERDE` **antes** de que la barrera roja haya salido `0`: **parar**.
+- Si la forma del run fuese desconocida —exit `2` del validador por job, paso, nombre, versión, unicidad u orden—: **parar**. No se amplía el oráculo por patrón ni se interpreta a mano.
 - Si la barrera roja saliera `1`: **parar**. La composición del run rojo no es la contratada.
 - Si la barrera verde saliera **`1`**: **parar**. No se reabren agentes, no se prepara `C_EVIDENCIA`, no se empuja, no hay `amend`, `rebase` ni force-push, y se solicita decisión humana.
 - Si la barrera verde saliera **`2`** por timeout, adquisición o entorno: **parar** y **solicitar decisión humana**.
 - Si la barrera roja saliera `2` por expiración del tiempo máximo: **parar** y solicitar decisión. No se amplía el tiempo por iniciativa propia.
 - Si una captura destinada a evidencia real llevase `modo=fixture` en su log: **parar**. No es evidencia de CI.
 - Si la ejecución roja fallara además en algún paso o job distinto del preflight: **parar**.
-- Si el run de `C_ROJO` terminase con `conclusion` igual a `cancelled`: **parar de inmediato**. No sirve como evidencia del bloqueo. **No se empuja nada más**; **no se intenta reconstruir la evidencia con commits adicionales**, porque un tercer commit rompería la ascendencia directa que el contrato exige; y se declara por escrito que la situación **no es recuperable automáticamente** dentro de la cadena contractual exacta `C_ROJO` a `C_VERDE` a `C_EVIDENCIA`. Se **solicita decisión humana** sobre abandonar y reiniciar la rama y la PR.
-- Si la ejecución en rojo exigiera tocar `main`, el ruleset, una segunda rama o una segunda PR: **parar**.
+- Si el run de `C_ROJO` terminase con `conclusion` igual a `cancelled`: **parar de inmediato**. No sirve como evidencia del bloqueo. **No se empuja nada más**; **no se intenta reconstruir la evidencia con commits adicionales**, porque un cuarto commit rompería la cadena exacta; y se declara por escrito que la situación **no es recuperable automáticamente** dentro de `C_ROJO` a `C_VERDE` a `C_EVIDENCIA`. Se solicita decisión humana sobre abandonar la rama y la PR.
+- Si la ejecución en rojo exigiera tocar `main`, el ruleset, otra rama u otra PR además de la única rama y PR vivas autorizadas por `DEC-006`: **parar**. La excepción `-r2` no se puede repetir por analogía.
 - Si `check-alcance-wp008.sh` saliera `1` en cualquiera de sus dos modos: **parar**. Hay una ruta fuera de alcance o una invocación que rompe el invariante de cuarentena.
 - Si `bash tests/guard/run-suite.sh` dejara de dar sus contadores actuales, o si el archivo apareciera en el diff: **parar**. `DEC-003` §7 lo prohíbe durante toda la pausa.
 - Si se planteara fijar acciones por SHA, tocar `claude.yml` o `code-review.yml`, o corregir cualquier punto de `REQ-FDA-002`: **parar**. Es WP-009.
@@ -1514,7 +1645,7 @@ bajo `evidence/WP-012/**`.
 - Si algún agente intentara escribir directamente `.claude/settings.json` o `.github/workflows/ci.yml`: **parar**. Esas rutas las aplica una persona, siempre.
 - Si un agente fuese a firmar una cifra de coste obtenida por F3: **parar**. F3 la firma una persona.
 - Si el `security-reviewer` reportara un hallazgo de severidad **ALTA** o **CRÍTICA**: el WP **se bloquea** y no se fusiona.
-- Si se alcanzase el **tercer ciclo de corrección**: **parar**. El presupuesto operativo concedido a este contrato es de **dos** ciclos y el tercero exige otra decisión humana, nueva y fechada.
+- Si se alcanzase el **tercer ciclo de corrección de `-r2`**: **parar**. El presupuesto nuevo concedido por `DEC-006` es de **dos** ciclos y el tercero exige otra decisión humana, nueva, fechada y versionada.
 
 ## Migración / rollback
 
@@ -1526,13 +1657,18 @@ actos del operador:
 1. Este contrato reducido **materializado, validado y aprobado** en una PR de
    operador que modifique **exactamente un archivo**.
 2. El **aislamiento de `DEC-005` §9 completamente terminado**.
-3. La rama `wp/WP-008-runtime-fail-closed` **sincronizada con el `origin/main` que
-   corresponda** en ese momento.
+3. La rama `wp/WP-008-runtime-fail-closed-r2` creada desde el `origin/main`
+   posterior a la PR de contrato y **exactamente igual al `origin/main` de ese
+   momento**: `git rev-parse HEAD` y `git rev-parse origin/main` devuelven el mismo
+   hash. Tras la PR de activación se restablece y vuelve a demostrar esa igualdad
+   por fast-forward antes de iniciar trabajo.
 4. Un **acto humano posterior** que escriba `WP-008` en `work-packages/ACTIVE`,
    conforme al paso 2 de la secuencia de `DEC-003` §2.
 
-Mientras esas cuatro condiciones no se cumplan, `ACTIVE` permanece en **reposo** y
-ningún agente escribe.
+Mientras las precondiciones 1, 2 y 3 en su estado inicial no se cumplan, `ACTIVE`
+permanece en **reposo** y ningún agente escribe. La precondición 4 es la PR C que
+sale de ese reposo; tras ella se restablece la igualdad final de la precondición 3
+antes de iniciar trabajo.
 
 ### Orden de aplicación obligatorio
 
@@ -1553,11 +1689,13 @@ ningún agente escribe.
    invalida**, porque habría verificado un estado distinto del que se commitea.
 6. La persona ejecuta la **fase roja** y después **la secuencia de ocho pasos**
    hasta empujar `C_ROJO`.
-7. La persona lanza la **barrera roja** y espera su exit `0`.
-8. La persona ejecuta la **fase verde**, commitea `C_VERDE` y empuja.
-9. La persona lanza la **barrera verde** y espera su exit `0`. Hasta entonces no se
+7. La persona abre la **única PR de implementación**, como borrador, contra
+   `main`. Comprueba que el run de `C_ROJO` nace con `event=pull_request`.
+8. La persona lanza la **barrera roja** y espera su exit `0`.
+9. La persona ejecuta la **fase verde**, commitea `C_VERDE` y empuja.
+10. La persona lanza la **barrera verde** y espera su exit `0`. Hasta entonces no se
    reabre ninguna sesión de agente.
-10. Con el par ya en **S2**, se ejecuta la **batería final B** completa y se
+11. Con el par ya en **S2**, se ejecuta la **batería final B** completa y se
     prepara la evidencia saneada; la persona ejecuta la **tercera y última
     operación de red**, commitea `C_EVIDENCIA` y empuja.
 
@@ -1630,7 +1768,7 @@ todas contractuales y todas verificables:
 
 ### Una rama, una PR, tres commits
 
-Rama `wp/WP-008-runtime-fail-closed`. Una PR. Sin `amend`, sin `rebase`, sin
+Rama `wp/WP-008-runtime-fail-closed-r2`. Una PR viva. Sin `amend`, sin `rebase`, sin
 force-push, sin reescritura de historial.
 
 | Fase | Quién | Qué ocurre |
@@ -1638,9 +1776,10 @@ force-push, sin reescritura de historial.
 | **Preparación**, par en S0 | Agente | Implementa los seis scripts, los dos oráculos, los fixtures de los cuatro prefijos, los cinco archivos de `docs/manual/`, la guía fundacional, `SEC-001` y `evidence/WP-008/parche/**` con los candidatos, y ejecuta la **batería A**. `evidence/WP-008/**` queda **en el árbol de trabajo y fuera del índice**: viaja en `C_EVIDENCIA`, no en `C_ROJO`. **No toca** `settings.json` ni `ci.yml`: son rutas vedadas |
 | **Fase roja** | **Persona** | Ejecuta `aplicar.sh rojo` y después la repetición idempotente. Par S0 a **S1**. Los logs quedan en el directorio temporal externo |
 | **`C_ROJO`** | **Persona** | Commitea implementación, pruebas, oráculos, fixtures, documentación y `ci.yml` en `DESPUES` siguiendo **la secuencia de ocho pasos**: alcance validado sobre la **lista staged antes del commit**, lista **revalidada por hash** justo antes de commitear, y **diff comprobado después del commit y antes del push**. **`C_ROJO` no contiene ninguna ruta bajo `evidence/WP-008/**`.** **`settings.json` permanece exactamente en `ANTES`.** Empuja |
-| — | CI | Se ejecuta sobre `C_ROJO`. En `Gobierno FDA`: pasos anteriores al preflight en `success`, preflight en `failure`, pasos posteriores del mismo job en `skipped`. Los demás jobs en `success`. **No hay ninguna segunda causa de fallo** |
+| **PR en borrador** | **Persona** | Abre la única PR viva después del push de `C_ROJO`; su evento `pull_request` dispara el run contractual |
+| — | CI | Se ejecuta sobre `C_ROJO`. La forma, los jobs, los oráculos declarados y el housekeeping coinciden exactamente con la sección 6c. **No hay ninguna segunda causa de fallo** |
 | **Barrera roja** | **Persona lanza el comprobador** | Espera con polling acotado a 20 minutos, valida automáticamente sus ocho condiciones y escribe la captura **fuera del repositorio**. **Solo si sale `0`** continúa |
-| **Fase verde** | **Persona** | **Sin abrir ninguna sesión de agente**, ejecuta `aplicar.sh verde` y después la repetición idempotente. Par S1 a **S2** |
+| **Fase verde** | **Persona** | Con S1 operativo y **sin abrir ninguna sesión de agente**, ejecuta `aplicar.sh verde` y después la repetición idempotente. Par S1 a **S2** |
 | **`C_VERDE`** | **Persona** | Hijo **directo** de `C_ROJO`. Entre los dos archivos protegidos cambia **únicamente** `.claude/settings.json`, de `ANTES` a `DESPUES`. Empuja |
 | — | CI | Se ejecuta sobre `C_VERDE` |
 | **Barrera verde** | **Persona lanza el comprobador** | **Solo si sale `0`** puede reabrirse una sesión de agente, ejecutarse la **batería B** y prepararse `C_EVIDENCIA`. Si sale `1` o `2`, se aplica el contrato de parada de la sección 6f |
@@ -1655,12 +1794,16 @@ la evidencia se perdería sin dejar rastro utilizable. Las barreras no protegen 
 proceso: protegen las únicas pruebas de que el control bloquea y de que la
 configuración final es conforme.
 
-**Ninguna sesión de agente mientras el par está en S1.** En S1 el `settings.json`
+**Ninguna sesión de agente mientras S1 esté operativo.** En S1 el `settings.json`
 sigue **exactamente en `ANTES`**: no hay ninguna configuración degradada a
 propósito, y el runtime local es el mismo que hay hoy en `main`. Lo que no puede
 ocurrir es que un agente trabaje con el protocolo a medias, porque un commit suyo
 entre `C_ROJO` y `C_VERDE` rompería la cadena de evidencias y la ascendencia
 directa.
+
+Si un lanzador o barrera declara `PARADA`, S1 pasa a **detenido** y la cadena se
+congela. Solo entonces se permiten auditorías de agente de solo lectura bajo las
+restricciones de las condiciones de parada. Ninguna auditoría reanuda la cadena.
 
 **Frontera de permisos, dicha con precisión.** El acceso del agente a **GitHub** es
 de solo lectura. La **creación de evidencias** en `evidence/WP-008/**` es una
@@ -1668,7 +1811,8 @@ de solo lectura. La **creación de evidencias** en `evidence/WP-008/**` es una
 `.claude/settings.json` y `.github/workflows/ci.yml`, y todas las operaciones de Git
 que publican, son **actos humanos**.
 
-**Autoría de `cost.md`.** Se prepara durante `C_EVIDENCIA` y su estado corresponde a
+**Autoría de `cost.md`.** Se prepara durante `C_EVIDENCIA`, incluye la fila
+`Ciclos de corrección | N / 2` y la relación nominal de las pasadas, y su estado corresponde a
 la procedencia real. Si la fuente es **F3**, la lectura, la estimación y el registro
 los realiza **la persona**: un agente no puede firmar F3. Si la fuente es **F1 o F2**
 y es conforme, una automatización determinista versionada puede registrar el
@@ -1706,8 +1850,11 @@ nunca reescritura de historial.
   intacta. Para abandonarla se informa del **nombre de la rama** y del **hash** y se
   espera **autorización humana explícita**; solo se borra la rama local cuando Git
   confirme que está fusionada.
-- **Tras el push:** cerrar la PR sin fusionar y borrar la rama remota. `main` no se
-  modifica por este acto.
+- **Tras el push:** cerrar la PR sin fusionar y conservar rama, commits y custodia
+  hasta que una decisión humana, nueva y registrada, determine su retención. No se
+  borra automáticamente la rama remota y `main` no se modifica por este acto. La
+  conservación de la primera rama abandonada está autorizada nominalmente por
+  `DEC-006`; cualquier abandono posterior exige su propia decisión.
 - **Tras una eventual fusión:** revertir mediante una **PR nueva** de revert. No se
   reescribe el historial de `main`. Una reversión deja el runtime en el estado
   previo, que es el fail-open conocido y registrado por `DEC-003` §1: la reversión
