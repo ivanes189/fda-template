@@ -1,0 +1,7 @@
+{
+  "status": "completed",
+  "conclusion": "failure",
+  "headSha": "1111111111111111111111111111111111111111",
+  "jobs": [
+    { "name": "Gobierno FDA", "steps": [ }
+}

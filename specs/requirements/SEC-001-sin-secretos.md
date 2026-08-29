@@ -30,11 +30,17 @@ La superficie es más amplia de lo que parece: la FDA genera evidencias automát
 
 3. **Controles nativos de GitHub activos:** secret scanning y push protection habilitados en el repositorio.
 
-4. **Denegación de lectura:** `.claude/settings.json` deniega la lectura de rutas sensibles, de modo que un agente no puede exfiltrar por descuido lo que no puede leer:
+4. **Denegación de lectura:** `.claude/settings.json` deniega la lectura de rutas sensibles, de modo que un agente no puede exfiltrar por descuido lo que no puede leer. Las cuatro reglas están **ancladas a la raíz del proyecto** con `/`, no al directorio de trabajo con `./`:
 
    ```
-   Read(./.env*)  ·  Read(./**/secrets/**)  ·  Read(./**/*.pem)  ·  Read(./**/id_rsa*)
+   Read(/**/.env*)  ·  Read(/**/secrets/**)  ·  Read(/**/*.pem)  ·  Read(/**/id_rsa*)
    ```
+
+   Este criterio se satisface en **dos niveles, que no deben confundirse**:
+
+   **(a) Declaración y verificación estructural — la acredita WP-008.** El preflight `tests/runtime/check-config.sh` comprueba, en cada PR y dentro del job `Gobierno FDA`, que ninguna regla queda con prefijo `./` ni sin anclar —comprobación 6— y que el conjunto de las ocho reglas de archivo coincide **elemento a elemento** con el oráculo versionado, sin ausencias, sobras, sustituciones ni duplicados —comprobación 9—. Es determinista y **reproducible en CI**.
+
+   **(b) Resolución real por el runtime — la acreditará WP-012.** Que Claude Code cargue esa configuración y resuelva una regla anclada contra la raíz del proyecto **en ejecución** es una afirmación de comportamiento. **Ninguna evidencia de WP-008 la demuestra**, y este requisito no la da por probada.
 
 5. **Higiene de evidencias:** ningún archivo bajo `evidence/**` contiene cadenas con forma de credencial (`sk-`, `gho_`, `ghp_`, `AKIA`, `-----BEGIN * PRIVATE KEY-----`).
 
@@ -47,7 +53,7 @@ La superficie es más amplia de lo que parece: la FDA genera evidencias automát
 | Sin archivos de secretos versionados | Cumplido — comprobado en CI |
 | `gitleaks` en CI | Configurado en el job `secretos` — **nunca ejecutado** (sin remoto todavía) |
 | Secret scanning + push protection | **Pendiente** — requiere el repositorio en GitHub |
-| Denies de lectura | Cumplido — 4 reglas activas |
+| Denies de lectura | **4 reglas declaradas y verificadas estructuralmente** por el preflight de WP-008 (anclaje y conjunto exacto). La resolución real en ejecución la acreditará WP-012 |
 | `.gitignore` cubre `.env*`, `**/secrets/**` | Cumplido |
 
 ## Nota sobre el alcance de este requisito

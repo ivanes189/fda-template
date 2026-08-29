@@ -10,13 +10,14 @@ Un sistema donde agentes de IA especializados implementan software mediante tare
 
 Lo valioso no es el runtime (hoy Claude Code) sino la **capa de gobierno**: los archivos versionados que definen qué puede hacer cada agente y bajo qué condiciones se detiene. Si mañana cambias de runtime, el gobierno sobrevive.
 
-La seguridad **no depende de que el modelo obedezca instrucciones**. Depende de tres controles deterministas:
+La seguridad **no depende de que el modelo obedezca instrucciones**. Depende de cuatro controles deterministas:
 
 | Control | Dónde vive | Qué impide |
 |---|---|---|
 | Permisos de GitHub | branch protection / ruleset | Que un agente fusione su propia PR |
 | Allowlists de herramientas | `.claude/agents/*.md` | Que un revisor modifique código |
 | Hook `guard.sh` | `.claude/hooks/guard.sh` | Que se escriba fuera del alcance del WP |
+| Preflight de configuración | `tests/runtime/check-config.sh`, ejecutado en el job `Gobierno FDA` | Que se fusione una configuración degradada: hook invocado por ruta relativa, sin normalizar a `exit 2`, o reglas de permiso desancladas de la raíz |
 
 ## Índice
 

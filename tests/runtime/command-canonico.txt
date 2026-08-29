@@ -1,0 +1,1 @@
+if [ -x "$CLAUDE_PROJECT_DIR/.claude/hooks/guard.sh" ]; then "$CLAUDE_PROJECT_DIR/.claude/hooks/guard.sh"; c=$?; [ "$c" -eq 0 ] && exit 0 || exit 2; else echo "guard.sh ausente o no ejecutable" >&2; exit 2; fi

@@ -56,7 +56,7 @@ Después, añade una línea por componente real del proyecto. La propiedad por c
 En `settings.json`, amplía `deny` con las rutas críticas de **tu** proyecto (migraciones, infraestructura, configuración de producción):
 
 ```json
-"deny": ["Edit(./migrations/**)", "Edit(./infra/**)"]
+"deny": ["Edit(/migrations/**)", "Edit(/infra/**)"]
 ```
 
 ### `{{PRESUPUESTOS_Y_MODELOS}}` — umbrales y política de modelos

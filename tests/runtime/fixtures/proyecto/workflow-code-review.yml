@@ -1,0 +1,14 @@
+name: Revisión de código (fixture)
+
+# Suplente minimo y valido de .github/workflows/code-review.yml dentro de la
+# copia externa de trabajo. Mismo proposito que workflow-claude.yml.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  marcador:
+    runs-on: ubuntu-latest
+    steps:
+      - name: No operacion
+        run: echo "fixture"

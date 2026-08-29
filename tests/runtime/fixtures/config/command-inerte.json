@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "deny": [
+      "Read(/**/.env*)",
+      "Read(/**/secrets/**)",
+      "Read(/**/*.pem)",
+      "Read(/**/id_rsa*)",
+      "Bash(git push --force*)",
+      "Edit(/.github/workflows/**)",
+      "Edit(/CODEOWNERS)",
+      "Edit(/.claude/hooks/**)",
+      "Edit(/.claude/settings.json)"
+    ],
+    "ask": ["Bash(git push*)"],
+    "allow": ["Bash(pytest*)"]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"anclado en $CLAUDE_PROJECT_DIR, deberia exit 2 si fallara\"; exit 0"
+          }
+        ]
+      }
+    ]
+  }
+}

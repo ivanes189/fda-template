@@ -94,21 +94,24 @@ Los otros cuatro agentes siguen el mismo patrón con menos permisos: `planner`, 
 {
   "permissions": {
     "deny": [
-      "Read(./.env*)", "Read(./**/secrets/**)",
+      "Read(/**/.env*)", "Read(/**/secrets/**)",
       "Bash(git push --force*)", "Bash(rm -rf /*)",
-      "Edit(./.github/workflows/**)", "Edit(./CODEOWNERS)"
+      "Edit(/.github/workflows/**)", "Edit(/CODEOWNERS)"
     ],
     "ask": ["Bash(git push*)", "Bash(docker*)"],
     "allow": ["Bash(pytest*)", "Bash(ruff*)", "Bash(mypy*)", "Bash(npm test*)"]
   },
   "hooks": {
     "PreToolUse": [
-      { "matcher": "Edit|Write",
-        "hooks": [{ "type": "command", "command": ".claude/hooks/guard.sh" }] }
+      { "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [{ "type": "command",
+                    "command": "if [ -x \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.sh\" ]; then \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.sh\"; c=$?; [ \"$c\" -eq 0 ] && exit 0 || exit 2; else echo \"guard.sh ausente o no ejecutable\" >&2; exit 2; fi" }] }
     ]
   }
 }
 ```
+
+Tres detalles de ese bloque no son cosméticos. Las reglas de archivo se anclan con `/`, que en un `settings.json` de proyecto significa **la raíz del repositorio**; con `./` se anclarían al directorio de trabajo y dejarían de coincidir en cuanto no fuera la raíz. El **matcher lleva las cinco entradas**, `Bash` incluida: si falta, un agente escribe con `echo x > ruta` y se salta el control entero. Y la invocación del hook es **anclada y fail-closed**: un hook ausente o sin permiso de ejecución devuelve `exit 2` —el único código que bloquea— en lugar de dejar pasar la herramienta.
 
 `guard.sh` recibe la llamada de herramienta en JSON y devuelve un código de salida que bloquea la operación si la ruta está fuera del alcance del WP activo (lee `work-packages/ACTIVE` para saber qué WP está en curso y qué rutas permite). Esto convierte "límites de modificación por componente" de prosa a código.
 

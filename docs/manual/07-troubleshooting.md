@@ -46,12 +46,39 @@ Si necesitas reparar el propio gobierno y el reposo te lo impide, el protocolo e
 
 ### Síntoma: no bloquea nada
 
+Empieza por el preflight: es el mismo comprobador que ejecuta el job `Gobierno FDA`, y te dice **qué** parte de la configuración no es conforme, no solo que algo falla.
+
+```bash
+bash tests/runtime/check-config.sh; echo "exit=$?"
+```
+
+Imprime una línea por comprobación y termina en `RESULTADO: N conformes · M no conformes`. Sale `0` si todo es conforme, `1` si alguna comprobación falla —nombrándola— y `2` si los argumentos o el archivo no son válidos. Las que suelen explicar este síntoma son la **4**, el comando canónico anclado con `CLAUDE_PROJECT_DIR` y normalizado a `exit 2`, y la **5**, guard presente y ejecutable.
+
 ```bash
 test -x .claude/hooks/guard.sh && echo "ejecutable" || echo "FALTA chmod +x"
 python3 -c "import json;print(json.load(open('.claude/settings.json'))['hooks'])"
 ```
 
 Causas: falta `chmod +x`; `settings.json` con JSON inválido (se ignora entero, en silencio); o la sesión se abrió antes de crear el hook — **reinicia `claude`**, los hooks se cargan al arrancar.
+
+### Síntoma: bloquea más de lo que esperabas
+
+El comando canónico **normaliza a `2` cualquier código distinto de `0`** que devuelva el hook. Es deliberado: `2` es el único código que bloquea, así que un hook que no arranca o que falla por dentro deja de pasar inadvertido. La contrapartida es que un error interno del hook —una dependencia ausente, un `set -u` sobre una variable nueva— ya no se ignora: **bloquea la herramienta**. Antes de tocar la configuración, ejecuta el hook a mano y lee su salida de error:
+
+```bash
+echo '{"tool_name":"Write","tool_input":{"file_path":"src/pagos/schemas.py"}}' \
+  | FDA_GUARD_DEBUG=1 .claude/hooks/guard.sh; echo "exit=$?"
+```
+
+### Arranca siempre desde la raíz del proyecto
+
+**Es un contrato operativo de la FDA, no una carencia de ninguna herramienta:** las sesiones y los comandos de verificación se lanzan desde la raíz del repositorio. Es la condición bajo la que este manual describe rutas, comandos y ejemplos, y la que hace que todo lo de este capítulo se reproduzca tal cual. Compruébalo antes de diagnosticar nada:
+
+```bash
+pwd; git rev-parse --show-toplevel
+```
+
+Las dos rutas deben coincidir.
 
 ### Escrituras vía `Bash`: cubiertas, pero no herméticas
 
@@ -132,16 +159,18 @@ Use Edit(./.github/workflows/**) instead (Edit rules cover all file-editing tool
 
 **Riesgo real:** creer que estás protegiendo una ruta con `Write(...)` cuando no hay un `Edit(...)` equivalente. En ese caso la ruta **no está protegida en absoluto** y el único aviso es esta línea al arrancar.
 
-**Arreglo:** deja solo la forma `Edit(...)`.
+**Arreglo:** deja solo la forma `Edit(...)`, **anclada a la raíz del proyecto con `/`**.
 
 ```json
 "deny": [
-  "Edit(./.github/workflows/**)",
-  "Edit(./CODEOWNERS)",
-  "Edit(./.claude/hooks/**)",
-  "Edit(./.claude/settings.json)"
+  "Edit(/.github/workflows/**)",
+  "Edit(/CODEOWNERS)",
+  "Edit(/.claude/hooks/**)",
+  "Edit(/.claude/settings.json)"
 ]
 ```
+
+> El aviso citado arriba usa `./` porque trata de otra cosa: de que la forma `Write(...)` es inerte y hay que emplear `Edit(...)`. Son dos correcciones distintas y ambas hacen falta. En un `settings.json` de proyecto, `/ruta` ancla a la **raíz del repositorio** y `./ruta` al **directorio de trabajo**: con `./`, la regla deja de coincidir en cuanto la sesión no arranca en la raíz.
 
 Comprueba que ninguna ruta queda huérfana:
 

@@ -1,0 +1,31 @@
+# patrones.txt — Formas que busca el escaner del invariante de cuarentena.
+#
+# ARCHIVO DE DATOS, NO EJECUTABLE. Se lee como texto y NUNCA se ejecuta ni se
+# interpreta. Modo 0644.
+#
+# Las formas viven aqui y no como literales dentro del escaner: esa separacion
+# es lo que permite que el escaner SE INCLUYA A SI MISMO en la lista escaneada
+# sin autoinculparse. Este archivo no es un script y no entra en esa lista.
+#
+# Tres secciones etiquetadas:
+#
+#   [token]      la invocacion que hay que detectar
+#   [aceptadas]  las formas que deben acompanarla en la MISMA linea logica
+#   [prohibidas] las formas que hacen fallar el control por si solas
+#
+# Razon: DEC-003 §8 pone .agents/, .codex/ y AGENTS.md en cuarentena. El comando
+# de estado de Git en su modo por defecto, y cualquier variante que incluya lo
+# no versionado, los ENUMERA. Ninguna herramienta de WP-008 puede hacerlo.
+
+[token]
+git status
+
+[aceptadas]
+--untracked-files=no
+-uno
+
+[prohibidas]
+--untracked-files=all
+--untracked-files=normal
+-uall
+-unormal

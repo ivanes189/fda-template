@@ -1,0 +1,17 @@
+{
+  "status": "completed",
+  "conclusion": "failure",
+  "headSha": "2222222222222222222222222222222222222222",
+  "databaseId": 90014,
+  "url": "https://example.invalid/runs/90014",
+  "jobs": [
+    {
+      "name": "Gobierno FDA",
+      "status": "completed",
+      "conclusion": "failure",
+      "steps": [
+        { "number": 1, "name": "Configuración del runtime fail-closed (preflight)", "status": "completed", "conclusion": "failure" }
+      ]
+    }
+  ]
+}

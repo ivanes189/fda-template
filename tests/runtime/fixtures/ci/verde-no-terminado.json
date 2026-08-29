@@ -1,0 +1,18 @@
+{
+  "status": "in_progress",
+  "conclusion": null,
+  "headSha": "2222222222222222222222222222222222222222",
+  "databaseId": 90012,
+  "url": "https://example.invalid/runs/90012",
+  "jobs": [
+    {
+      "name": "Gobierno FDA",
+      "status": "in_progress",
+      "conclusion": null,
+      "steps": [
+        { "number": 1, "name": "Archivos de gobierno presentes", "status": "completed", "conclusion": "success" },
+        { "number": 2, "name": "El hook guard.sh es ejecutable", "status": "in_progress", "conclusion": null }
+      ]
+    }
+  ]
+}

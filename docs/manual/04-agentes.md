@@ -87,13 +87,14 @@ Cinco agentes, uno por archivo en `.claude/agents/`. Cada uno tiene su propia al
 
 ---
 
-## Los tres controles que no dependen del prompt
+## Los cuatro controles que no dependen del prompt
 
 La separación de funciones se garantiza **por construcción**, no por obediencia:
 
 1. **GitHub** — branch protection impide que el implementador fusione. No es una norma de su prompt: es que no tiene el permiso.
 2. **Allowlists de herramientas** — el `code-reviewer` no tiene `Edit`. Aunque decidiera arreglar el código, la herramienta no está disponible.
 3. **`guard.sh`** — bloquea escrituras fuera del WP activo con un código de salida, sin consultar al modelo.
+4. **Preflight de configuración** — `tests/runtime/check-config.sh`, dentro del job `Gobierno FDA`, comprueba en cada PR que la propia configuración de permisos y hooks sigue siendo la contratada. Un control que se degrada en silencio deja de ser un control, y este es el que impide fusionar esa degradación.
 
 ## Límites conocidos de los controles
 
@@ -103,7 +104,7 @@ Conviene saber qué **no** cubren, para no confiar de más:
 |---|---|---|
 | El analizador de `Bash` de `guard.sh` es *best-effort* | Detecta `>`, `>>`, `tee`, `sed -i`, `cp`, `mv`, `rm`, `dd of=`… pero no `python -c "open(...,'w')"`, `eval` ni `base64 -d` | CI (`Gobierno FDA`) + revisión del diff + branch protection |
 | Las allowlists son por herramienta, no por ruta | `qa` puede escribir fuera de `tests/` si el WP lo permite | Redacción correcta del WP + revisión |
-| `permissions.deny` cubre las herramientas de edición, no el shell | Un `deny` de `Edit(./x)` no impide `echo > x`; ahí quien manda es `guard.sh` | El propio `guard.sh`, que sí analiza Bash |
+| `permissions.deny` cubre las herramientas de edición, no el shell | Un `deny` de `Edit(/x)` no impide `echo > x`; ahí quien manda es `guard.sh` | El propio `guard.sh`, que sí analiza Bash |
 
 > El matcher de `.claude/settings.json` es `Edit|Write|MultiEdit|NotebookEdit|Bash`. **Si alguien quita `Bash` de esa lista, el hueco vuelve a abrirse entero.** Es la línea más sensible de toda la configuración.
 

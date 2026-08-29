@@ -54,9 +54,6 @@ jobs:
       - name: El hook guard.sh es ejecutable
         run: test -x .claude/hooks/guard.sh || { echo "::error::guard.sh no es ejecutable"; exit 1; }
 
-      - name: Configuración del runtime fail-closed (preflight)
-        run: bash tests/runtime/check-config.sh
-
       # Validación del estado operativo. La lógica vive en un script versionado
       # y con pruebas (tests/governance/), no incrustada aquí: así se ejecuta
       # igual en local que en CI, y evolucionarla no exige tocar un workflow.

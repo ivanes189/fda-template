@@ -1,0 +1,8 @@
+Read(/**/.env*)
+Read(/**/secrets/**)
+Read(/**/*.pem)
+Read(/**/id_rsa*)
+Edit(/.github/workflows/**)
+Edit(/CODEOWNERS)
+Edit(/.claude/hooks/**)
+Edit(/.claude/settings.json)

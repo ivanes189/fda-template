@@ -1,0 +1,37 @@
+{
+  "status": "in_progress",
+  "conclusion": null,
+  "headSha": "1111111111111111111111111111111111111111",
+  "databaseId": 90002,
+  "url": "https://example.invalid/runs/90002",
+  "jobs": [
+    {
+      "name": "Gobierno FDA",
+      "status": "in_progress",
+      "conclusion": null,
+      "steps": [
+        { "number": 1, "name": "Archivos de gobierno presentes", "status": "completed", "conclusion": "success" },
+        { "number": 2, "name": "El hook guard.sh es ejecutable", "status": "completed", "conclusion": "success" },
+        { "number": 3, "name": "Configuración del runtime fail-closed (preflight)", "status": "in_progress", "conclusion": null },
+        { "number": 4, "name": "Estado operativo coherente (ACTIVE)", "status": "queued", "conclusion": null },
+        { "number": 5, "name": "Manual sin enlaces rotos", "status": "queued", "conclusion": null }
+      ]
+    },
+    {
+      "name": "Lint · Shell · Tests · Manual",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        { "number": 1, "name": "actionlint (workflows)", "status": "completed", "conclusion": "success" }
+      ]
+    },
+    {
+      "name": "Escaneo de secretos",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        { "number": 1, "name": "gitleaks", "status": "completed", "conclusion": "success" }
+      ]
+    }
+  ]
+}

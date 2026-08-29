@@ -1,0 +1,16 @@
+name: Claude (fixture)
+
+# Suplente minimo y valido de .github/workflows/claude.yml dentro de la copia
+# externa de trabajo. Existe para que la validacion NOMINAL del candidato de
+# ci.yml reciba sus tres argumentos igual que en el repositorio real. No se
+# ejecuta nunca: ningun runner ve este archivo.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  marcador:
+    runs-on: ubuntu-latest
+    steps:
+      - name: No operacion
+        run: echo "fixture"

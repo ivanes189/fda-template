@@ -111,7 +111,7 @@ Tres jobs, todos obligatorios:
 
 | Job | Qué comprueba |
 |---|---|
-| `Gobierno FDA` | Estructura intacta, hook ejecutable, WP activo existe, guard bloquea, workflows válidos, manual sin enlaces rotos, manual actualizado si cambia el proceso |
+| `Gobierno FDA` | Estructura intacta, hook ejecutable, **configuración del runtime fail-closed** (preflight `tests/runtime/check-config.sh`), WP activo existe, guard bloquea, workflows válidos, manual sin enlaces rotos, manual actualizado si cambia el proceso |
 | `Lint · Tipos · Pruebas` | Los comandos de tu stack |
 | `Escaneo de secretos` | gitleaks + ningún archivo de secretos versionado |
 
