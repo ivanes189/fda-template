@@ -365,12 +365,19 @@ punto de partida de WP-012.
 Del estado de hoy al cierre de la pausa, en este orden estricto. Cada paso es un acto del operador o
 un ciclo de WP con su propia PR.
 
+El primer intento del paso 4 se interrumpió en S1 y quedó abandonado por
+[`DEC-006`](DEC-006-abandono-y-reinicio-controlado-de-wp-008.md). No se considera
+cerrado ni se salta: se devuelve temporalmente `ACTIVE` a reposo, se conserva la
+cadena fallida, se corrige el contrato en una PR de un solo archivo, se activa de
+nuevo el mismo núcleo sobre una única rama viva `-r2` y se repite el paso 4 desde
+un `origin/main` actualizado.
+
 | # | Paso | Qué ocurre |
 |---|---|---|
 | 1 | **DEC-005 y reposo** | PR de operador de cuatro archivos: `DEC-003` modificada, `DEC-005` creada, manual actualizado y `ACTIVE` a **reposo**. WP-008 queda congelado |
 | 2 | **Contrato reducido de WP-008** | PR de operador que reescribe `WP-008` al núcleo de protección, con su lista cerrada, `evidence/WP-008/**` sin capa empírica y el §10b acotado |
 | 3 | **Aislamiento, fases A–C** | Respaldo externo recuperable con manifiesto · worktree independiente de WP-012 con los trece restituidos bajo `tests/runtime/empirico/` · retirada del árbol principal. Verificación de las cuatro magnitudes en cada fase |
-| 4 | **Activación y cierre de WP-008** | `ACTIVE` ← `WP-008` · implementación, parche rojo/verde, capturas reales de CI · fusión humana · `ACTIVE` ← **reposo** |
+| 4 | **Recuperación, reactivación y cierre de WP-008** | PR A de `DEC-006` y reposo · cierre sin fusión de la PR #24 y congelación de su rama · PR B de contrato, exactamente un archivo · rama `wp/WP-008-runtime-fail-closed-r2` desde `origin/main` · PR C de activación, solo `ACTIVE` · fast-forward e igualdad con `origin/main` · implementación y nueva cadena roja/verde/evidencia · fusión humana · `ACTIVE` ← **reposo** |
 | 5 | **Materialización, activación y cierre de WP-009** | Contrato de la cadena de suministro · `ACTIVE` ← `WP-009` · implementación · fusión humana · `ACTIVE` ← **reposo** |
 | 6 | **Contrato de WP-012** | PR de operador con el contrato del instrumento, `max_ciclos_correccion: 2`, los dos hallazgos y el criterio de cero referencias obsoletas |
 | 7 | **Igualdad con `origin/main` y reverificación** | `HEAD` de `wp/WP-012-*` **exactamente igual** al `origin/main` posterior a WP-008 y WP-009 · reverificación de las trece rutas, tipos, modos y SHA-256 |
@@ -406,6 +413,7 @@ ella.
 ## Referencias
 
 - [`DEC-003`](DEC-003-pausa-migracion-y-contencion.md) — §2, §4, §5 y §6, modificados atómicamente por la misma PR
+- [`DEC-006`](DEC-006-abandono-y-reinicio-controlado-de-wp-008.md) — abandono y reintento limpio del paso 4
 - [`DEC-004`](DEC-004-estados-del-coste.md) — §2, precedente de forma; **no** de autoautorización
 - [`ADR-001`](../adr/ADR-001-runtime.md) — I2 e I3, ejecución headless
 - [`work-packages/WP-008-runtime-fail-closed.md`](../../work-packages/WP-008-runtime-fail-closed.md) — contrato congelado, a reducir

@@ -152,7 +152,7 @@ La vía correcta es que el agente **prepare un script de parche verificado** —
 
 ## Pausa activa: la migración de DEC-002 (desde 2026-08-03)
 
-La migración de DEC-002 está **pausada tras PR-2** por [DEC-003](../../specs/decisions/DEC-003-pausa-migracion-y-contencion.md), revisada y prorrogada por [DEC-005](../../specs/decisions/DEC-005-troceado-de-wp-008-y-revision-de-la-pausa.md). WP-007 sigue **oficialmente `ready`** y WP-002 sigue `blocked`. Solo pueden progresar DEC-004, DEC-005, WP-008, WP-009, WP-012 y las transiciones de operador que la decisión enumera. **Punto de control: 2026-09-07.**
+La migración de DEC-002 está **pausada tras PR-2** por [DEC-003](../../specs/decisions/DEC-003-pausa-migracion-y-contencion.md), revisada y prorrogada por [DEC-005](../../specs/decisions/DEC-005-troceado-de-wp-008-y-revision-de-la-pausa.md). [DEC-006](../../specs/decisions/DEC-006-abandono-y-reinicio-controlado-de-wp-008.md) registra el abandono y reintento limpio de la primera cadena del núcleo. WP-007 sigue **oficialmente `ready`** y WP-002 sigue `blocked`. Solo pueden progresar DEC-004, DEC-005, DEC-006, WP-008, WP-009, WP-012 y las transiciones de operador que las decisiones enumeran. **Punto de control: 2026-09-07.**
 
 ### La revisión del 2026-08-10 y el troceado de WP-008
 
@@ -170,6 +170,27 @@ De ahí el troceado, por **capa** y no por sondas:
 **El contrato actual de WP-008 queda congelado** hasta que su versión reducida esté materializada, validada y aprobada. Sus alcances y sus evidencias son **físicamente disjuntos** de los de WP-012: nada de `tests/runtime/**` ni de `evidence/` se comparte entre ambos.
 
 **Lo que la evidencia del núcleo no demuestra.** Los casos deterministas del preflight acreditan el comportamiento del **comando canónico**; el preflight acredita que la **configuración** es la contratada; y la ejecución roja de CI acredita que el **preflight bloquea**. Ninguno de los tres demuestra que **Claude Code aplique realmente esa configuración**: eso lo demuestra WP-012, y por eso es condición de salida y no un requisito informal.
+
+### La cadena roja de WP-008 abandonada el 2026-08-29
+
+La primera cadena del núcleo llegó a `C_ROJO` y se detuvo correctamente en la
+barrera roja. El run real contenía pasos internos de GitHub que el contrato y sus
+fixtures no distinguían de los pasos declarados. No se fabricó el marcador de la
+barrera, no se ejecutó la fase verde y no se añadió ningún commit.
+
+DEC-006 conserva la PR #24, su commit y su custodia como intento abandonado,
+devuelve `ACTIVE` a reposo y autoriza un único reintento limpio sobre la rama
+`wp/WP-008-runtime-fail-closed-r2`. La recuperación exige, en orden: PR de
+decisión y reposo; cierre sin fusión de la PR fallida; PR de contrato de un solo
+archivo; rama nueva desde `origin/main`; PR separada de activación; fast-forward
+e igualdad; y solo después implementación y nueva cadena de tres commits.
+
+Mientras una cadena esté en S1 y operativa no se abre ninguna sesión de agente.
+Si el paquete se detiene, la cadena queda congelada: pueden abrirse auditorías de
+agente **solo de lectura** para explicar la parada y preparar una decisión humana,
+pero no para escribir, usar Git mutable, ejecutar la fase verde ni reanudar por su
+cuenta. Una salida `1` o `2` no se interpreta conversacionalmente ni se convierte
+en verde.
 
 ### WP-007 está congelado, no detenido antes de empezar
 
