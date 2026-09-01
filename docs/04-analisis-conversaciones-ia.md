@@ -1,5 +1,7 @@
 # Análisis de las cinco conversaciones con IAs — síntesis y veredictos
 
+> **Nota (2026-09-01):** el 01-09 se realizó una segunda revisión con material nuevo (investigación de Leandro + línea base independiente). Los veredictos de este documento **se mantienen**; los ajustes y ampliaciones están en [`05-analisis-investigacion-leandro-y-revalidacion.md`](05-analisis-investigacion-leandro-y-revalidacion.md).
+
 **Fecha:** 2026-08-30 · **Complemento de:** [`03-hoja-de-ruta.md`](03-hoja-de-ruta.md) · **Método:** cada conversación se leyó completa; sus propuestas se contrastaron con el estado real del repositorio y con fuentes externas fiables. Cada tema termina en un veredicto: **acepto**, **acepto con matices** o **rebato**, siempre con el porqué. Donde una conversación ya corrigió a otra, se señala.
 
 ## Las cinco conversaciones, en una línea cada una
@@ -56,7 +58,7 @@ C5 da la corrección honesta: 1–3 humanos es un punto único de fallo humano y
 
 ### T11 — Los hallazgos de auditoría de C2 (julio) → **ACEPTO los 4 aún vigentes**
 
-De su lista: el check de alcance post-hoc (→ Etapa 2.4), acciones por SHA (→ WP-009), autorización de actores en `claude.yml` (→ Etapa 3.3, prerrequisito de reactivación), README/LICENSE/separación plantilla-sandbox (→ Etapa 3.3). El resto (reposo válido, revisión rota) ya se resolvió o quedó contenido por DEC-003.
+De su lista: el check de alcance post-hoc (→ Etapa 2.4), acciones por SHA (→ WP-009), autorización de actores en `claude.yml` (→ Etapa 3, prerrequisito de reactivación), README/LICENSE/separación plantilla-sandbox (→ Etapa 3). El resto (reposo válido, revisión rota) ya se resolvió o quedó contenido por DEC-003.
 
 ## Lo que ninguna conversación vio (aportación propia de este análisis)
 
