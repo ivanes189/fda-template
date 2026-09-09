@@ -4,6 +4,8 @@
 
 > Este documento es autocontenido: puedes usarlo como documento fundacional del nuevo hilo. Al final se incluye el prompt de arranque sugerido.
 
+> **Alcance de esta guía frente a la hoja de ruta.** Aquí se describe **el diseño** de la fábrica: qué piezas la componen y cómo encajan. **La dirección vigente, la arquitectura objetivo del enforcement, el estado de materialización de cada capa y la secuencia de trabajo viven en [`docs/03-hoja-de-ruta.md`](03-hoja-de-ruta.md)**, que es el rumbo vigente. Donde esta guía describa una pieza como si su garantía ya estuviera construida, manda la hoja de ruta.
+
 ---
 
 ## 1. Qué es la FDA y qué no es
@@ -23,7 +25,9 @@ Crea un repositorio plantilla (GitHub "template repository") con esta estructura
 ```
 fda-template/
 ├── CLAUDE.md                        # Constitución: normas que todo agente carga siempre
-├── CODEOWNERS                       # Propiedad por componente (revisión obligatoria)
+├── CODEOWNERS                       # Propiedad declarada por componente; revisión obligatoria
+│                                    #   como norma, todavía NO impuesta técnicamente por el
+│                                    #   ruleset (require_code_owner_review: false) — WP-011
 ├── .claude/
 │   ├── settings.json                # Permisos (allow/deny/ask), hooks globales
 │   ├── agents/
@@ -33,7 +37,10 @@ fda-template/
 │   │   ├── security-reviewer.md     # Revisión de seguridad; solo lectura
 │   │   └── code-reviewer.md         # Revisión independiente de la PR
 │   ├── hooks/
-│   │   └── guard.sh                 # PreToolUse: bloquea rutas protegidas y comandos vetados
+│   │   └── guard.sh                 # PreToolUse best-effort: deniega las escrituras fuera del
+│   │                                #   alcance del WP activo que reconoce; falla abierto.
+│   │                                #   El deny de rutas protegidas y comandos vetados NO es
+│   │                                #   suyo: vive en permissions.deny de settings.json
 │   └── skills/
 │       ├── new-work-package/        # Genera WP desde plantilla y valida el contrato
 │       ├── run-verification/        # Ejecuta la batería de validación y compila evidencias
@@ -54,7 +61,7 @@ fda-template/
         └── code-review.yml          # Revisión automática de cada PR
 ```
 
-Configuración de GitHub por proyecto (una vez): branch protection/ruleset sobre `main` (PR obligatoria, status checks obligatorios, al menos 1 revisión, prohibido force-push), secret scanning + push protection, Dependabot, y secreto `ANTHROPIC_API_KEY` para los workflows.
+Configuración de GitHub por proyecto (una vez): branch protection/ruleset sobre `main` (PR obligatoria, status checks obligatorios, al menos 1 revisión —**diseño recomendado; todavía no configurada en este repositorio**: hoy `required_approving_review_count: 0`, ver el desglose de §3—, prohibido force-push), secret scanning + push protection, Dependabot, y secreto `ANTHROPIC_API_KEY` para los workflows.
 
 ---
 
@@ -86,9 +93,9 @@ Eres el agente implementador de la FDA. Reglas no negociables:
 
 Los otros cuatro agentes siguen el mismo patrón con menos permisos: `planner`, `qa`, `security-reviewer` y `code-reviewer` llevan `tools: Read, Grep, Glob, Bash` (sin Edit/Write, salvo qa sobre `tests/`), y el revisor usa modelo premium (`model: opus`) porque tu política ya autoriza modelos premium para revisión crítica, seguridad y arquitectura.
 
-**Separación de funciones (tu §14.1):** se garantiza por construcción — el implementador no tiene permisos de merge (branch protection lo impide a nivel de GitHub, no de prompt), la revisión la hace un agente distinto con contexto limpio, y la fusión es humana durante la calibración. La seguridad no depende de que el modelo obedezca instrucciones: depende de permisos de GitHub, allowlists de herramientas y hooks.
+**Separación de funciones (tu §14.1):** se sostiene sobre tres piezas de naturaleza distinta — el implementador no fusiona, porque `CLAUDE.md` se lo **prohíbe como política** y su **allowlist de herramientas** no le da la vía (**no es branch protection quien se lo impide**: no se ha acreditado ninguna regla del ruleset que impida la autofusión; con `required_approving_review_count: 0` y `require_code_owner_review: false`, las vías observadas no la impiden por sí solas); la revisión la hace un agente distinto con contexto limpio; y la fusión es humana durante la calibración. La seguridad no depende de que el modelo obedezca instrucciones: depende de permisos de GitHub, allowlists de herramientas, hooks y —de forma concluyente, **cuando exista**— del diff que se revisa y se fusiona en CI. Conviene no confundir los dos papeles: los hooks son **feedback preventivo**, inmediato pero *best-effort*; el **enforcement concluyente previsto** es lo que juzgará el resultado final, venga la escritura de donde venga. Ver [`docs/03-hoja-de-ruta.md`](03-hoja-de-ruta.md), principio P1.
 
-**Guardas deterministas (hooks).** `settings.json` define permisos y hooks globales:
+**Guardas preventivas (hooks).** Deterministas en su decisión —el mismo comando y el mismo código de salida siempre—, pero **no herméticas** en su cobertura: ver los límites más abajo. `settings.json` define permisos y hooks globales:
 
 ```json
 {
@@ -110,7 +117,13 @@ Los otros cuatro agentes siguen el mismo patrón con menos permisos: `planner`, 
 }
 ```
 
-`guard.sh` recibe la llamada de herramienta en JSON y devuelve un código de salida que bloquea la operación si la ruta está fuera del alcance del WP activo (lee `work-packages/ACTIVE` para saber qué WP está en curso y qué rutas permite). Esto convierte "límites de modificación por componente" de prosa a código.
+`guard.sh` recibe la llamada de herramienta en JSON y devuelve un código de salida que **deniega en el momento** la operación cuando reconoce que la ruta está fuera del alcance del WP activo (lee `work-packages/ACTIVE` para saber qué WP está en curso y qué rutas permite). Esto convierte "límites de modificación por componente" de prosa a código.
+
+**Qué no hace.** No garantiza el alcance. Si el hook no es ejecutable o no llega a invocarse, el resultado es un código distinto de `2` y la herramienta **pasa** —falla abierto—; y su analizador de comandos de `Bash` cubre los vectores frecuentes, no todos. Es feedback rápido de contrato, no una frontera. **El control concluyente previsto es la comprobación del diff de la PR en CI contra el contrato del WP; todavía no está implementada** (`WP-002` está `blocked`, `WP-005` en `draft`), igual que el sandbox del sistema operativo, que sigue siendo un gate futuro.
+
+**Qué impone hoy la plataforma, y qué no.** *Impuesto técnicamente por el ruleset:* pull request obligatoria, los tres checks bloqueantes, `non_fast_forward` y `deletion` bloqueados — **esas cuatro reglas son todo lo acreditado por el expediente actual**. *Práctica del operador, no impuesta por el ruleset:* la lectura del diff y la fusión humana. *Política vigente, no impuesta técnicamente:* `CLAUDE.md` prohíbe que un agente fusione su propia PR. *Restricciones operativas actuales:* las allowlists de herramientas de los agentes y los workflows de agente desactivados (`DEC-003` §3); reducen la superficie, pero **no se presentan como garantía universal**, porque no se han auditado todos los actores ni todas las credenciales. *Declarado necesario y todavía **no** impuesto técnicamente:* al menos una aprobación humana y la revisión de `CODEOWNERS` —el ruleset registra hoy `required_approving_review_count: 0` y `require_code_owner_review: false`, riesgo abierto y no aprobado de `DEC-003`, con destino WP-011—. *Riesgo pendiente:* con cero aprobaciones exigidas, el ruleset **no impide por sí solo** que el autor de una PR la fusione si tiene permisos suficientes. **La capa de plataforma está por tanto parcialmente materializada, no entera.**
+
+**La protección de rama no comprueba el alcance del WP.** Mientras `check_scope` no exista, el alcance lo cierra una **práctica humana** —la lectura del diff—, no una barrera automática. Detalle y secuencia: [`docs/03-hoja-de-ruta.md`](03-hoja-de-ruta.md).
 
 ---
 
@@ -128,7 +141,7 @@ presupuesto_max_eur: 75             max_ciclos_correccion: 2
 
 ## Objetivo y contexto
 ## Alcance (incluido / fuera de alcance)
-## Archivos permitidos          ← el hook lo hace cumplir
+## Archivos permitidos          ← el hook lo avisa; el diff de la PR lo juzga
 ## Archivos prohibidos
 ## Contratos técnicos (interfaces, schemas, eventos, invariantes)
 ## Entorno autorizado (herramientas, comandos, red, secretos: NINGUNO salvo lista)
