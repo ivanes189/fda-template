@@ -26,6 +26,8 @@ El manual registra el pinning aplicado y cómo verificarlo al mantener acciones.
 - preparar parche humano con preimagen, postimagen, rollback y huellas;
 - actualizar solo el estado actual y la trazabilidad de REQ-FDA-002;
 - actualizar de forma limitada el manual sobre pinning y mantenimiento;
+- añadir la línea mensual 2026-09 al registro append-only de tipos con el dato
+  oficial del BCE del primer día hábil, para poder cerrar el coste del WP;
 - producir evidencia, coste, revisión de código y revisión de seguridad.
 
 **Fuera de alcance:**
@@ -42,6 +44,7 @@ El manual registra el pinning aplicado y cómo verificarlo al mantener acciones.
 - .github/workflows/code-review.yml
 - specs/requirements/REQ-FDA-002-workflows-endurecidos.md
 - docs/manual/02-ciclo-de-un-wp.md
+- specs/finops/fx-rates.md
 - evidence/WP-009/**
 
 ## Archivos prohibidos
@@ -54,27 +57,47 @@ El manual registra el pinning aplicado y cómo verificarlo al mantener acciones.
 
 ## Contratos técnicos (interfaces, schemas, eventos, invariantes)
 
-| Acción | Apariciones | SHA fijado | Comentario |
-|---|---:|---|---|
-| `actions/checkout` | 5 | `11d5960a326750d5838078e36cf38b85af677262` | `v4.4.0` |
-| `actions/setup-python` | 2 | `a26af69be951a213d495a4c3e4e4022e16d87065` | `v5.6.0` |
-| `anthropics/claude-code-action` | 2 | `5ccc3a35a6367cdb8e6fbd0728287467540ecfe2` | `v1.0.219` |
-| `gitleaks/gitleaks-action` | 1 | `ff98106e4c7b2bc287b24eaf42907196329070c7` | `v2.3.9` |
+| Acción | Apariciones | Tag exacto | SHA fijado | Comentario |
+|---|---:|---|---|---|
+| `actions/checkout` | 5 | `v4.4.0` | `11d5960a326750d5838078e36cf38b85af677262` | `v4.4.0` |
+| `actions/setup-python` | 2 | `v5.6.0` | `a26af69be951a213d495a4c3e4e4022e16d87065` | `v5.6.0` |
+| `anthropics/claude-code-action` | 2 | `v1.0.219` | `5ccc3a35a6367cdb8e6fbd0728287467540ecfe2` | `v1.0.219` |
+| `gitleaks/gitleaks-action` | 1 | `v2.3.9` | `ff98106e4c7b2bc287b24eaf42907196329070c7` | `v2.3.9` |
+
+Se conservan los cuatro SHA y comentarios aprobados. Para cada acción, la mayor
+se determina por el componente numérico del tag exacto (`v4`, `v5`, `v1`, `v2`)
+y debe coincidir con la referencia mayor que usa el workflow antes del cambio.
+El control no resuelve la punta viva de esos tags mayores ni selecciona una
+versión automáticamente: son punteros móviles y no forman parte del criterio de
+aceptación.
 
 El aplicador humano `evidence/WP-009/parche/APLICAR-ACCIONES-SHA.sh` aborta antes
 de escribir si falla el respaldo, las tres preimágenes no coinciden o cualquiera
-de los cuatro tags mayores y cuatro tags de versión no resuelve al SHA aprobado.
+de los cuatro tags exactos no resuelve, tras desreferenciar tags anotados, al SHA
+aprobado y a un objeto Git de tipo `commit`. Respuestas ausentes, duplicadas,
+inesperadas o ambiguas, fallos de red y objetos de otro tipo fallan de forma
+cerrada. La adquisición usa configuración Git aislada, sin credenciales, y no
+ejecuta ni hace checkout del código obtenido.
 Tras aplicar, acredita postimágenes, alcance exacto y rollback por huellas.
 Las pruebas del aplicador operan solo sobre copias desechables.
 Los workflows siguen válidos aunque `claude.yml` y `code-review.yml`
 permanezcan deshabilitados manualmente.
 
+El único cambio permitido en `specs/finops/fx-rates.md` es añadir al final de la
+tabla, preservando byte a byte las entradas anteriores, la línea mensual
+`2026-09` con `1.1590`, fecha BCE `2026-09-01`, fuente oficial BCE y fecha de
+adición real. Si ya existe una línea para ese mes o la fuente no concuerda, se
+detiene sin escribir.
+
 ## Entorno autorizado (herramientas, comandos, red, secretos)
 
-- Herramientas: Read, Grep, Glob, Write/Edit solo en evidencia, requisito y manual; Bash.
+- Herramientas: Read, Grep, Glob, Write/Edit solo en evidencia, requisito,
+  manual y registro mensual de tipos; Bash.
 - Comandos: `git` local, `bash`, `grep`, `sed`, `diff`, `shasum`,
   `actionlint`, `shellcheck`, `python3`.
-- Red del agente: solo lectura de tags en los cuatro repositorios oficiales.
+- Red del agente: solo lectura de los cuatro tags exactos y de los objetos Git
+  necesarios para comprobar su tipo en los cuatro repositorios oficiales;
+  consulta de la referencia EUR/USD del 2026-09-01 en la fuente oficial del BCE.
 - Red del operador: push/PR normales y ejecución de CI.
 - Secretos: ninguno; no leer credenciales ni valores de secretos.
 
@@ -109,10 +132,12 @@ python3 evidence/WP-009/checks/verify-workflow-diff.py --base "$BASE_SHA" \
 - [ ] Cada uso contiene SHA completo y comentario de versión exactos.
 - [ ] En los workflows solo cambian las 10 líneas `uses:`; triggers, permisos,
       jobs, steps, inputs, expresiones y secretos son byte a byte iguales.
-- [ ] El diff completo está contenido en las seis rutas permitidas.
+- [ ] El diff completo está contenido en las siete rutas permitidas.
 - [ ] REQ-FDA-002 atribuye este punto a WP-009 sin alterar su norma.
 - [ ] El manual explica los SHA completos, comentarios de versión y comprobación
       previa de procedencia sin ampliar el resto del proceso.
+- [ ] `specs/finops/fx-rates.md` añade solo la línea `2026-09` con tasa `1.1590`
+      y fecha BCE `2026-09-01`; todas las líneas previas permanecen idénticas.
 - [ ] `check-active.sh` devuelve salida 0 y primera línea `ACTIVO: WP-009`.
 - [ ] Revisión `code-reviewer` sin incumplimientos bloqueantes abiertos.
 - [ ] Revisión de seguridad sin hallazgos ALTOS o CRÍTICOS abiertos.
@@ -121,10 +146,16 @@ python3 evidence/WP-009/checks/verify-workflow-diff.py --base "$BASE_SHA" \
 ## Evidencias exigidas
 
 - [ ] Inventario antes/después con rutas, líneas, acción, tag, SHA y comentario.
-- [ ] Fuentes oficiales y fecha UTC que acreditan tags mayores, versiones y SHA.
+- [ ] Fuentes oficiales y fecha UTC que acreditan los cuatro tags exactos, sus
+      SHA, el tipo de objeto `commit` y la correspondencia semántica de mayor.
+- [ ] Fuente oficial del BCE y huella antes/después de la adición append-only de
+      la tasa mensual 2026-09.
 - [ ] Aplicador y parche humanos; huellas, respaldo, postimágenes y rollback.
-- [ ] Pruebas del aplicador: éxito, preimagen incorrecta, tag discrepante, fallo de
-      respaldo y rollback; cada una comprueba salida, código y huellas.
+- [ ] Pruebas del aplicador: éxito, preimagen incorrecta, procedencia inválida,
+      fallo de respaldo y rollback; cada una comprueba salida, código y huellas.
+      La matriz de procedencia cubre tag ligero y anotado válidos, tag ausente o
+      movido, respuestas duplicadas o inesperadas, fallo de red y objeto no
+      `commit`, sin escribir los destinos en ningún fallo.
 - [ ] Pruebas del verificador de alcance: éxito, cambio ajeno a `uses:` y fallo de
       lectura o normalización; cualquier error termina distinto de cero.
 - [ ] Salida íntegra y código de cada comando y de todas sus iteraciones.
@@ -133,7 +164,8 @@ python3 evidence/WP-009/checks/verify-workflow-diff.py --base "$BASE_SHA" \
 
 ## Condiciones de parada específicas
 
-- Un tag ya no resuelve al SHA aprobado, falta `actionlint` o una prueba no corre.
+- Un tag exacto no resuelve al SHA aprobado, no identifica un objeto `commit`,
+  su mayor semántica discrepa, falta `actionlint` o una prueba no corre.
 - El parche exige un cambio distinto de referencia/comentario o toca otra ruta.
 - Aparece una vulnerabilidad o incompatibilidad en uno de los commits fijados.
 - El coste supera 30 EUR o se alcanza un tercer ciclo de corrección.
