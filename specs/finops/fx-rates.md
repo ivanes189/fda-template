@@ -27,6 +27,7 @@ Si la fecha solicitada no es día hábil, la API devuelve el dato del día hábi
 |---|---|---|---|---|
 | 2026-07 | 1.1383 | 2026-07-01 | BCE vía frankfurter.dev | 2026-07-23 |
 | 2026-08 | 1.1535 | 2026-08-03 | BCE — eurofxref-daily (corrob. frankfurter.dev) | 2026-08-03 |
+| 2026-09 | 1.1590 | 2026-09-01 | BCE — eurofxref-hist-90d.xml (corrob. frankfurter.dev) | 2026-09-13 |
 
 <!--
 Formato de nuevas entradas (añadir al final de la tabla, nunca en medio):

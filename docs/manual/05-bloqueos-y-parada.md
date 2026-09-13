@@ -152,7 +152,7 @@ La vía correcta es que el agente **prepare un script de parche verificado** —
 
 ## Pausa activa: la migración de DEC-002 (desde 2026-08-03)
 
-La migración de DEC-002 sigue **pausada tras PR-2**. DEC-007 registra el 2026-09-09 el punto de control previsto para el 07-09 y reordena la pausa sin terminarla. WP-007 sigue `ready`, WP-002 `blocked`, WP-005 `draft` y WP-008 activo hasta una transición humana separada. D3 hace normativa `docs/03`; `docs/04` y `docs/05` quedan como procedencia y fotos fijas. La lista cerrada y las transiciones siguen en DEC-003.
+La migración de DEC-002 sigue **pausada tras PR-2**. DEC-007 registra el 2026-09-09 el punto de control previsto para el 07-09 y reordena la pausa sin terminarla. DEC-008 registra el 2026-09-13 el cierre bloqueado de WP-009 tras 2/2 ciclos y devuelve `ACTIVE` a reposo. WP-007 sigue `ready`, WP-002 `blocked`, WP-005 `draft` y WP-008 suspendido hasta una transición humana separada. D3 hace normativa `docs/03`; `docs/04` y `docs/05` quedan como procedencia y fotos fijas. La lista cerrada y las transiciones siguen en DEC-003.
 
 ### La revisión del 2026-08-10 y el troceado de WP-008
 
@@ -185,6 +185,12 @@ El criterio de salida no estaba cumplido. DEC-007 registra estas resoluciones ef
 | D6 | **Ratificada:** núcleo mínimo |
 
 La regla anti-espiral conserva estos resultados. D2 y D4 requieren implementación posterior. D5 exige una decisión humana nueva antes de crear un carril B, asignar responsables, repositorio, producto, accesos o retorno.
+
+### Cierre bloqueado de WP-009 el 2026-09-13
+
+WP-009 agotó sus dos ciclos con un hallazgo ALTO abierto en el aplicador humano y defectos funcionales y probatorios abiertos. No se aplicó el parche, no cambiaron los workflows, no se creó commit de implementación y el contrato queda `blocked`, no `done`. La candidata C2 se preserva como material histórico no conforme; no se ejecuta ni se incorpora en bloque a un sucesor.
+
+DEC-008 divide el trabajo pendiente en dos paquetes futuros materialmente distintos: **WP-013** construirá y revisará un materializador seguro sin tocar workflows; **WP-014** preparará y aplicará humanamente los diez cambios `uses:` exactos usando el materializador ya fusionado. Cada uno exigirá antes un contrato separado, aprobación y activación. El cierre de WP-009 es un acto `O/T`; junto con el cierre futuro de WP-005, `O/T` aparece ahora dos veces en la secuencia.
 
 ### D6-A efectiva y contabilidad de ciclos
 
@@ -248,7 +254,11 @@ Los trece archivos sin versionar del undécimo ciclo de WP-008 —cuatro princip
 | Paso | `ACTIVE` | Qué ocurre mientras | Condición |
 |---|---|---|---|
 | 1 | Reposo | Suspensión de WP-008-r2; custodia externa de la candidata local; contrato breve de WP-009 | Contrato de WP-009 aprobado |
-| 2 | `WP-009` | Cadena de suministro | Cierre de WP-009 |
+| 2 | `WP-009` | PR de operador de `DEC-008`: registra el bloqueo tras 2/2 ciclos, preserva la candidata, marca el contrato `blocked` y escribe reposo en `ACTIVE` | WP-009 cerrado como bloqueado y `ACTIVE` en reposo |
+| 2.a | Reposo | Futuro acto de operador que crea y aprueba el contrato de **WP-013**, materializador seguro de rutas protegidas | Contrato de WP-013 aprobado |
+| 2.b | `WP-013` | Implementación, pruebas, revisiones y fusión del materializador, sin tocar workflows | WP-013 fusionado y reposo restablecido |
+| 2.c | Reposo | Futuro acto de operador que crea y aprueba el contrato de **WP-014**, diez pins exactos por SHA | Contrato de WP-014 aprobado |
+| 2.d | `WP-014` | Preparación del parche de workflows, aplicación humana, pruebas, revisiones y fusión usando WP-013 | WP-014 fusionado y reposo restablecido |
 | 3 | Reposo | PR de operador con el contrato de WP-008 según la rama de D6 resuelta | Contrato aprobado |
 | 4 | `WP-008` | Núcleo **y humo seguro antes del cierre**, con evidencia en `evidence/WP-008/`. **Si el humo falla, WP-008 no se cierra** | Cierre con el humo en verde |
 | 5 | Reposo | PR de operador que saca a **WP-002** de `blocked` | Contrato de WP-002 aprobado |
@@ -287,9 +297,9 @@ Los trece archivos sin versionar del undécimo ciclo de WP-008 —cuatro princip
 **Fuera de la columna `ACTIVE`, porque no son WPs.** El humo seguro **no** es un estado de `ACTIVE`: es **alcance de WP-008**. El parche del guard delgado es un **acto de operador** sobre ruta vedada. El **cierre de la pausa** es una **PR de operador con `ACTIVE` en reposo**. Y el experimento **E2** del sandbox y su eventual **WP T3** de adopción **no tienen identificador reservado**: mientras se resuelven, `ACTIVE` sigue en reposo, y **no pueden ejecutarse** hasta que una decisión o enmienda posterior fije su `WP-NNN`, apruebe el contrato y lo admita en la lista cerrada de DEC-003 §4.
 
 
-**WP-009 va ahora antes que WP-008**, al revés que en la secuencia anterior: la cadena de suministro se cierra primero y el núcleo entra después con su contrato ya resuelto por D6. **Un WP activo cada vez.** Entre WPs, reposo. **WP-002 y WP-005 son secuenciales**: nunca comparten `ACTIVE`, y cada uno conserva su WP, su rama y su PR. Mientras `ACTIVE` esté vacío no hay ninguna ruta autorizada.
+**El cierre bloqueado de WP-009 y, después, WP-013 y WP-014 van antes que WP-008**, al revés que en la secuencia anterior: la cadena de suministro se termina mediante dos paquetes separados y el núcleo entra después con su contrato ya resuelto por D6. **Un WP activo cada vez.** Entre WPs, reposo. **WP-002 y WP-005 son secuenciales**: nunca comparten `ACTIVE`, y cada uno conserva su WP, su rama y su PR. Mientras `ACTIVE` esté vacío no hay ninguna ruta autorizada.
 
-**Criterio de salida bajo D1 ratificada.** El **criterio de salida sigue teniendo tres condiciones**: WP-008 fusionado —protección instalada, con la demostración de bloqueo que exija la rama de D6 resuelta—, WP-009 fusionado —acciones fijadas por SHA— y, como tercera **sustituida por D1**, la que ahora se titula **«Control de alcance concluyente y resolución del gate del sandbox»**: **humo seguro dentro del alcance de WP-008** y registrado en `evidence/WP-008/`, ejecutado **antes de cerrarlo** (incluido el caso `Read(/**/.env*)` frente a `.env` en la raíz) **+** `check_scope` **ejecutándose en CI** sobre una librería única de matching, que construyen WP-002 y WP-005, **e incorporado a `required_status_checks`** —único momento desde el que **bloquea la fusión**— **+** el experimento **E2 ejecutado y su resultado registrado**, con adopción por un WP T3 **cuyo identificador todavía no existe** solo si supera el gate. WP-012 queda **liberado como condición de salida**: conserva identificador e historia y no se ejecuta su runner por analogía.
+**Criterio de salida bajo D1 y DEC-008.** El **criterio de salida sigue teniendo tres condiciones**: WP-008 fusionado —protección instalada, con la demostración de bloqueo que exija la rama de D6 resuelta—; WP-013 y después WP-014 fusionados, con el criterio de verificación n.º 2 de REQ-FDA-002 vacío; y, como tercera **sustituida por D1**, la que ahora se titula **«Control de alcance concluyente y resolución del gate del sandbox»**: **humo seguro dentro del alcance de WP-008** y registrado en `evidence/WP-008/`, ejecutado **antes de cerrarlo** (incluido el caso `Read(/**/.env*)` frente a `.env` en la raíz) **+** `check_scope` **ejecutándose en CI** sobre una librería única de matching, que construyen WP-002 y WP-005, **e incorporado a `required_status_checks`** —único momento desde el que **bloquea la fusión**— **+** el experimento **E2 ejecutado y su resultado registrado**, con adopción por un WP T3 **cuyo identificador todavía no existe** solo si supera el gate. El cierre bloqueado de WP-009 no satisface la segunda condición. WP-012 queda **liberado como condición de salida**: conserva identificador e historia y no se ejecuta su runner por analogía.
 
 
 **Qué es un «humo seguro».** El ensayo se monta sobre un **proyecto desechable y aislado, físicamente fuera de la raíz de FDA**, con un **`.env` sintético de contenido marcador y cero secretos reales**. Está **prohibido crear, leer o modificar cualquier `.env`, secreto o archivo real de FDA**; la evidencia se registra **saneada**; y la limpieza se limita a los **recursos propios del ensayo**. Un humo que incumpla esto **no vale como evidencia**.
