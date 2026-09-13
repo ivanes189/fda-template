@@ -1,0 +1,78 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -26,11 +26,11 @@
+     name: Gobierno FDA
+     runs-on: ubuntu-latest
+     steps:
+-      - uses: actions/checkout@v4
++      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+         with:
+           fetch-depth: 0
+
+-      - uses: actions/setup-python@v5
++      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+         with:
+           python-version: '3.11'
+
+@@ -106,9 +106,9 @@
+     name: Lint · Shell · Tests · Manual
+     runs-on: ubuntu-latest
+     steps:
+-      - uses: actions/checkout@v4
++      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+-      - uses: actions/setup-python@v5
++      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+         with:
+           python-version: '3.11'
+
+@@ -155,12 +155,12 @@
+     name: Escaneo de secretos
+     runs-on: ubuntu-latest
+     steps:
+-      - uses: actions/checkout@v4
++      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+         with:
+           fetch-depth: 0
+
+       - name: gitleaks
+-        uses: gitleaks/gitleaks-action@v2
++        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+         env:
+           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+           # Repos de organización requieren licencia de gitleaks. Si no la tienes,
+diff --git a/.github/workflows/claude.yml b/.github/workflows/claude.yml
+--- a/.github/workflows/claude.yml
++++ b/.github/workflows/claude.yml
+@@ -37,11 +37,11 @@
+       actions: read
+
+     steps:
+-      - uses: actions/checkout@v4
++      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+         with:
+           fetch-depth: 0
+
+-      - uses: anthropics/claude-code-action@v1
++      - uses: anthropics/claude-code-action@9cdae7f0d995e3ba7c33f226087fdf82a59cd520 # v1.0.223
+         with:
+           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+           # --max-turns es el criterio de parada por coste (§6).
+diff --git a/.github/workflows/code-review.yml b/.github/workflows/code-review.yml
+--- a/.github/workflows/code-review.yml
++++ b/.github/workflows/code-review.yml
+@@ -22,11 +22,11 @@
+       id-token: write
+
+     steps:
+-      - uses: actions/checkout@v4
++      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+         with:
+           fetch-depth: 0
+
+-      - uses: anthropics/claude-code-action@v1
++      - uses: anthropics/claude-code-action@9cdae7f0d995e3ba7c33f226087fdf82a59cd520 # v1.0.223
+         with:
+           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+           # Modelo premium para revisión crítica: política de {{PRESUPUESTOS_Y_MODELOS}}
