@@ -1,0 +1,10 @@
+ACTIVO: WP-014
+
+  Contrato:  work-packages/WP-014-diez-pins-acciones-sha.md
+  Alcance:   6 ruta(s) permitida(s)
+    - .github/workflows/ci.yml
+    - .github/workflows/claude.yml
+    - .github/workflows/code-review.yml
+    - specs/requirements/REQ-FDA-002-workflows-endurecidos.md
+    - docs/manual/01-instalacion.md
+    - evidence/WP-014/**

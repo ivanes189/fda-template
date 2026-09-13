@@ -1,0 +1,7 @@
+Workflows analizados: 3
+  - .github/workflows/ci.yml
+  - .github/workflows/claude.yml
+  - .github/workflows/code-review.yml
+
+
+RESULTADO: 0 errores, 0 avisos
