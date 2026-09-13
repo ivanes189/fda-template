@@ -38,7 +38,7 @@ La interpolación directa de `${{ }}` en `run:` es el vector de inyección de co
 | Punto | Estado |
 |---|---|
 | `permissions:` explícitos | Cumplido en `claude.yml` y `code-review.yml`; `ci.yml` los declara a nivel de workflow |
-| Acciones fijadas por SHA | Resuelto por el contrato de WP-014: las diez referencias `uses:` de terceros de los tres workflows quedan fijadas por SHA de commit completo (40 caracteres), con versión legible en comentario adyacente, mediante un parche preparado y versionado y aplicado humanamente. El criterio 2 de verificación devuelve vacío **una vez aplicado ese parche**. Ver `evidence/WP-014/`. |
+| Acciones fijadas por SHA | Cumplido por WP-014 y la PR #40: las diez referencias `uses:` de terceros de los tres workflows están fijadas por SHA de commit completo (40 caracteres), con versión legible en comentario adyacente, mediante un parche preparado y versionado y aplicado humanamente. El criterio 2 de verificación devuelve vacío. Ver `evidence/WP-014/CIERRE.md`. |
 | Sin `pull_request_target` | Cumplido |
 | Sin interpolación en `run:` | Cumplido — `ci.yml` pasa `BASE_SHA` por `env:` |
 
