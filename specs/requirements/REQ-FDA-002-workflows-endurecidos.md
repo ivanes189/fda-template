@@ -38,12 +38,18 @@ La interpolación directa de `${{ }}` en `run:` es el vector de inyección de co
 | Punto | Estado |
 |---|---|
 | `permissions:` explícitos | Cumplido en `claude.yml` y `code-review.yml`; `ci.yml` los declara a nivel de workflow |
-| Acciones fijadas por SHA | **Incumplido** — hoy usan etiquetas (`@v4`, `@v1`, `@v2`) |
+| Acciones fijadas por SHA | Resuelto por el contrato de WP-014: las diez referencias `uses:` de terceros de los tres workflows quedan fijadas por SHA de commit completo (40 caracteres), con versión legible en comentario adyacente, mediante un parche preparado y versionado y aplicado humanamente. El criterio 2 de verificación devuelve vacío **una vez aplicado ese parche**. Ver `evidence/WP-014/`. |
 | Sin `pull_request_target` | Cumplido |
 | Sin interpolación en `run:` | Cumplido — `ci.yml` pasa `BASE_SHA` por `env:` |
 
+Nota de procedencia: la aplicación de los diez pins la realiza una persona
+(Iván) mediante `git apply` nativo sobre un blob preparado y versionado por el
+implementador, en un worktree limpio y dedicado; ningún agente ejecuta las
+órdenes de aplicación. Detalle completo, matriz de pins y trazabilidad en
+`evidence/WP-014/` (`manifest.md`, `procedencia.md`, `verification.md`).
+
 ## Trazabilidad
 
-- Implementa: WP-005 (endurecimiento de workflows)
+- Implementa: WP-005 (endurecimiento de workflows); WP-014 (acciones fijadas por SHA)
 - Origen: `FDA-diagnostico-y-plan-fase1.md` §3 (WP-005)
 - Relacionado: [`SEC-001`](SEC-001-sin-secretos.md)
