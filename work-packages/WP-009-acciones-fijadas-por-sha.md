@@ -1,6 +1,6 @@
 # WP-009 — Acciones de GitHub fijadas por SHA
 
-estado: ready
+estado: blocked
 prioridad: P0
 agente_responsable: implementer     agente_revisor: code-reviewer
 requisitos: [REQ-FDA-002, SEC-001]  adr: [ADR-001]
@@ -175,3 +175,22 @@ python3 evidence/WP-009/checks/verify-workflow-diff.py --base "$BASE_SHA" \
 Sin datos. Ante fallo previo al commit, el operador restaura las tres preimágenes
 y verifica sus SHA. Tras commit, rollback = revertir la PR completa. Los
 workflows deshabilitados no se reactivan.
+
+## Cierre bloqueado — DEC-008 (2026-09-13)
+
+WP-009 agotó sus dos ciclos autorizados (`2 / 2`) sin alcanzar sus criterios de
+aceptación. No existe C3, no se aplicó el parche humano, los tres workflows
+permanecen byte a byte en su preimagen y no se creó commit ni PR de
+implementación.
+
+Quedan abiertos un hallazgo ALTO en el aplicador —directorio temporal predecible
+que puede seguir un enlace simbólico— y defectos funcionales y probatorios en la
+detección F1, la comparación del tipo BCE, el aislamiento de pruebas y la
+evidencia final. El aplicador candidato no se versiona ni se ejecuta.
+
+La candidata C2 se conserva como material histórico no conforme mediante
+`evidence/WP-009/MANIFIESTO-CANDIDATA-C2.md`; el cierre y los hallazgos se
+registran en `evidence/WP-009/CIERRE-BLOQUEADO.md`. Los futuros WP-013 y WP-014
+separarán, respectivamente, el materializador seguro y los diez pins exactos.
+Este cierre no crea, activa ni autoriza esos paquetes y no reduce retrospectivamente
+el contrato ni convierte sus criterios incumplidos en cumplidos.
