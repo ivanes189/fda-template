@@ -98,6 +98,16 @@ Detalle en [06 — Costes y métricas](06-costes-y-metricas.md).
 
 - [ ] **Dependabot**: alertas de seguridad y actualizaciones de versión
 
+- **Acciones de terceros fijadas por SHA.** Los tres workflows de la plantilla
+  (`ci.yml`, `claude.yml`, `code-review.yml`) fijan cada `uses:` de una acción
+  de terceros por SHA de commit completo (40 caracteres), con la versión
+  legible en un comentario adyacente (`owner/repo@SHA # vX.Y.Z`), conforme al
+  criterio 2 de [`REQ-FDA-002`](../../specs/requirements/REQ-FDA-002-workflows-endurecidos.md).
+  Cuando Dependabot o una revisión manual propongan actualizar una de esas
+  acciones, la actualización cambia el SHA **y** el comentario de versión en
+  la misma línea, nunca solo uno de los dos, y pasa por revisión explícita
+  como cualquier otro cambio de workflow — nunca una etiqueta móvil.
+
 - [ ] **Secreto `ANTHROPIC_API_KEY`** (Settings → Secrets and variables → Actions).
       Lo necesitan `claude.yml` y `code-review.yml`. Sin él, esos workflows fallan.
 
