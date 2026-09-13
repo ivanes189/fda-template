@@ -1,6 +1,6 @@
 # WP-013 — Materializador seguro de rutas protegidas
 
-estado: ready
+estado: blocked
 prioridad: P0
 riesgo: T3
 agente_responsable: implementer     agente_revisor: code-reviewer
@@ -210,3 +210,24 @@ en WP-014 sera una aplicacion humana autorizada por separado. Ante fallo de uso,
 se restaura y verifica mediante el recibo; un estado incompleto se escala de
 inmediato con backups y diagnostico preservados. Tras fusion, rollback de
 WP-013 = revertir su PR completa.
+
+## Cierre bloqueado — 2026-09-13
+
+WP-013 no se entrega. Consumió C1 y C2 y, por autorización humana excepcional,
+C3; no existe autorización para C4. La revisión completa encontró F1–F8 y la
+revisión enfocada posterior a C3 mantuvo cuatro incumplimientos bloqueantes:
+H1 ALTO y H2–H4 MEDIOS. La suite verde (89/89) no reproduce ni cierra esos
+fallos. El coste acumulado es `16.6085 EUR` de un máximo de `20 EUR`.
+
+La candidata queda preservada fuera de esta composición con base
+`074dfcbff426fb85685ae97746d1b5e0fe679b0b` y HEAD
+`490c65b65509b89974f606d6ebaf203ec5311ab9`, marcada **CANDIDATA HISTÓRICA NO
+CONFORME — NO EJECUTAR**. No se fusiona, ejecuta, corrige, copia ni incorpora en
+bloque a otro WP. Su manifiesto y los dos dictámenes están en
+`evidence/WP-013/`.
+
+DEC-008, enmendada en el mismo cierre atómico, retira el materializador general
+de la ruta vigente. WP-014 permanece reservado pero no creado ni activo: su
+eventual contrato se limitará a los diez pins y a un parche Git exacto aplicado
+por una persona en un worktree limpio y dedicado. Este cierre escribe reposo en
+`ACTIVE`; no autoriza esa preparación, aplicación ni activación posterior.

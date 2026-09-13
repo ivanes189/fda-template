@@ -1,7 +1,14 @@
 # DEC-008 — Cierre bloqueado y división de WP-009
 
-**Estado:** aceptada · **Fecha:** 2026-09-13 · **Ámbito:** cierre de WP-009, transición de `ACTIVE` a reposo y sustitución de su trabajo pendiente por WP-013 y WP-014
+**Estado:** aceptada · **Fecha:** 2026-09-13 · **Ámbito:** cierres bloqueados de WP-009 y WP-013, transiciones de `ACTIVE` a reposo y ruta limitada hacia los diez pins de WP-014
 **Origen:** parada obligatoria tras C2 (`2 / 2`), revisión de código NO APTA, revisión de seguridad con un hallazgo ALTO y decisiones humanas D13 y D14 ratificadas el 2026-09-13.
+
+**Enmienda de recuperación — 2026-09-13.** WP-013 agotó C1, C2 y el C3
+excepcional con veredicto final **NO APTO** y un hallazgo ALTO abierto. Se cierra
+`blocked`, su candidata queda fuera del cierre como material histórico no
+conforme y `ACTIVE` vuelve a reposo. Esta enmienda preserva como historia la
+división original, pero sustituye su dependencia de un materializador general,
+la secuencia vigente, el criterio de salida y la composición atómica.
 
 ## Problema
 
@@ -28,15 +35,26 @@ El coste quedó dentro de presupuesto (`45.6189187 USD = 39.3606 EUR`, frente a 
 
 El cierre registra coste, manifiesto y dictámenes suficientes para que el estado no dependa de la conversación. No presenta la implementación fallida como guía operativa.
 
-### 2. El trabajo restante se divide materialmente
+### 2. División inicial del trabajo — historia enmendada
 
 **WP-013 — materializador seguro de rutas protegidas.** Resultado: una herramienta de operador pequeña y reutilizable, sin red, con creación exclusiva de temporales, operaciones ancladas al directorio, rechazo de enlaces/tipos inesperados y recuperación verificable. No contiene SHA de acciones ni modifica workflows. Riesgo T3; presupuesto candidato 20 EUR; máximo dos ciclos; revisión completa de código y seguridad.
 
-**WP-014 — diez referencias fijadas por SHA.** Resultado: exactamente las diez sustituciones de REQ-FDA-002, aplicadas por una persona con la herramienta ya fusionada de WP-013, más trazabilidad y evidencia propias. No diseña materializadores ni herramientas FinOps. Riesgo T3; presupuesto candidato 12 EUR; máximo dos ciclos; revisión completa de código y seguridad.
+**WP-014 — diez referencias fijadas por SHA.** Resultado: exactamente las diez sustituciones de REQ-FDA-002, aplicadas por una persona, más trazabilidad y evidencia propias. No diseña materializadores ni herramientas FinOps. Riesgo T3; presupuesto candidato 12 EUR; máximo dos ciclos; revisión completa de código y seguridad.
 
 WP-010, WP-011 y WP-012 conservan los significados e historia que ya les asigna la hoja de ruta. Esta decisión admite los identificadores WP-013 y WP-014, pero no crea sus contratos, no los activa y no autoriza ejecutarlos.
 
 La división no renombra una corrección. Cada sucesor tendrá contrato, rama, coste, evidencia y resultado propios, partirá del `main` remoto del momento y no incorporará en bloque la candidata WP-009.
+
+**Resultado de recuperación vigente.** WP-013 no produjo una herramienta
+admisible y queda cerrado `blocked`. WP-014 conserva únicamente su identificador
+reservado: no se crea ni activa con esta enmienda. Su eventual contrato debe
+limitarse a los diez pins exactos y a preparar los mismos bytes de parche para
+`git apply --check --index -` y `git apply --index -`, suministrados por `stdin`.
+Una persona aplicará esos bytes en un worktree limpio y dedicado y verificará el
+diff exacto antes de continuar. Git y el worktree no se describen como sandbox
+ni como transacción general. La recuperación ordinaria se limita a descartar y
+recrear ese worktree dedicado; fallos del repositorio compartido o del
+almacenamiento exigen parada y escalado.
 
 ### 3. Secuencia que sustituye a DEC-007
 
@@ -50,17 +68,23 @@ Los pasos antiguos:
 se sustituyen por:
 
 1. **O/T** — esta PR de operador registra el bloqueo de WP-009 y escribe reposo en `ACTIVE` en el mismo diff;
-2. **O** — contrato breve de WP-013 preparado, revisado y materializado por el operador;
-3. **T** — reposo → WP-013;
-4. **W** — implementar, revisar y fusionar WP-013;
-5. **T** — WP-013 → reposo;
-6. **O** — contrato breve de WP-014 preparado, revisado y materializado por el operador;
-7. **T** — reposo → WP-014;
-8. **W/O** — el agente prepara el parche exacto y una persona lo aplica con el materializador fusionado; se verifica, revisa y fusiona WP-014;
-9. **T** — WP-014 → reposo;
-10. se continúa en el antiguo paso 7 de DEC-007, contrato breve de WP-008.
+2. **O/T** — contrato y activación de WP-013, ya ejecutados históricamente como
+   actos separados; tras C3 y la revisión enfocada, esta composición registra
+   su bloqueo y escribe reposo en `ACTIVE` en el mismo diff;
+3. **O** — futuro contrato breve de WP-014, limitado a los diez pins y al
+   procedimiento Git exacto, preparado, revisado y materializado por el
+   operador;
+4. **T** — reposo → WP-014;
+5. **W/O** — el agente prepara el parche exacto; una persona comprueba y aplica
+   mediante Git nativo los mismos bytes recibidos por `stdin` en un worktree
+   limpio y dedicado; se verifica el diff exacto, se revisa y se fusiona WP-014;
+6. **T** — WP-014 → reposo;
+7. se continúa en el antiguo paso 7 de DEC-007, contrato breve de WP-008.
 
-DEC-007 decía que `O/T` se usaba exactamente una vez, en su paso 19. Esta enmienda sustituye también, y solo por consecuencia de la secuencia anterior, esa cardinalidad: `O/T` se usa ahora dos veces, en el cierre bloqueado de WP-009 y en el cierre de WP-005. Su definición y sus invariantes no cambian.
+DEC-007 decía que `O/T` se usaba exactamente una vez, en su paso 19. Las dos
+enmiendas de esta decisión sustituyen esa cardinalidad: `O/T` se usa tres veces,
+en los cierres bloqueados de WP-009 y WP-013 y en el cierre de WP-005. Su
+definición y sus invariantes no cambian.
 
 Un WP activo cada vez. Contrato, activación, aplicación protegida, fusión y vuelta a reposo conservan sus autorizaciones humanas separadas.
 
@@ -68,27 +92,34 @@ Un WP activo cada vez. Contrato, activación, aplicación protegida, fusión y v
 
 La segunda condición de `DEC-003` §6 y sus reproducciones en la hoja de ruta y el manual ya no puede exigir «WP-009 fusionado», porque WP-009 queda bloqueado de forma permanente. Se sustituye por:
 
-> **Acciones fijadas por SHA.** WP-013 fusionado y WP-014 fusionado; el criterio de verificación n.º 2 de REQ-FDA-002 devuelve vacío y el materializador usado para la aplicación humana no tiene hallazgos ALTOS o CRÍTICOS abiertos.
+> **Acciones fijadas por SHA.** WP-014 fusionado; el criterio de verificación
+> n.º 2 de REQ-FDA-002 devuelve vacío; el diff contiene exactamente los diez
+> pins autorizados y el procedimiento Git exacto aplicado humanamente no tiene
+> hallazgos ALTOS o CRÍTICOS abiertos.
 
 Las condiciones de WP-008 y del control de alcance/sandbox permanecen intactas.
 
 ## Composición atómica de esta PR
 
-`DEC-003` admite directamente esta decisión y el conjunto cerrado de **once archivos**:
+Para el cierre de recuperación de WP-013, `DEC-003` admite directamente esta
+decisión y el conjunto cerrado de **doce archivos**:
 
 1. `specs/decisions/DEC-008-cierre-y-division-de-wp-009.md`
 2. `specs/decisions/DEC-003-pausa-migracion-y-contencion.md`
 3. `docs/03-hoja-de-ruta.md`
 4. `docs/manual/05-bloqueos-y-parada.md`
-5. `work-packages/WP-009-acciones-fijadas-por-sha.md`
+5. `work-packages/WP-013-materializador-seguro-rutas-protegidas.md`
 6. `work-packages/ACTIVE`
-7. `specs/finops/fx-rates.md`
-8. `evidence/WP-009/CIERRE-BLOQUEADO.md`
-9. `evidence/WP-009/cost.md`
-10. `evidence/WP-009/coste-f1.md`
-11. `evidence/WP-009/MANIFIESTO-CANDIDATA-C2.md`
+7. `evidence/WP-013/CIERRE-BLOQUEADO.md`
+8. `evidence/WP-013/MANIFIESTO-CANDIDATA-C3.md`
+9. `evidence/WP-013/cost.md`
+10. `evidence/WP-013/coste-f1.md`
+11. `evidence/WP-013/revision-astra.md`
+12. `evidence/WP-013/revision-astra-enfocada-c3.md`
 
-Todos viajan juntos o ninguno. DEC-008 no se autoautoriza: la modificación directa de `DEC-003` §4 viaja en el mismo diff.
+Todos viajan juntos o ninguno. La candidata de implementación no forma parte de
+ellos. DEC-008 no se autoautoriza: la modificación directa de `DEC-003` §4
+viaja en el mismo diff.
 
 ## Coste del intento cerrado
 
@@ -96,17 +127,23 @@ La suma de los siete `total_cost_usd` es defendible, pero la primera captura no 
 
 ## Consecuencias y límites
 
-**A favor:** la fuente de verdad refleja el bloqueo; se elimina una condición de salida imposible; el hallazgo ALTO recibe un WP propio; el cambio funcional vuelve a ser pequeño.
+**A favor:** la fuente de verdad refleja ambos bloqueos; se elimina una
+dependencia imposible y el cambio futuro queda reducido a diez sustituciones
+exactas aplicadas por una persona.
 
-**Coste aceptado:** dos contratos, ramas, revisiones y transiciones adicionales antes de retomar WP-008.
+**Coste aceptado:** WP-013 no se entrega y su coste hundido queda registrado; el
+procedimiento futuro renuncia a una herramienta general reutilizable.
 
-**No autorizado por esta decisión:** fusionar esta PR sin acto posterior; crear o activar WP-013/WP-014; ejecutar WPs; aplicar el parche actual; modificar o eliminar la candidata WP-009; cambiar WP-008/R2; eliminar ramas o worktrees.
+**No autorizado por esta decisión:** fusionar esta PR sin acto posterior; crear
+o activar WP-014; ejecutar WPs; aplicar pins; importar, modificar o eliminar las
+candidatas WP-009 o WP-013; cambiar WP-008/R2; eliminar ramas o worktrees.
 
 ## Verificación
 
 - `git diff --check`
 - `bash tests/governance/check-active.sh` → `REPOSO: no hay WP activo.` y salida 0
-- diff limitado a los once archivos de la composición
-- `WP-009` declara `blocked`, no `done`
-- los tres workflows son byte a byte iguales a `2c3cf14372c941b8e7f0248e159b5fe444263398`
-- el coste contiene `estado_coste: estimado`, tipo `1.1590`, presupuesto `43` y huella válida del extracto final
+- diff limitado a los doce archivos de la composición
+- `WP-013` declara `blocked`, no `done`
+- ningún archivo de implementación candidato ni workflow forma parte del diff
+- el coste contiene `estado_coste: estimado`, tipo `1.1590`, presupuesto `20` y
+  coste final `16.6085 EUR`
