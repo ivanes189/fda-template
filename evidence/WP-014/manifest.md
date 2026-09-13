@@ -45,13 +45,14 @@ PATCH_BLOB: `8c6b1d7c5ca9bd6c35458dcbb537de250d7c03b4`
   agente: siguen siendo blobs regulares `100644` idénticos a `BASE_SHA`, tal
   como exige el contrato (edición denegada a Claude Code por
   `.claude/settings.json` y reservada al acto humano de Iván).
-- El commit humano de aplicación `3a0fbf6d7ffba29dce7caa7c938ee871e702d53e`,
-  posterior a `PRE_APPLY_HEAD` y ejecutado por Iván conforme al punto de
-  parada del contrato, sí modifica los tres workflows: aplica exactamente las
-  diez sustituciones de la matriz cerrada. Esa modificación queda fuera de lo
-  que este manifiesto certifica como preparación de Claude Code, pero no debe
-  negarse: está documentada en `evidence/WP-014/aplicacion-humana.md` y
-  verificada en `evidence/WP-014/verification.md`.
+- El commit que registra la aplicación humana,
+  `3a0fbf6d7ffba29dce7caa7c938ee871e702d53e`, es posterior a
+  `PRE_APPLY_HEAD` y sí modifica los tres workflows: contiene exactamente las
+  diez sustituciones de la matriz cerrada que el operador aplicó conforme al
+  punto de parada. Esa modificación queda fuera de lo que este manifiesto
+  certifica como preparación de Claude Code, pero no debe negarse: está
+  documentada en `evidence/WP-014/aplicacion-humana.md` y verificada en
+  `evidence/WP-014/verification.md`.
 - Lo que sí está demostrado y se conserva sin cambios en ambos estados
   (preparación y tras la aplicación humana) es la invariancia de tipo
   (`blob`) y modo (`100644`) de los tres archivos: ningún acto de este WP

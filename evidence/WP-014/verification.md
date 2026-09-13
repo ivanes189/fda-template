@@ -166,17 +166,13 @@ La transición prevista en la evidencia previa quedó resuelta así:
 ## 11. Verificación contractual completa tras la aplicación humana
 
 La aplicación humana quedó commiteada junto con su confirmación antes de esta
-ejecución. El bloque completo de la sección «Verificación» del contrato de
-WP-014 se ejecutó literalmente, sin alterar ni reordenar ninguna de sus
-órdenes. El bloque contractual, tal como está escrito en el contrato, no
-imprime nada por sí mismo: termina en código `0` sin emitir texto propio (más
-allá de la salida de los subprocesos citados en la lista de abajo, cuando la
-tienen). Las cuatro líneas siguientes (`fecha_utc`, `WP014_BASE`,
-`WP014_HEAD`, `estado_inicial`) **no** son salida del bloque contractual: son
-un encabezado diagnóstico que el coordinador añadió al invocar el bloque, para
-registrar en qué momento y sobre qué identidades se ejecutó. Se muestran aquí
-por transparencia, pero no deben leerse como texto impreso por las órdenes del
-contrato:
+ejecución. El coordinador reprodujo todas las comprobaciones del bloque de la
+sección «Verificación», en el mismo orden y sin relajar ninguna aserción, pero
+la invocación **no fue una copia byte a byte del bloque contractual**: añadió
+instrumentación diagnóstica. En concreto, incorporó un `print` al final del
+bloque Python y un `printf` al final del shell. Las cuatro líneas siguientes
+(`fecha_utc`, `WP014_BASE`, `WP014_HEAD`, `estado_inicial`) son metadatos
+registrados al compilar esta evidencia, no salida de las órdenes del contrato:
 
 ```text
 fecha_utc: 2026-09-13T20:33:59Z
@@ -199,17 +195,11 @@ coincidencia—:
 - escaneo local de patrones de secreto sin coincidencias;
 - diff final limitado a los seis patrones permitidos.
 
-Salida completa de los comandos que emitieron texto (comandos del contrato:
-`validate-workflows.py` y `check-manual.py`; el resto de las órdenes del
-bloque contractual, incluida la comprobación Python de postimágenes, no
-imprime nada por sí misma cuando termina en éxito). Las cuatro líneas finales
-del bloque siguiente (`postimages_ok counts`, `WP014_BASE`, `WP014_HEAD`,
-`VERIFICATION_EXIT`) tampoco proceden del bloque contractual literal: son
-instrumentación diagnóstica que el coordinador añadió alrededor de la
-invocación (un `echo`/`print` posterior a cada orden), no texto emitido por
-las órdenes del contrato en sí. Se conservan aquí porque documentan sobre qué
-identidades y con qué resultado se ejecutó el bloque, no porque el bloque las
-haya impreso:
+Salida completa de la reproducción instrumentada. `validate-workflows.py` y
+`check-manual.py` emitieron sus bloques propios. `postimages_ok counts` procede
+del `print` añadido dentro del bloque Python; `WP014_BASE`, `WP014_HEAD` y
+`VERIFICATION_EXIT` proceden del `printf` añadido después de las comprobaciones.
+No se atribuye ninguna de esas cuatro líneas al bloque contractual literal:
 
 ```text
 Workflows analizados: 3
@@ -262,3 +252,8 @@ VERIFICATION_EXIT=0
 **Veredicto local de esta ejecución:** `APTO`. Comandos fallidos: `0`.
 La revisión independiente de Astra y el job remoto de secretos continúan
 pendientes y no se sustituyen por este resultado local.
+
+Como contraste independiente, Astra ejecutó después el bloque contractual
+literal sobre este mismo candidato y obtuvo código `0`, sin las cuatro líneas
+diagnósticas. Ese resultado y sus hallazgos están en
+`evidence/WP-014/revision-astra.md`.
