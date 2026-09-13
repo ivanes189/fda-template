@@ -89,7 +89,7 @@ acciones fijadas por SHA.
 
 El parche `evidence/WP-014/parche/workflows-actions-sha.patch` contiene
 exactamente tres secciones `diff --git`, una por workflow objetivo, y diez
-líneas `-`/`+` en total (una `-` y una `+` por cada una de las diez
+líneas retiradas y diez añadidas (una pareja `-`/`+` por cada una de las diez
 sustituciones). No toca ninguna otra ruta. Verificado por lectura directa del
 propio parche (adjunto en este mismo commit) — no se ejecuta `git apply` en
 ninguna variante para esta comprobación.
@@ -98,10 +98,10 @@ Recuento manual de hunks y líneas modificadas:
 
 | Workflow | Hunks | Líneas `-` | Líneas `+` |
 |---|---:|---:|---:|
-| `ci.yml` | 3 | 4 | 4 |
+| `ci.yml` | 3 | 6 | 6 |
 | `claude.yml` | 1 | 2 | 2 |
 | `code-review.yml` | 1 | 2 | 2 |
-| **Total** | **5** | **8** | **8** |
+| **Total** | **5** | **10** | **10** |
 
 Nota: en `ci.yml` la primera y segunda sustitución (checkout + setup-python
 del job `gobierno`, y checkout + setup-python del job `calidad`) comparten

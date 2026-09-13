@@ -3,8 +3,9 @@
 ## Identidades
 
 - `BASE_SHA`: `1feb66554c8754e586a1089822e1ab5a6edae900`
-  - `main` remoto consultado por el coordinador humano mediante `git ls-remote`
-    inmediatamente antes de crear la rama y el worktree dedicados de WP-014.
+  - `main` remoto consultado por Codex, como coordinador, mediante
+    `git fetch origin main` inmediatamente antes de crear la rama y el
+    worktree dedicados de WP-014.
   - Instante UTC de la consulta: `2026-09-13T20:06:51Z`.
   - Coincide con el commit inicialmente extraído por este worktree (verificado
     con `git log --format=%H -1 1feb665` → `1feb66554c8754e586a1089822e1ab5a6edae900`).
