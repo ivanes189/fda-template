@@ -141,7 +141,7 @@ python3 evidence/WP-009/checks/verify-workflow-diff.py --base "$BASE_SHA" \
 - [ ] `check-active.sh` devuelve salida 0 y primera línea `ACTIVO: WP-009`.
 - [ ] Revisión `code-reviewer` sin incumplimientos bloqueantes abiertos.
 - [ ] Revisión de seguridad sin hallazgos ALTOS o CRÍTICOS abiertos.
-- [ ] Coste conforme a DEC-004 y ≤ 30 EUR.
+- [ ] Coste conforme a DEC-004 y ≤ 43 EUR.
 
 ## Evidencias exigidas
 
