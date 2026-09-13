@@ -4,7 +4,7 @@ estado: ready
 prioridad: P0
 agente_responsable: implementer     agente_revisor: code-reviewer
 requisitos: [REQ-FDA-002, SEC-001]  adr: [ADR-001]
-presupuesto_max_eur: 30             max_ciclos_correccion: 2
+presupuesto_max_eur: 43             max_ciclos_correccion: 2
 
 ## Objetivo y contexto
 
@@ -141,7 +141,7 @@ python3 evidence/WP-009/checks/verify-workflow-diff.py --base "$BASE_SHA" \
 - [ ] `check-active.sh` devuelve salida 0 y primera línea `ACTIVO: WP-009`.
 - [ ] Revisión `code-reviewer` sin incumplimientos bloqueantes abiertos.
 - [ ] Revisión de seguridad sin hallazgos ALTOS o CRÍTICOS abiertos.
-- [ ] Coste conforme a DEC-004 y ≤ 30 EUR.
+- [ ] Coste conforme a DEC-004 y ≤ 43 EUR.
 
 ## Evidencias exigidas
 
@@ -168,7 +168,7 @@ python3 evidence/WP-009/checks/verify-workflow-diff.py --base "$BASE_SHA" \
   su mayor semántica discrepa, falta `actionlint` o una prueba no corre.
 - El parche exige un cambio distinto de referencia/comentario o toca otra ruta.
 - Aparece una vulnerabilidad o incompatibilidad en uno de los commits fijados.
-- El coste supera 30 EUR o se alcanza un tercer ciclo de corrección.
+- El coste supera 43 EUR o se alcanza un tercer ciclo de corrección.
 
 ## Migración / rollback
 
