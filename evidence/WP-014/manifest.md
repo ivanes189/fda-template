@@ -2,33 +2,36 @@
 
 ## Identidades
 
-- `BASE_SHA`: `1feb66554c8754e586a1089822e1ab5a6edae900`
-  - `main` remoto consultado por Codex, como coordinador, mediante
-    `git fetch origin main` inmediatamente antes de crear la rama y el
-    worktree dedicados de WP-014.
-  - Instante UTC de la consulta: `2026-09-13T20:06:51Z`.
-  - Coincide con el commit inicialmente extraído por este worktree (verificado
-    con `git log --format=%H -1 1feb665` → `1feb66554c8754e586a1089822e1ab5a6edae900`).
+BASE_SHA: `1feb66554c8754e586a1089822e1ab5a6edae900`
 
-- `PATCH_COMMIT`: `6d5d29f44643b7386d79068093b1fe0978345b61`
-  - Commit que añade, en solitario, el archivo del parche unificado.
-  - Ancestro de `HEAD` en el momento de escribir este manifiesto.
+- `main` remoto consultado por Codex, como coordinador, mediante
+  `git fetch origin main` inmediatamente antes de crear la rama y el
+  worktree dedicados de WP-014.
+- Instante UTC de la consulta: `2026-09-13T20:06:51Z`.
+- Coincide con el commit inicialmente extraído por este worktree (verificado
+  con `git log --format=%H -1 1feb665` → `1feb66554c8754e586a1089822e1ab5a6edae900`).
 
-- Ruta del parche: `evidence/WP-014/parche/workflows-actions-sha.patch`
+PATCH_COMMIT: `6d5d29f44643b7386d79068093b1fe0978345b61`
 
-- `PATCH_BLOB`: `8c6b1d7c5ca9bd6c35458dcbb537de250d7c03b4`
-  - Obtenido con un comando permitido (`git diff --cached --raw --abbrev=40`)
-    antes del commit, sobre el archivo recién añadido al índice:
+- Commit que añade, en solitario, el archivo del parche unificado.
+- Ancestro de `HEAD` en el momento de escribir este manifiesto.
 
-    ```
-    git add evidence/WP-014/parche/workflows-actions-sha.patch
-    git diff --cached --raw --abbrev=40 -- evidence/WP-014/parche/workflows-actions-sha.patch
-    :000000 100644 0000000000000000000000000000000000000000 8c6b1d7c5ca9bd6c35458dcbb537de250d7c03b4 A	evidence/WP-014/parche/workflows-actions-sha.patch
-    ```
-  - Es un OID Git hexadecimal de 40 caracteres, de tipo `blob` (columna de modo
-    `100644` en la salida `--raw`), no un nombre simbólico ni un revspec.
-  - El manifiesto no contiene el SHA de su propio commit: `PATCH_BLOB` es el
-    OID del blob del archivo del parche, no de `PATCH_COMMIT`.
+PATCH_PATH: `evidence/WP-014/parche/workflows-actions-sha.patch`
+
+PATCH_BLOB: `8c6b1d7c5ca9bd6c35458dcbb537de250d7c03b4`
+
+- Obtenido con un comando permitido (`git diff --cached --raw --abbrev=40`)
+  antes del commit, sobre el archivo recién añadido al índice:
+
+  ```
+  git add evidence/WP-014/parche/workflows-actions-sha.patch
+  git diff --cached --raw --abbrev=40 -- evidence/WP-014/parche/workflows-actions-sha.patch
+  :000000 100644 0000000000000000000000000000000000000000 8c6b1d7c5ca9bd6c35458dcbb537de250d7c03b4 A	evidence/WP-014/parche/workflows-actions-sha.patch
+  ```
+- Es un OID Git hexadecimal de 40 caracteres, de tipo `blob` (columna de modo
+  `100644` en la salida `--raw`), no un nombre simbólico ni un revspec.
+- El manifiesto no contiene el SHA de su propio commit: `PATCH_BLOB` es el
+  OID del blob del archivo del parche, no de `PATCH_COMMIT`.
 
 ## Tipos y modos
 
