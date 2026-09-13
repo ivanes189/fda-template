@@ -1,6 +1,6 @@
 # WP-014 — Diez acciones de workflows fijadas por SHA
 
-estado: ready
+estado: done
 prioridad: P0
 riesgo: T3
 agente_responsable: Claude Code (implementer)
@@ -8,6 +8,13 @@ agente_revisor: GPT-6 Astra (Alto, contexto nuevo, externo, solo lectura)
 requisitos: [REQ-FDA-002, SEC-001]  adr: [ADR-001]
 decision: [DEC-008]
 presupuesto_max_eur: 12             max_ciclos_correccion: 2
+
+<!-- CIERRE — 2026-09-13, por decisión humana. La PR #40, revisada sobre el
+     HEAD d1ae1b86fbe3114cf583ddc9ff73c90d758ad526, fue fusionada mediante
+     ea004919b661baf206257952f2fd5ca7bfad2c05 con los tres checks en SUCCESS.
+     Resultado: diez pins exactos (5/2/1/2), aplicación humana, revisión Astra
+     completa y revalidación enfocada APTO tras C1; coste medido 2,73 EUR de
+     12 EUR y contador final 1/2. Evidencia: evidence/WP-014/CIERRE.md. -->
 
 ## Objetivo y contexto
 
@@ -125,8 +132,8 @@ PRE_APPLY_HEAD="$(git rev-parse --verify HEAD^{commit})"
 test -z "$(git status --porcelain=v1 -uall)"
 git merge-base --is-ancestor "$PATCH_COMMIT" "$PRE_APPLY_HEAD"
 test "$(git cat-file -t "$PATCH_BLOB")" = blob
-test "$(git rev-parse "$PATCH_COMMIT:evidence/WP-014/parche/workflows-actions-sha.patch")" = "$PATCH_BLOB"
-test "$(git rev-parse "$PRE_APPLY_HEAD:evidence/WP-014/parche/workflows-actions-sha.patch")" = "$PATCH_BLOB"
+test "$(git rev-parse "${PATCH_COMMIT}:evidence/WP-014/parche/workflows-actions-sha.patch")" = "$PATCH_BLOB"
+test "$(git rev-parse "${PRE_APPLY_HEAD}:evidence/WP-014/parche/workflows-actions-sha.patch")" = "$PATCH_BLOB"
 git cat-file blob "$PATCH_BLOB" | git apply --check --index -
 test -z "$(git status --porcelain=v1 -uall)"
 git cat-file blob "$PATCH_BLOB" | git apply --index -
@@ -242,41 +249,41 @@ antes de fusionar. Esa comprobación remota posterior no se presenta como prueba
 local ni autoriza a ningún agente a crear o fusionar la PR.
 
 **Criterios de aceptación:**
-- [ ] Los comandos terminan en 0; `actionlint` y el validador aceptan los tres
+- [x] Los comandos terminan en 0; `actionlint` y el validador aceptan los tres
       workflows; `ACTIVE` sigue indicando `WP-014` durante la ejecución.
-- [ ] Hay exactamente diez pins: 5 checkout, 2 setup-python, 1 gitleaks y 2
+- [x] Hay exactamente diez pins: 5 checkout, 2 setup-python, 1 gitleaks y 2
       claude-code-action, con SHA completo y comentario de versión exactos.
-- [ ] En los workflows solo cambian esas diez líneas; lógica, permisos, eventos,
+- [x] En los workflows solo cambian esas diez líneas; lógica, permisos, eventos,
       argumentos, secretos, nombres, tipos y modos quedan idénticos.
-- [ ] El criterio 2 de REQ-FDA-002 devuelve vacío y no se introduce
+- [x] El criterio 2 de REQ-FDA-002 devuelve vacío y no se introduce
       `pull_request_target` ni interpolación nueva en bloques `run:`.
-- [ ] El parche aplicado es el blob registrado y contiene solo los tres
+- [x] El parche aplicado es el blob registrado y contiene solo los tres
       workflows; las dos órdenes reciben bytes del mismo `PATCH_BLOB`.
-- [ ] La aplicación fue realizada y confirmada por Iván; ningún agente ejecutó
+- [x] La aplicación fue realizada y confirmada por Iván; ningún agente ejecutó
       las órdenes protegidas ni modificó workflows por otro mecanismo.
-- [ ] Diff final limitado a seis patrones permitidos; candidatas WP-009/WP-013,
+- [x] Diff final limitado a seis patrones permitidos; candidatas WP-009/WP-013,
       reglas, workflows ajenos y demás repositorio permanecen intactos.
-- [ ] Revisión Astra completa de contrato, código y seguridad sin hallazgos
+- [x] Revisión Astra completa de contrato, código y seguridad sin hallazgos
       ALTOS o CRÍTICOS abiertos; correcciones, si existen, las hace Claude y se
       someten a revisión enfocada independiente, máximo dos ciclos.
-- [ ] `cost.md` es conforme a DEC-004 y el coste es `<= 12 EUR`.
-- [ ] El job remoto `secretos / Escaneo de secretos` está verde para el HEAD
+- [x] `cost.md` es conforme a DEC-004 y el coste es `<= 12 EUR`.
+- [x] El job remoto `secretos / Escaneo de secretos` está verde para el HEAD
       vigente de la PR; la URL del check y el SHA se registran sin secretos.
 
 ## Evidencias exigidas (qué debe aparecer en evidence/WP-014/)
 
-- [ ] `manifest.md`: base, commits/HEAD, `PATCH_BLOB`, rutas, tipos y modos.
-- [ ] `procedencia.md`: matriz, repositorios oficiales, tags consultados,
+- [x] `manifest.md`: base, commits/HEAD, `PATCH_BLOB`, rutas, tipos y modos.
+- [x] `procedencia.md`: matriz, repositorios oficiales, tags consultados,
       commits pelados cuando aplica y fecha; sin incorporar herramientas WP-009.
-- [ ] Parche exacto bajo `parche/` y prueba de que su blob coincide con el
+- [x] Parche exacto bajo `parche/` y prueba de que su blob coincide con el
       aplicado humanamente.
-- [ ] `verification.md`: comandos, salidas completas, códigos, comprobación del
+- [x] `verification.md`: comandos, salidas completas, códigos, comprobación del
       diff de diez líneas y ausencia de rutas no permitidas.
-- [ ] Confirmación del acto humano sin datos personales ni secretos.
-- [ ] Resultado local saneado de higiene y, tras crear la PR, referencia al job
+- [x] Confirmación del acto humano sin datos personales ni secretos.
+- [x] Resultado local saneado de higiene y, tras crear la PR, referencia al job
       de secretos verde para el HEAD exacto.
-- [ ] `cost.md` conforme a DEC-004.
-- [ ] Revisión Astra completa y revisiones enfocadas que correspondan.
+- [x] `cost.md` conforme a DEC-004.
+- [x] Revisión Astra completa y revisiones enfocadas que correspondan.
 
 ## Condiciones de parada específicas
 

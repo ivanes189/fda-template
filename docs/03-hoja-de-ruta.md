@@ -1,6 +1,6 @@
 # Hoja de ruta — de la FDA al AI Agent Operating System
 
-**Creada:** 2026-08-30 · **Última revisión: 2026-09-13** (cierres bloqueados de WP-009 y WP-013 — ver Registro de revisiones) · **Estado:** **VIGENTE** desde la fusión en `main` de DEC-007, enmendada por DEC-008; D5 queda sin acuerdo formal y el carril B continúa como propuesta, no como asignación activa · **Ámbito:** `fda-template` (carril A) y su primera instalación externa propuesta (carril B), y los proyectos que gobernarían: `AI-Comercial-System`/Agent OS y Document AI.
+**Creada:** 2026-08-30 · **Última revisión: 2026-09-13** (cierre de WP-014 — ver Registro de revisiones) · **Estado:** **VIGENTE** desde la fusión en `main` de DEC-007, enmendada por DEC-008; D5 queda sin acuerdo formal y el carril B continúa como propuesta, no como asignación activa · **Ámbito:** `fda-template` (carril A) y su primera instalación externa propuesta (carril B), y los proyectos que gobernarían: `AI-Comercial-System`/Agent OS y Document AI.
 
 **Procedencia.** v1 (30-08): las cinco conversaciones del operador con otras IAs — síntesis en [`04-analisis-conversaciones-ia.md`](04-analisis-conversaciones-ia.md)—, el repositorio completo, el estado de los demás repos y fuentes externas. v2 (01-09): además, los **cuatro documentos de investigación de Leandro** y una **línea base de investigación independiente registrada antes de leerlos** — análisis completo, veredictos y red team en [`05-analisis-investigacion-leandro-y-revalidacion.md`](05-analisis-investigacion-leandro-y-revalidacion.md). Lo redactaron y materializaron sesiones de Claude Code por encargo directo del operador, como actos de operador (§9).
 
@@ -14,6 +14,7 @@
 | 2026-09-09 | D1, D2, D3, D4 y D6 ratificadas; D5 resuelta por su default. D2 eleva cambios que alteran controles aunque vivan bajo `tests/**` o `evidence/**` | `DEC-007` |
 | 2026-09-13 | WP-009 cerrado `blocked` tras agotar 2/2 ciclos; candidata C2 preservada; trabajo restante dividido entre los futuros WP-013 y WP-014; `ACTIVE` vuelve a reposo | `DEC-008` |
 | 2026-09-13 | WP-013 cerrado `blocked` tras C3 excepcional y revisión enfocada NO APTA; candidata preservada sin importar; retirada la dependencia del materializador; WP-014 sigue reservado, no creado ni activo; `ACTIVE` vuelve a reposo | Enmienda de recuperación de `DEC-008` |
+| 2026-09-13 | WP-014 fusionado por PR #40 y cerrado `done` tras C1; exactamente diez acciones fijadas por SHA, aplicación y fusión humanas, coste 2,73/12 EUR; segunda condición de salida cumplida y `ACTIVE` vuelve a reposo | `DEC-003` §6 · `evidence/WP-014/CIERRE.md` |
 
 ---
 
@@ -60,13 +61,22 @@
 
 Por tanto **sí existe trabajo y coste hundidos en local**, aunque no haya historia publicada. Esto **no cambia la recomendación de D6**, pero sí su fundamento: el núcleo mínimo se recomienda por **coste futuro**, **proporcionalidad de la ceremonia** y las **tres capas de enforcement** de P1 —no porque el trabajo previo no exista—. La candidata local se preserva como evidencia histórica no conforme (Anexo A); no se borra de la historia ni se presenta como conforme.
 
-**Actualización operativa 2026-09-13.** WP-009 agotó 2/2 ciclos y WP-013
+**Actualización operativa 2026-09-13, previa a WP-014.** WP-009 agotó 2/2 ciclos y WP-013
 terminó también `blocked` después de C3 excepcional, ambos con incumplimientos
 bloqueantes abiertos y sus candidatas preservadas como históricas no conformes.
 No se aplicaron pins ni cambiaron workflows. WP-014 conserva solo su identificador
 reservado: su eventual contrato se limitará a diez pins exactos y a un parche
 Git aplicado humanamente en un worktree limpio y dedicado. WP-013 deja de ser
 dependencia. `ACTIVE` queda en reposo; WP-014 no se crea ni activa aquí.
+
+**Actualización operativa posterior — cierre de WP-014.** La PR #40 quedó
+fusionada en `main` mediante
+`ea004919b661baf206257952f2fd5ca7bfad2c05`. WP-014 cerró `done` tras C1, con
+exactamente diez pins (`5/2/1/2`), aplicación humana, revisión Astra enfocada
+final `APTO` y coste medido de 2,73 EUR sobre 12 EUR. La segunda condición de
+salida de DEC-003 §6 queda cumplida y `ACTIVE` vuelve a reposo. La pausa
+continúa: siguen pendientes la primera y la tercera condición. El siguiente
+paso de la secuencia es preparar y aprobar el contrato breve del núcleo WP-008.
 
 **Tres verdades incómodas, con los datos delante:**
 
@@ -159,19 +169,21 @@ Secuencia (ajustada por D1/D6 y DEC-008; cada transición de `ACTIVE` sigue sien
 
 1. **Cierre bloqueado de WP-009.** PR de operador atómica: registra 2/2 ciclos, preserva la candidata C2, marca el contrato `blocked` y devuelve `ACTIVE` a reposo. El parche actual no se aplica ni se versiona.
 2. **Cierre bloqueado de WP-013.** PR de operador atómica: registra C1, C2 y C3 excepcional, preserva la candidata sin importarla, marca el contrato `blocked` y devuelve `ACTIVE` a reposo. No existe C4.
-3. **WP-014 — diez pins exactos por SHA** (futuro T3; presupuesto candidato 12 EUR; máximo 2 ciclos). No depende de WP-013. El agente prepara los mismos bytes para `git apply --check --index -` y `git apply --index -`; una persona los aplica por `stdin` en un worktree limpio y dedicado, y se verifica que en workflows cambien únicamente las diez líneas `uses:`. Git no se presenta como sandbox ni transacción general; la recuperación ordinaria consiste en descartar y recrear ese worktree, y un fallo del repositorio compartido o del almacenamiento obliga a parar.
+3. **WP-014 — diez pins exactos por SHA: CUMPLIDO.** T3 cerrado `done` por la PR #40, con coste 2,73/12 EUR y 1/2 ciclos. El agente preparó los mismos bytes para `git apply --check --index -` y `git apply --index -`; una persona los aplicó por `stdin` en el worktree dedicado y el diff quedó limitado a las diez líneas `uses:`. La recuperación ordinaria permanece como regla contingente; no fue necesario descartar ni recrear el worktree.
 4. **WP-008 núcleo** según D6 (mínimo recomendado o íntegro por default).
 5. **Humo seguro dentro de WP-008**, conforme a D1 ratificada. No es un paso propio ni un estado de `ACTIVE`: se ejecuta antes de cerrar WP-008 y deja evidencia saneada en `evidence/WP-008/`. Usa un proyecto desechable fuera de la raíz FDA y un `.env` sintético sin secretos reales; queda prohibido tocar `.env`, secretos o archivos reales de FDA. Si falla, WP-008 no se cierra. WP-012 deja de ser condición de salida.
 6. **WP-002, y después WP-005 — `check_scope` sobre el diff de la PR en CI.** Son **dos WPs secuenciales**, nunca uno solo: cada uno con su contrato, su rama y su PR, y nunca activos a la vez. **WP-002** construye la **librería única de matching** y `check_scope` con suite pytest; requiere antes una PR de operador que corrija su contrato y lo saque de `blocked`. **WP-005** lo integra en `ci.yml` y lo deja **ejecutándose en CI**; requiere antes una PR de operador que **corrija integralmente su contrato** —hoy **no es ejecutable**— y lo lleve de `draft` a `ready`, conforme a `DEC-003` §2.d: **parche humano de `ci.yml`** porque la ruta está en `permissions.deny`, **`evidence/WP-005/**` en su allowlist**, y **política elegida para las ramas `ops/*`**, que hoy el job haría fallar —cualquiera que se elija debe garantizar que el **contexto requerido siempre reporta una conclusión terminal**, que el **nombre de rama no basta** para reconocer al operador, que `wp/*` **sigue fail-closed** y que un fallo de verificación **cierra**—. **Convertirlo en bloqueante para la fusión no es trabajo de WP-005**: es una **mutación humana del ruleset** posterior a que el job reporte desde `main`, y se registra, conforme al contrato de evidencia canónica de `DEC-007`, en una **PR de operador de cierre** que en un **único diff atómico** marca `WP-005` `done` **y** escribe reposo en `ACTIVE` —nunca en diffs separados—. Solo **después** llega el **guard delgado sobre esa misma librería** (parche aplicado por persona, carril T3), y por último **WP-007 se cierra** —ejecutado o superado según lo decidido, en acto separado y expresamente registrado—, preservando su candidato congelado como evidencia ([05](05-analisis-investigacion-leandro-y-revalidacion.md) §4.5, que recomienda exactamente esta secuencia y no una fusión).
 7. **Sandbox nativo (nuevo en v2):** experimento E2 y, si pasa, un WP de nivel T3 que activa el Bash sandboxeado (escritura kernel-restringida + egreso por allowlist) para el implementer. **Ninguno de los dos tiene identificador reservado**: antes de ejecutarlos hace falta una decisión o enmienda que fije su `WP-NNN`, apruebe el contrato y lo admita en la lista cerrada de DEC-003 §4. Mientras tanto `ACTIVE` permanece en reposo.
 
-**Criterio de salida:** WP-008 fusionado; WP-014 fusionado, con exactamente
-los diez pins autorizados y el criterio n.º 2 de REQ-FDA-002 vacío; control de
+**Criterio de salida:** WP-008 fusionado; **WP-014 fusionado, con exactamente
+los diez pins autorizados y el criterio n.º 2 de REQ-FDA-002 vacío —condición
+cumplida por la PR #40—**; control de
 alcance ejecutándose en CI **e incorporado como *required status check* del
 ruleset**; humo seguro de WP-008; y gate E2 resuelto conforme a DEC-003 §6.
 Solo entonces una PR de operador puede registrar la pausa como `superada`. Los
 cierres bloqueados de WP-009 y WP-013 no satisfacen por sí mismos la condición
-de acciones fijadas.
+de acciones fijadas. La pausa sigue vigente porque las condiciones de WP-008 y
+de control de alcance/sandbox permanecen pendientes.
 
 **Qué NO hacer:** añadir agentes; tocar `tests/guard/run-suite.sh` fuera de lo decidido en DEC-007; abrir el harness SDK; adoptar Spec Kit/OpenSpec como capa; construir dashboards.
 

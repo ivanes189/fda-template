@@ -155,11 +155,12 @@ La vía correcta es que el agente **prepare un script de parche verificado** —
 La migración de DEC-002 sigue **pausada tras PR-2**. DEC-007 registra el
 2026-09-09 el punto de control previsto para el 07-09 y reordena la pausa sin
 terminarla. DEC-008 registra el 2026-09-13 los cierres bloqueados de WP-009 y
-WP-013 y devuelve `ACTIVE` a reposo en cada cierre. WP-007 sigue `ready`, WP-002
-`blocked`, WP-005 `draft` y WP-008 suspendido hasta una transición humana
-separada. D3 hace normativa `docs/03`; `docs/04` y `docs/05` quedan como
-procedencia y fotos fijas. La lista cerrada y las transiciones siguen en
-DEC-003.
+WP-013. WP-014 se completó después: PR #40 fusionada, contrato `done` y
+`ACTIVE` de nuevo en reposo. Con ello queda satisfecha solo la segunda condición
+de salida de DEC-003 §6. WP-007 sigue `ready`, WP-002 `blocked`, WP-005 `draft`
+y WP-008 suspendido hasta una transición humana separada. D3 hace normativa
+`docs/03`; `docs/04` y `docs/05` quedan como procedencia y fotos fijas. La lista
+cerrada y las transiciones siguen en DEC-003.
 
 ### La revisión del 2026-08-10 y el troceado de WP-008
 
@@ -212,14 +213,37 @@ del cierre como **CANDIDATA HISTÓRICA NO CONFORME — NO EJECUTAR** y `ACTIVE`
 vuelve a reposo en el mismo diff. La composición no importa el materializador
 ni modifica workflows.
 
-La enmienda de recuperación de DEC-008 retira WP-013 como dependencia. WP-014
-sigue reservado, no creado ni activo. Su eventual contrato solo puede abarcar
+La enmienda de recuperación de DEC-008 retiró WP-013 como dependencia. **En el
+momento de aquel cierre**, WP-014 seguía reservado, no creado ni activo. Su
+contrato posterior solo podía abarcar
 los diez pins exactos y los mismos bytes de parche entregados por `stdin` a
 `git apply --check --index -` y `git apply --index -`; una persona los aplica
 en un worktree limpio y dedicado y comprueba el diff exacto. Git no es un
 sandbox ni una transacción general. La recuperación ordinaria consiste en
 descartar y recrear ese worktree; cualquier fallo del repositorio compartido o
 del almacenamiento obliga a parar y escalar.
+
+### Cierre de WP-014 el 2026-09-13
+
+WP-014 cumplió el contrato limitado de DEC-008. Iván aplicó personalmente el
+blob Git preparado; el diff de implementación cambió solo diez líneas `uses:`
+de los tres workflows y dejó la distribución `5 checkout / 2 setup-python / 1
+gitleaks / 2 claude-code-action`. La PR #40 fue revisada sobre
+`d1ae1b86fbe3114cf583ddc9ff73c90d758ad526` y fusionada mediante
+`ea004919b661baf206257952f2fd5ca7bfad2c05`, con los tres checks en `SUCCESS`.
+
+La revisión completa de Astra pidió tres correcciones de evidencia; Claude las
+resolvió en C1 y Astra emitió `APTO` en la revalidación enfocada. El contador
+final es `1 / 2` y el coste medido `2,73 EUR / 12 EUR`. No quedan hallazgos ALTOS
+o CRÍTICOS abiertos en el entregable ni en el procedimiento aplicado de
+WP-014. El contrato queda `done` y `ACTIVE` vuelve a reposo en el mismo diff de
+operador. La evidencia reconstruible está en `evidence/WP-014/CIERRE.md`.
+
+El primer intento del bloque humano reveló una expansión no delimitada que
+`zsh` interpretaba como modificador `:e`; se detuvo antes de `git apply`. La
+ejecución correcta usó `${VARIABLE}:ruta`, quedó registrada y el cierre corrige
+las dos líneas del contrato. La recuperación por recreación del worktree sigue
+siendo una regla contingente: no fue necesario ejecutarla.
 
 ### D6-A efectiva y contabilidad de ciclos
 
@@ -285,9 +309,9 @@ Los trece archivos sin versionar del undécimo ciclo de WP-008 —cuatro princip
 | 1 | Reposo | Suspensión de WP-008-r2; custodia externa de la candidata local; contrato breve de WP-009 | Contrato de WP-009 aprobado |
 | 2 | `WP-009` | PR de operador de `DEC-008`: registra el bloqueo tras 2/2 ciclos, preserva la candidata, marca el contrato `blocked` y escribe reposo en `ACTIVE` | WP-009 cerrado como bloqueado y `ACTIVE` en reposo |
 | 2.a | `WP-013` | Cierre atómico bloqueado tras C3 excepcional, preservación de candidata y vuelta a reposo | WP-013 `blocked` y reposo restablecido |
-| 2.b | Reposo | Futuro acto de operador que crea y aprueba el contrato limitado de **WP-014** | Contrato de WP-014 aprobado |
-| 2.c | `WP-014` | Preparación de los mismos bytes de parche, comprobación y aplicación humana por `stdin` con Git nativo en worktree limpio, pruebas, revisión y fusión | WP-014 fusionado y reposo restablecido |
-| 2.d | Reposo | Recuperación limitada a recrear el worktree dedicado; fallos compartidos escalan | Cadena de suministro acreditada sin WP-013 |
+| 2.b | Reposo | **Completado:** acto de operador que creó y aprobó el contrato limitado de **WP-014** | **Cumplida:** contrato de WP-014 aprobado |
+| 2.c | `WP-014` | **Completado:** preparación de los mismos bytes de parche, comprobación y aplicación humana por `stdin`, pruebas, revisión y fusión | **Cumplida por PR #40 y el cierre:** WP-014 fusionado y reposo restablecido |
+| 2.d | Reposo | La recuperación por recreación del worktree permanece como regla contingente; no fue necesaria en WP-014 | **Cumplida:** cadena de suministro acreditada sin WP-013 |
 | 3 | Reposo | PR de operador con el contrato de WP-008 según la rama de D6 resuelta | Contrato aprobado |
 | 4 | `WP-008` | Núcleo **y humo seguro antes del cierre**, con evidencia en `evidence/WP-008/`. **Si el humo falla, WP-008 no se cierra** | Cierre con el humo en verde |
 | 5 | Reposo | PR de operador que saca a **WP-002** de `blocked` | Contrato de WP-002 aprobado |
@@ -335,9 +359,9 @@ y su PR. Mientras `ACTIVE` esté vacío no hay ninguna ruta autorizada.
 
 **Criterio de salida bajo D1 y DEC-008.** El **criterio de salida sigue teniendo
 tres condiciones**: WP-008 fusionado —protección instalada, con la demostración
-de bloqueo que exija la rama de D6 resuelta—; WP-014 fusionado, con exactamente
+de bloqueo que exija la rama de D6 resuelta—; **WP-014 fusionado, con exactamente
 los diez pins autorizados y el criterio de verificación n.º 2 de REQ-FDA-002
-vacío; y, como tercera **sustituida por D1**, la que ahora se titula **«Control
+vacío —condición cumplida por la PR #40—**; y, como tercera **sustituida por D1**, la que ahora se titula **«Control
 de alcance concluyente y resolución del gate del sandbox»**: **humo seguro
 dentro del alcance de WP-008** y registrado en `evidence/WP-008/`, ejecutado
 **antes de cerrarlo** (incluido el caso `Read(/**/.env*)` frente a `.env` en la
