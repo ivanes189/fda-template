@@ -7,6 +7,7 @@
 **Enmendada de nuevo el 2026-09-13 por [`DEC-008`](DEC-008-cierre-y-division-de-wp-009.md):** §§2, 4 y 6. WP-013 se cierra bloqueado tras C3 excepcional, `ACTIVE` vuelve a reposo y la ruta hacia WP-014 deja de depender del materializador. La enmienda entra en vigor en el mismo diff atómico de doce archivos que registra el cierre.
 **Actualizada el 2026-09-13 por el cierre de WP-014:** §§2, 4, 5 y 6 registran el cumplimiento posterior de la secuencia fijada por DEC-008. WP-014 queda `done`, su PR #40 fusionada y `ACTIVE` vuelve a reposo; la segunda condición de salida queda satisfecha, pero la pausa continúa.
 **Enmendada el 2026-09-21 por [`DEC-009`](DEC-009-cierre-bloqueado-wp-008.md):** §§2, 4, 5 y 6. WP-008 D6-A queda `blocked` tras C5 excepcional, `ACTIVE` vuelve a reposo y la secuencia posterior se detiene hasta una decisión humana nueva. La enmienda entra en vigor en el mismo diff atómico de dieciocho archivos que registra el cierre.
+**Enmendada el 2026-09-21 por [`DEC-010`](DEC-010-separacion-autor-revisor-y-ciclos.md):** §4 admite una única composición normativa de operador para precisar la separación autor/revisor y el bucle ordinario de dos ciclos. `ACTIVE` permanece en reposo y la parada técnica de DEC-009 no cambia.
 
 ## Problema
 
@@ -385,6 +386,7 @@ Los tres checks obligatorios son jobs de `ci.yml` y siguen operando. La contenci
 | `DEC-007` | Punto de control del 2026-09-07 y rumbo: resoluciones D1–D6 |
 | `DEC-008` | Cierre bloqueado de WP-009 y división material del trabajo restante |
 | `DEC-009` | Cierre bloqueado de WP-008 D6-A y parada de la secuencia posterior en reposo |
+| `DEC-010` | Separación de autor y revisor, revalidaciones enfocadas y bucle ordinario de dos ciclos; composición normativa de operador sin transición de `ACTIVE` |
 | `WP-013` | Cierre bloqueado tras C3 excepcional, preservación de la candidata histórica no conforme y transición solidaria a reposo conforme a la enmienda de recuperación de `DEC-008` |
 | `WP-014` | Cerrado `done` tras la aplicación humana exacta de los diez pins por SHA, revisión independiente, PR #40 fusionada y transición solidaria a reposo; no dependió de fusionar WP-013 |
 | `docs/03-hoja-de-ruta.md` | Hoja de ruta v2, con la foto local de WP-008-r2 corregida y la arquitectura objetivo separada del estado materializado |
@@ -448,6 +450,16 @@ autoautoriza. La composición cerrada consta exactamente de dieciocho archivos:
 artefactos enumerados en `DEC-009` § «Composición atómica». Todos viajan juntos
 o ninguno. No se importa la implementación, no se modifica ningún workflow o
 protegido y no se crea, corrige, activa ni ejecuta otro WP.
+
+**Admisión atómica de `DEC-010` y de la precisión del método de revisión.** Se
+modifica directamente esta lista en el mismo diff; la decisión no se
+autoautoriza. La composición cerrada consta exactamente de siete archivos:
+`DEC-010`, esta `DEC-003`, `CLAUDE.md`, `docs/03-hoja-de-ruta.md` y
+`docs/manual/{02-ciclo-de-un-wp.md,04-agentes.md,05-bloqueos-y-parada.md}`.
+Todos viajan juntos o ninguno. Es un acto normativo de operador con `ACTIVE` en
+reposo: no modifica la secuencia de §2, no elige una recuperación técnica, no
+crea o activa un WP y no habilita ningún sucesor de WP-008. Tras su fusión sigue
+vigente la parada de DEC-009.
 
 ### 5. Punto de control de la pausa: 2026-09-07
 
@@ -554,6 +566,7 @@ Sin versionar en el árbol de trabajo a fecha de hoy:
 - [`DEC-007`](DEC-007-punto-de-control-y-rumbo.md) — decisión aceptada el 2026-09-09; enmienda §§1, 2, 4, 5, 6 y 7 de esta decisión
 - [`DEC-008`](DEC-008-cierre-y-division-de-wp-009.md) — cierres de WP-009/WP-013 y ruta limitada de WP-014
 - [`DEC-009`](DEC-009-cierre-bloqueado-wp-008.md) — cierre bloqueado de WP-008 D6-A y parada de la secuencia
+- [`DEC-010`](DEC-010-separacion-autor-revisor-y-ciclos.md) — separación de autor y revisor y bucle ordinario de dos ciclos
 - [`CLAUDE.md`](../../CLAUDE.md) — constitución; ruta de la composición de esa PR
 - [`docs/02-guia-fabrica-desarrollo-agentica.md`](../../docs/02-guia-fabrica-desarrollo-agentica.md) — especificación vinculante; ruta de la composición
 - [`docs/manual/MANUAL.md`](../../docs/manual/MANUAL.md) — índice y modelo de controles; ruta de la composición

@@ -27,6 +27,24 @@ Manual de operación: [`docs/manual/MANUAL.md`](docs/manual/MANUAL.md).
 - Antes de dar nada por terminado, ejecuta los comandos de validación del WP y guarda las salidas en `evidence/WP-XXX/`.
 - La deuda técnica se declara explícitamente. Deuda no declarada = trabajo no entregado.
 
+## Autoría, revisión y correcciones
+
+- Claude Code implementa y corrige; GPT-6 Astra revisa con contexto nuevo y en
+  modo solo lectura. El revisor nunca modifica el candidato que revisa.
+- Hay una sola revisión completa por candidato o transición. Después solo hay
+  revalidaciones enfocadas, por la misma Astra, de las correcciones concretas y
+  sus efectos directos.
+- Una autorización de ejecución puede cubrir C1 y C2 si mantiene el mismo
+  alcance, archivos permitidos, presupuesto y autoridad. Antes de cada pasada,
+  su apertura queda versionada en `evidence/WP-XXX/ciclos.md`, incluso si la
+  pasada acaba fallando o sin cambios.
+- Tras C2 se para: la salida predeterminada es dividir, replanificar o cerrar
+  `blocked`. C3 exige una decisión humana nueva, previa, fechada y versionada;
+  no reinicia el contador ni autoriza C4.
+- Un hallazgo no amplía autoridad: protegidos, cambios de contrato, presupuesto,
+  `ACTIVE`, PRs y fusiones conservan sus autorizaciones separadas. Norma
+  completa: [`DEC-010`](specs/decisions/DEC-010-separacion-autor-revisor-y-ciclos.md).
+
 ## Prohibiciones absolutas
 
 Nunca: exponer o leer secretos; modificar CI/CD, `CODEOWNERS` o permisos; fusionar tus propias PRs; hacer force-push; borrar historial; introducir deuda no declarada; desactivar o eludir hooks, linters o pruebas para que algo pase.

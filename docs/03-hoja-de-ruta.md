@@ -1,6 +1,6 @@
 # Hoja de ruta — de la FDA al AI Agent Operating System
 
-**Creada:** 2026-08-30 · **Última revisión: 2026-09-21** (cierre bloqueado de WP-008 — ver Registro de revisiones) · **Estado:** **VIGENTE** desde la fusión en `main` de DEC-007, enmendada por DEC-008 y DEC-009; D5 queda sin acuerdo formal y el carril B continúa como propuesta, no como asignación activa · **Ámbito:** `fda-template` (carril A) y su primera instalación externa propuesta (carril B), y los proyectos que gobernarían: `AI-Comercial-System`/Agent OS y Document AI.
+**Creada:** 2026-08-30 · **Última revisión: 2026-09-21** (método autor/revisor de DEC-010 — ver Registro de revisiones) · **Estado:** **VIGENTE** desde la fusión en `main` de DEC-007, enmendada por DEC-008, DEC-009 y DEC-010; D5 queda sin acuerdo formal y el carril B continúa como propuesta, no como asignación activa · **Ámbito:** `fda-template` (carril A) y su primera instalación externa propuesta (carril B), y los proyectos que gobernarían: `AI-Comercial-System`/Agent OS y Document AI.
 
 **Procedencia.** v1 (30-08): las cinco conversaciones del operador con otras IAs — síntesis en [`04-analisis-conversaciones-ia.md`](04-analisis-conversaciones-ia.md)—, el repositorio completo, el estado de los demás repos y fuentes externas. v2 (01-09): además, los **cuatro documentos de investigación de Leandro** y una **línea base de investigación independiente registrada antes de leerlos** — análisis completo, veredictos y red team en [`05-analisis-investigacion-leandro-y-revalidacion.md`](05-analisis-investigacion-leandro-y-revalidacion.md). Lo redactaron y materializaron sesiones de Claude Code por encargo directo del operador, como actos de operador (§9).
 
@@ -16,6 +16,7 @@
 | 2026-09-13 | WP-013 cerrado `blocked` tras C3 excepcional y revisión enfocada NO APTA; candidata preservada sin importar; retirada la dependencia del materializador; WP-014 sigue reservado, no creado ni activo; `ACTIVE` vuelve a reposo | Enmienda de recuperación de `DEC-008` |
 | 2026-09-13 | WP-014 fusionado por PR #40 y cerrado `done` tras C1; exactamente diez acciones fijadas por SHA, aplicación y fusión humanas, coste 2,73/12 EUR; segunda condición de salida cumplida y `ACTIVE` vuelve a reposo | `DEC-003` §6 · `evidence/WP-014/CIERRE.md` |
 | 2026-09-21 | WP-008 D6-A cerrado `blocked` tras C5 excepcional; último hallazgo MEDIO abierto, A/B final no ejecutado, candidata preservada sin importar, coste 36,22/40 EUR y `ACTIVE` vuelve a reposo; la secuencia posterior queda detenida | `DEC-009` · `evidence/WP-008/CIERRE-BLOQUEADO.md` |
+| 2026-09-21 | Separación autor/revisor precisada: una revisión completa, correcciones Claude y revalidaciones enfocadas de la misma Astra; C1/C2 pueden quedar preautorizados y C3 deja de ser continuación normal. La parada de DEC-009 permanece intacta | `DEC-010` |
 
 ---
 
@@ -245,13 +246,22 @@ Niveles **decididos por script** (blast radius sobre rutas declaradas y diff; mi
 |---|---|---|
 | **T1 — ligero** | Documentación, datos de prueba y evidencia no ejecutable que no alteren controles, permisos, autorizaciones, contratos de seguridad ni el significado de una verificación | Contrato de 1 página; 1 pasada de code-reviewer; sin security-reviewer |
 | **T2 — estándar** | Código de producto, `scripts/**`, specs, salvo criterio de T3 | Ciclo completo del manual |
-| **T3 — sensible** | `.claude/**`, `.github/**`, permisos, secretos, migraciones, IaC, contratos de datos, `CODEOWNERS`; ejecutables/parches en `tests/**` o `evidence/**` que implementen o apliquen controles; cualquier cambio semántico de un control | Ciclo completo + security-reviewer + parche aplicado por persona |
+| **T3 — sensible** | `.claude/**`, `.github/**`, permisos, secretos, migraciones, IaC, contratos de datos, `CODEOWNERS`; ejecutables/parches en `tests/**` o `evidence/**` que implementen o apliquen controles; cualquier cambio semántico de un control | Ciclo completo + una revisión Astra independiente con lentes de contrato, corrección y seguridad. La aplicación es humana cuando la ruta o el acto está protegido; T3 por sí solo no convierte todos los archivos en protegidos |
 
 **Suelo innegociable en TODOS los niveles** (v2; evidencia Veracode: ~45 % del código IA introduce vulnerabilidades, sin mejora entre ciclos): SAST/semgrep cuando aplique, escaneo de secretos, tests, lockfiles verificados. Los niveles modulan ceremonia y profundidad de revisión, **nunca** el suelo.
 **Prevalencia:** T3 gana ante cualquier coincidencia múltiple. El clasificador mantiene una lista versionada y probada de rutas sensibles; modificar esa lista es T3.
 
 
-Límites transversales: contrato ≤ 300 líneas (si necesita más, el troceado está mal); ≤ 1 de cada 3 WPs sobre la propia FDA tras la pausa; auditorías clasifican por severidad y solo lo bloqueante detiene; tercer ciclo dispara «¿pártelo?» antes que «¿reescríbelo?»; el revisor nunca comparte modelo ni contexto con el implementador (Δ8).
+Límites transversales: contrato ≤ 300 líneas (si necesita más, el troceado está
+mal); ≤ 1 de cada 3 WPs sobre la propia FDA tras la pausa; auditorías clasifican
+por severidad y solo lo bloqueante detiene. Hay una revisión completa por
+candidato o transición; Claude corrige los hallazgos concretos y la misma Astra
+solo revalida las correcciones y sus efectos. La autorización inicial puede
+cubrir C1 y C2 dentro del alcance y presupuesto aprobados, con la apertura de
+cada ciclo versionada antes de empezar. Tras C2 se para y se divide, replanifica
+o cierra `blocked`; C3 exige una decisión humana nueva, previa, fechada y
+versionada. El revisor nunca comparte modelo ni contexto con el implementador
+(Δ8). Ver `DEC-010`.
 
 ## 7. Métricas (v2: desde hoy, no desde la Etapa 3)
 

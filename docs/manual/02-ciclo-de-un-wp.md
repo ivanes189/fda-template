@@ -4,12 +4,17 @@
 
 Un WP = una rama = una PR. Ocho pasos, con los comandos exactos de cada uno.
 
-```
-1 Crear WP  →  2 Validar DoR  →  3 Implementar  →  4 Verificar
-                     ↓ falla                            ↓ falla
-                  vuelve a 1                       vuelve a 3 (máx. 2 ciclos)
-                                                        ↓
-5 Abrir PR  →  6 CI bloqueante  →  7 Revisión  →  8 Fusión (humana)
+```text
+1 Crear WP → 2 Validar DoR → 3 Implementar → 4 Verificar → 5 PR → 6 CI
+                                                                  ↓
+                                                    7 Revisión Astra completa
+                                                      ├─ APTO → 8 Fusión humana
+                                                      └─ hallazgos → Claude C1/C2
+                                                           → verificar → misma Astra
+                                                             revalida enfocada
+                                                               ├─ APTO → 8
+                                                               └─ NO APTO tras C2
+                                                                  → parada y decisión
 ```
 
 ---
@@ -85,7 +90,10 @@ mkdir -p "evidence/$WP"
 
 **APTO** exige todos los comandos en verde y todos los criterios cumplidos. No hay aprobado por mayoría.
 
-Si falla, vuelve al paso 3. Máximo **2 ciclos**; al tercero, parada y replanificación.
+Si falla antes de presentar el primer candidato, vuelve al paso 3: la
+implementación inicial todavía no consume un ciclo de corrección. C1 y C2
+empiezan únicamente cuando el autor vuelve a trabajar después de un veredicto
+con hallazgos. Al tercero, parada y decisión conforme a DEC-010.
 
 ## Paso 5 — Abrir la PR
 
@@ -123,13 +131,61 @@ gh pr checks --watch
 
 ## Paso 7 — Revisión
 
-`code-review.yml` lanza al `code-reviewer` automáticamente en cada PR. Para revisión de seguridad —**obligatoria** si el WP toca auth, secretos, red, entrada de usuario, migraciones o dependencias nuevas:
+En el modelo operativo vigente, el coordinador convoca a **GPT-6 Astra con
+razonamiento Alto, contexto nuevo y modo solo lectura**. Los workflows de agente
+siguen desactivados mientras dure la contención documentada; no des por hecha
+una revisión automática.
 
 ```
-> Usa el agente security-reviewer para revisar el diff de esta PR.
+> Revisa este candidato contra las normas, el contrato y las pruebas. No uses
+> como premisa el APTO ni la conclusión del autor. No modifiques archivos.
 ```
 
-El revisor verifica **primero el cumplimiento del contrato** (que el diff no toque archivos fuera del WP) y solo después la calidad del código. Un archivo fuera de la lista es rechazo inmediato.
+El revisor verifica **primero el cumplimiento del contrato** —incluido que el
+diff no toque archivos fuera del WP— y después criterios, evidencia, corrección,
+pruebas, deuda y seguridad cuando sea T3. Un archivo fuera de la lista es
+rechazo inmediato.
+
+### Si Astra encuentra incumplimientos
+
+1. Hay **una sola revisión completa** del candidato o transición.
+2. Claude Code, como autor, corrige únicamente los hallazgos concretos y sus
+   efectos directos. Astra nunca arregla el candidato que revisa.
+3. La misma Astra revalida de forma enfocada la corrección y sus efectos. No se
+   abre otra revisión general, no se añade otro revisor y no se revisa la
+   revisión.
+4. El dictamen final puede ser `APTO` en la revisión completa o en una
+   revalidación enfocada posterior.
+
+La autorización inicial cubre C1 y C2 sin otra confirmación **solo** cuando ya
+identifica el WP, el alcance, el presupuesto y dos ciclos, y ninguno cambia.
+Protegidos, ampliaciones de contrato, más presupuesto, `ACTIVE`, PRs y fusiones
+conservan sus autorizaciones separadas.
+
+Antes de iniciar cada pasada, registra y versiona en la rama candidata una fila
+de `evidence/WP-XXX/ciclos.md`:
+
+| Ciclo | Candidato y revisión de origen | Hallazgos autorizados | Fecha | Estado | Resultado / HEAD / coste |
+|---|---|---|---|---|---|
+| C1 | `<HEAD>` · `revision-astra.md` | `F1`, `F2` | `AAAA-MM-DD` | `abierto` | pendiente |
+
+Sin esa fila ya versionada, la pasada no empieza. Una invocación interrumpida,
+fallida o sin cambios consume el ciclo y actualiza la misma fila; una
+revalidación sin nueva pasada del autor no consume otro ciclo. Al reanudar, el
+registro —no la conversación— determina el número siguiente.
+
+Si la revalidación posterior a C2 no es `APTO`, preserva el candidato y para.
+La salida ordinaria es cerrar `blocked`, dividir o replantear el contrato. C3
+solo existe por una decisión humana nueva, previa, fechada y versionada que fije
+WP, hallazgos, alcance, presupuesto adicional y techo final; no reinicia el
+contador ni autoriza C4. Ver [DEC-010](../../specs/decisions/DEC-010-separacion-autor-revisor-y-ciclos.md).
+
+### Nivel T3
+
+Una única revisión Astra cubre conjuntamente contrato, corrección y seguridad;
+no se añade un segundo revisor general. T3 no convierte por sí solo todos los
+archivos en protegidos: Iván aplica personalmente únicamente las rutas o actos
+que la constitución, permisos, decisiones o contrato reserven a una persona.
 
 ## Paso 8 — Fusión
 

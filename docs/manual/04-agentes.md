@@ -11,8 +11,8 @@ Cinco agentes, uno por archivo en `.claude/agents/`. Cada uno tiene su propia al
 | Tengo un encargo y no sé si es un WP válido | `planner` |
 | El WP está en `ready` y hay que implementarlo | `implementer` |
 | Hay que ejecutar la batería y ampliar pruebas | `qa` |
-| El WP toca auth, secretos, red, entrada de usuario, migraciones o dependencias | `security-reviewer` |
-| Hay una PR que revisar | `code-reviewer` |
+| El WP toca auth, secretos, red, entrada de usuario, migraciones, dependencias o cualquier superficie T3 | Una única revisión independiente Astra con lente de seguridad |
+| Hay una PR que revisar | `code-reviewer` / Astra en contexto nuevo y solo lectura |
 
 ## Ficha de cada agente
 
@@ -38,7 +38,9 @@ Cinco agentes, uno por archivo en `.claude/agents/`. Cada uno tiene su propia al
 | **maxTurns** | 60 |
 | **Aislamiento** | `isolation: worktree` — copia aislada del repo |
 
-**Hace:** implementa el alcance mínimo que satisface los criterios, escribe pruebas de toda función nueva, ejecuta la validación del WP, guarda evidencias.
+**Hace:** implementa el alcance mínimo que satisface los criterios, escribe
+pruebas de toda función nueva, ejecuta la validación del WP, guarda evidencias y
+corrige los hallazgos concretos de Astra durante C1/C2.
 
 **No hará nunca:** fusionar, desplegar, tocar secretos, modificar CI/CD o `CODEOWNERS`, salirse de los archivos permitidos, ni ampliar el alcance por su cuenta.
 
@@ -70,7 +72,10 @@ Cinco agentes, uno por archivo en `.claude/agents/`. Cada uno tiene su propia al
 
 **No hará nunca:** modificar código, abrir PRs, ni dar por bueno un hallazgo CRÍTICO o ALTO. Ante uno, el WP se bloquea.
 
-**Convócalo siempre que** el cambio toque auth, secretos, red, entrada de usuario no confiable, migraciones, permisos de CI/CD o dependencias nuevas.
+**Lente obligatoria cuando** el cambio toque auth, secretos, red, entrada de
+usuario no confiable, migraciones, permisos de CI/CD, dependencias nuevas o sea
+T3. En el modelo vigente no se suma un segundo revisor general: una única
+revisión independiente de Astra integra contrato, corrección y seguridad.
 
 ### `code-reviewer` — revisión independiente
 
@@ -81,9 +86,32 @@ Cinco agentes, uno por archivo en `.claude/agents/`. Cada uno tiene su propia al
 | **Modelo** | premium (`opus`) |
 | **maxTurns** | 30 |
 
-**Hace:** revisa con contexto limpio, en este orden: cumplimiento del contrato → criterios de aceptación contra la evidencia → corrección → pruebas → deuda declarada.
+**Hace:** revisa con contexto limpio, en este orden: cumplimiento del contrato →
+criterios de aceptación contra la evidencia → corrección → pruebas → deuda
+declarada. En T3 incorpora además la lente de seguridad. Si el autor corrige,
+la misma Astra revalida únicamente esos cambios y sus efectos directos.
 
 **No hará nunca:** modificar código (si lo arreglara, dejaría de ser un control independiente), fusionar, aprobar formalmente la PR, ni bloquear por preferencias de estilo que el linter no marca.
+
+## Frontera autor/revisor y ciclos
+
+- **Autor:** Claude Code implementa y corrige. Cada corrección posterior a un
+  veredicto es C1 o C2 y debe tener su apertura versionada antes de empezar en
+  `evidence/WP-XXX/ciclos.md`.
+- **Revisor:** GPT-6 Astra, razonamiento Alto, contexto nuevo y solo lectura.
+  Recibe normas, contrato, candidato y pruebas, pero no el `APTO` del autor como
+  premisa. Nunca escribe sobre el candidato.
+- **Secuencia:** una revisión completa; después, solo revalidaciones enfocadas
+  por la misma Astra. No se añade otro revisor general ni una revisión de la
+  revisión.
+- **Límite:** la autorización inicial puede cubrir C1/C2 dentro del mismo
+  alcance y presupuesto. Tras C2 se para; C3 necesita una decisión humana nueva,
+  previa, fechada y versionada.
+- **T3:** una sola Astra incorpora la lente de seguridad. La aplicación humana
+  depende de que la ruta o el acto sea protegido, no de la etiqueta T3 por sí
+  sola.
+
+Norma completa: [DEC-010](../../specs/decisions/DEC-010-separacion-autor-revisor-y-ciclos.md).
 
 ---
 

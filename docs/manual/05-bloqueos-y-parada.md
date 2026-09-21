@@ -95,16 +95,36 @@ Si el hallazgo es MEDIO o BAJO: puede fusionarse declarándolo como deuda en la 
 
 ### 8. Tercer ciclo de corrección
 
-**Síntoma:** el `code-reviewer` pide cambios por tercera vez.
+**Síntoma:** la revalidación enfocada posterior a C2 sigue en `NO APTO`.
 
-**Qué hacer:** **no abras el tercer ciclo.** Para, y busca la causa raíz, que casi nunca es el código:
+**Qué hacer:** **no abras el tercer ciclo.** Preserva el candidato y el
+expediente, y elige mediante decisión humana entre cierre `blocked`, división o
+replanteamiento del contrato. Busca la causa raíz, que casi nunca es solo el
+código:
 
 - ¿El contrato estaba mal definido? → reescribe el WP
 - ¿El alcance estaba mal troceado? → pártelo
 - ¿El requisito era ambiguo? → arréglalo en `specs/`
-- ¿Faltaban criterios de aceptación? → añádelos y reinicia
+- ¿Faltaban criterios de aceptación? → corrige el contrato mediante un acto
+  humano; no renombres los ciclos consumidos
 
-Registra la causa en `evidence/WP-XXX/`. Los terceros ciclos son la señal más valiosa que da el sistema sobre cómo estás escribiendo los contratos.
+La cuenta vive en `evidence/WP-XXX/ciclos.md`. Antes de cada C1/C2, la fila con
+el número, candidato/revisión de origen, hallazgos, fecha y estado `abierto`
+debe quedar **versionada en la rama candidata**. Si no puede versionarse, la
+pasada no empieza. Una invocación fallida, interrumpida o sin cambios consume
+el ciclo y actualiza la misma fila; una revalidación sin nueva pasada del autor
+no consume otro. Al reanudar una sesión se consulta ese registro, nunca la
+memoria del chat.
+
+**Excepción no predeterminada.** C3 solo puede existir mediante una decisión
+humana nueva, previa, fechada y versionada que identifique el WP, los hallazgos
+cerrados que puede tratar, el alcance exacto, el presupuesto adicional y el
+techo final. No reinicia ni renombra la cuenta y no autoriza C4. Conceder una
+excepción sucesiva exige otra decisión; no es continuidad automática.
+
+Registra la causa en `evidence/WP-XXX/`. Los terceros ciclos son una señal sobre
+la calidad del contrato o del troceado, no una invitación a seguir insistiendo.
+Ver [DEC-010](../../specs/decisions/DEC-010-separacion-autor-revisor-y-ciclos.md).
 
 ---
 
