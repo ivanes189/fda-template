@@ -247,9 +247,37 @@ siendo una regla contingente: no fue necesario ejecutarla.
 
 ### D6-A efectiva y contabilidad de ciclos
 
-Una PR de operador de un solo archivo reducirá el contrato de WP-008 al núcleo. El contrato reducido recibe de DEC-007 una cuenta propia `0 / 2`; R2 conserva `2 / 2` agotado y los once ciclos anteriores no se renombran. Un tercer ciclo reducido exige otra decisión humana.
+Una PR de operador de un solo archivo redujo el contrato de WP-008 al núcleo.
+El contrato reducido recibió de DEC-007 una cuenta propia `0 / 2`; R2 conserva
+`2 / 2` agotado y los once ciclos anteriores no se renombran. D6-A consumió C1
+y C2 ordinarios y C3–C5 autorizados excepcionalmente: contador final `5 / 2`.
+C6 no está autorizado.
 
-**Nada de esto borra historia.** Los once ciclos registrados por DEC-005 y los ciclos 1 y 2 de la rama `-r2` se conservan tal cual. La cuenta propia de D6-A es un presupuesto nuevo para un contrato nuevo, no una renumeración de lo ya gastado. La condición de parada n.º 8 de este capítulo sigue vigente: **un tercer ciclo del núcleo reducido exigiría otra decisión humana, nueva, fechada y versionada.**
+**Nada de esto borra historia.** Los once ciclos registrados por DEC-005 y los
+ciclos 1 y 2 de la rama `-r2` se conservan tal cual. La cuenta propia de D6-A
+fue un presupuesto nuevo para un contrato nuevo, no una renumeración de lo ya
+gastado. C3, C4 y C5 existen únicamente por sus autorizaciones humanas expresas;
+no reinician el contador ni crean precedente para C6.
+
+### Cierre bloqueado de WP-008 D6-A el 2026-09-21
+
+Astra cerró el hallazgo ALTO previo del normalizador, pero su última
+revalidación mantuvo un MEDIO reproducido: una representación con identificador
+ajeno podía colapsar dos apariciones a una. También acreditó que dos regresiones
+no reproducían la mutación original. La última invocación Claude terminó por
+límite de turnos sin cambios y el único A/B final no se ejecutó.
+
+DEC-009 registra el resultado como `blocked`, nunca `done`; devuelve `ACTIVE` a
+reposo en el mismo diff y preserva la rama y el worktree D6-A como **CANDIDATA
+HISTÓRICA NO CONFORME — NO EJECUTAR**. La implementación, los protegidos y los
+scripts candidatos no se importan a `main`. Las pruebas deterministas verdes no
+neutralizan el dictamen del oráculo.
+
+El cierre administrativo termina el intento sin aceptarlo. Por eso no
+contradice “si falla el humo, WP-008 no se cierra” en su significado de entrega:
+WP-008 no queda `done`, no se fusiona y no satisface el criterio de salida. La
+secuencia queda detenida en reposo; WP-002 y cualquier otro sucesor requieren
+una decisión humana nueva antes de siquiera preparar su transición.
 
 ### La candidata local de WP-008-r2: suspensión, no cierre
 
@@ -350,14 +378,14 @@ Los trece archivos sin versionar del undécimo ciclo de WP-008 —cuatro princip
 **Fuera de la columna `ACTIVE`, porque no son WPs.** El humo seguro **no** es un estado de `ACTIVE`: es **alcance de WP-008**. El parche del guard delgado es un **acto de operador** sobre ruta vedada. El **cierre de la pausa** es una **PR de operador con `ACTIVE` en reposo**. Y el experimento **E2** del sandbox y su eventual **WP T3** de adopción **no tienen identificador reservado**: mientras se resuelven, `ACTIVE` sigue en reposo, y **no pueden ejecutarse** hasta que una decisión o enmienda posterior fije su `WP-NNN`, apruebe el contrato y lo admita en la lista cerrada de DEC-003 §4.
 
 
-**Los cierres bloqueados de WP-009 y WP-013 y, después, WP-014 van antes que
-WP-008**, al revés que en la secuencia anterior: la cadena de suministro queda
-reducida a los diez pins exactos y el núcleo entra después con su contrato ya
-resuelto por D6. **Un WP activo cada vez.** Entre WPs, reposo. **WP-002 y WP-005
-son secuenciales**: nunca comparten `ACTIVE`, y cada uno conserva su WP, su rama
-y su PR. Mientras `ACTIVE` esté vacío no hay ninguna ruta autorizada.
+**Los cierres bloqueados de WP-009 y WP-013 y, después, WP-014 precedieron a
+WP-008**, al revés que en la secuencia anterior. WP-008 terminó también
+`blocked` por DEC-009. La secuencia posterior queda detenida: los antiguos pasos
+de WP-002, WP-005, guard delgado, WP-007 y E2 se conservan como plan histórico y
+análisis, no como autorización ejecutable. **Un WP activo cada vez.** Mientras
+`ACTIVE` esté vacío no hay ninguna ruta autorizada.
 
-**Criterio de salida bajo D1 y DEC-008.** El **criterio de salida sigue teniendo
+**Criterio de salida bajo D1, DEC-008 y DEC-009.** El **criterio de salida sigue teniendo
 tres condiciones**: WP-008 fusionado —protección instalada, con la demostración
 de bloqueo que exija la rama de D6 resuelta—; **WP-014 fusionado, con exactamente
 los diez pins autorizados y el criterio de verificación n.º 2 de REQ-FDA-002
@@ -371,6 +399,7 @@ matching, que construyen WP-002 y WP-005, **e incorporado a
 **+** el experimento **E2 ejecutado y su resultado registrado**, con adopción
 por un WP T3 **cuyo identificador todavía no existe** solo si supera el gate.
 Los cierres bloqueados de WP-009 y WP-013 no satisfacen la segunda condición.
+El cierre bloqueado de WP-008 no satisface la primera ni el humo de la tercera.
 WP-012 queda **liberado como condición de salida**: conserva identificador e
 historia y no se ejecuta su runner por analogía.
 
