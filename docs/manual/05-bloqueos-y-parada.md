@@ -405,7 +405,48 @@ de WP-002, WP-005, guard delgado, WP-007 y E2 se conservan como plan histórico 
 análisis, no como autorización ejecutable. **Un WP activo cada vez.** Mientras
 `ACTIVE` esté vacío no hay ninguna ruta autorizada.
 
-**Criterio de salida bajo D1, DEC-008 y DEC-009.** El **criterio de salida sigue teniendo
+## Recuperación vigente tras DEC-011
+
+DEC-011 supera la parada de **deliberación**: el rumbo ya está elegido. No
+supera la parada **técnica** ni cierra la pausa. `ACTIVE` permanece en reposo y
+`WP-015` está solo reservado; todavía no existe contrato, aprobación, admisión
+para ejecución ni activación.
+
+El orden futuro vinculante de dependencias es:
+
+1. autorización separada del contrato de `WP-015`, sucesor limpio de WP-002,
+   para producir únicamente `check_scope` local y la biblioteca de matching;
+2. sucesor limpio de WP-005, autorizado por separado, para integrar el mismo
+   verificador en CI; después, mutación humana del ruleset que lo haga requerido;
+3. convergencia humana del guard sobre la misma biblioteca y cierre de WP-007
+   por superación mediante PR de operador, con `ACTIVE` siempre en reposo y
+   previa recomprobación y custodia de su candidata;
+4. sucesor limpio de WP-008 para instalar el runtime fail-closed y realizar un
+   humo seguro cuyo oráculo haya superado su Definition of Ready;
+5. E2, con identificador y contrato aprobados por otra autorización; adopción
+   T3 separada solo si el resultado es positivo;
+6. PR humana de cierre de la pausa cuando se cumpla el criterio adaptado.
+
+La lista fija dependencias; **no autoriza ninguno de esos pasos**. Cada WP exige
+contrato, presupuesto, autorización, rama, PR y ciclos propios. La única
+excepción temporal a la igualdad de DEC-002 §8 comienza si se aprueba y activa
+WP-015, cubre su implementación, verificación y fusión, y termina con la
+convergencia del guard. DEC-011 por sí sola no inicia esa ventana.
+
+El humo no se retira, pero su oráculo anterior queda retirado. Antes de aprobar
+el sucesor de WP-008 debe existir una señal positiva y atribuible basada en
+interfaces oficiales o un A/B que distinga denegación, fallo de herramienta,
+interrupción, timeout y pérdida de registro. Ausencia de `PostToolUse` no basta;
+una ambigüedad produce fallo o resultado inconcluso, nunca verde.
+
+El cierre exige: runtime fail-closed, preflight bloqueante y humo seguro
+concluyente; los diez pins ya cumplidos; `check_scope` local, en CI y requerido,
+guard convergente y WP-007 resuelto; y E2 registrado, con adopción efectiva si
+es positivo. La instalación posterior en `AI-Comercial-System` es una prueba
+sobre producto distinta y no es condición de cierre.
+
+**Detalle histórico del criterio bajo D1, DEC-008 y DEC-009, sustituido por la
+adaptación de DEC-011 anterior.** El **criterio de salida sigue teniendo
 tres condiciones**: WP-008 fusionado —protección instalada, con la demostración
 de bloqueo que exija la rama de D6 resuelta—; **WP-014 fusionado, con exactamente
 los diez pins autorizados y el criterio de verificación n.º 2 de REQ-FDA-002
