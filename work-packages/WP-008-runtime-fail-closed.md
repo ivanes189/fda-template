@@ -1,18 +1,33 @@
 # WP-008 — Runtime fail-closed: núcleo mínimo
 
-estado: ready
+estado: blocked
 prioridad: P0
 riesgo: T3
 agente_responsable: Claude Code (implementer)
 agente_revisor: GPT-6 Astra (Alto, contexto nuevo, externo, solo lectura)
 requisitos: [REQ-FDA-001, REQ-FDA-003, SEC-001]
 adr: [ADR-001]
-decision: [DEC-003, DEC-005, DEC-006, DEC-007]
+decision: [DEC-003, DEC-005, DEC-006, DEC-007, DEC-009]
 presupuesto_max_eur: 40
 max_ciclos_correccion: 2
 
-<!-- Candidato externo. D6-A concede 0/2 ciclos propios. Se conservan sin
-renumerar los once ciclos históricos y el 2/2 agotado de R2. -->
+<!-- Cierre bloqueado por DEC-009. D6-A consumió C1 y C2 ordinarios y C3–C5
+excepcionales: 5/2. C6 no está autorizado. Se conservan sin renumerar los once
+ciclos históricos y el 2/2 agotado de R2. La candidata D6-A queda preservada
+fuera del cierre como histórica no conforme. -->
+
+## Cierre bloqueado
+
+WP-008 D6-A quedó `blocked`, nunca `done`, el 2026-09-21. El A/B final no se
+ejecutó y el último dictamen Astra mantiene un hallazgo MEDIO del oráculo de
+humo y dos regresiones ineficaces. El contador final es `5 / 2`: C1–C2
+ordinarios y C3–C5 excepcionales; no existe C6 autorizado.
+
+La decisión y el expediente mínimo están en
+[`DEC-009`](../specs/decisions/DEC-009-cierre-bloqueado-wp-008.md) y
+[`evidence/WP-008/CIERRE-BLOQUEADO.md`](../evidence/WP-008/CIERRE-BLOQUEADO.md).
+La candidata local se preserva como **CANDIDATA HISTÓRICA NO CONFORME — NO
+EJECUTAR** y no forma parte de la PR de cierre.
 
 ## Objetivo
 
