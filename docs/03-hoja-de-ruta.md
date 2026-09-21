@@ -1,6 +1,6 @@
 # Hoja de ruta — de la FDA al AI Agent Operating System
 
-**Creada:** 2026-08-30 · **Última revisión: 2026-09-21** (recuperación híbrida de DEC-011 — ver Registro de revisiones) · **Estado:** **VIGENTE** desde la fusión en `main` de DEC-007, enmendada por DEC-008, DEC-009, DEC-010 y DEC-011; D5 queda sin acuerdo formal y el carril B continúa como propuesta, no como asignación activa · **Ámbito:** `fda-template` (carril A) y su primera instalación externa propuesta (carril B), y los proyectos que gobernarían: `AI-Comercial-System`/Agent OS y Document AI.
+**Creada:** 2026-08-30 · **Última revisión: 2026-09-21** (gramática de alcance de DEC-012 — ver Registro de revisiones) · **Estado:** **VIGENTE** desde la fusión en `main` de DEC-007, enmendada por DEC-008, DEC-009, DEC-010, DEC-011 y DEC-012; D5 queda sin acuerdo formal y el carril B continúa como propuesta, no como asignación activa · **Ámbito:** `fda-template` (carril A) y su primera instalación externa propuesta (carril B), y los proyectos que gobernarían: `AI-Comercial-System`/Agent OS y Document AI.
 
 **Procedencia.** v1 (30-08): las cinco conversaciones del operador con otras IAs — síntesis en [`04-analisis-conversaciones-ia.md`](04-analisis-conversaciones-ia.md)—, el repositorio completo, el estado de los demás repos y fuentes externas. v2 (01-09): además, los **cuatro documentos de investigación de Leandro** y una **línea base de investigación independiente registrada antes de leerlos** — análisis completo, veredictos y red team en [`05-analisis-investigacion-leandro-y-revalidacion.md`](05-analisis-investigacion-leandro-y-revalidacion.md). Lo redactaron y materializaron sesiones de Claude Code por encargo directo del operador, como actos de operador (§9).
 
@@ -18,6 +18,7 @@
 | 2026-09-21 | WP-008 D6-A cerrado `blocked` tras C5 excepcional; último hallazgo MEDIO abierto, A/B final no ejecutado, candidata preservada sin importar, coste 36,22/40 EUR y `ACTIVE` vuelve a reposo; la secuencia posterior queda detenida | `DEC-009` · `evidence/WP-008/CIERRE-BLOQUEADO.md` |
 | 2026-09-21 | Separación autor/revisor precisada: una revisión completa, correcciones Claude y revalidaciones enfocadas de la misma Astra; C1/C2 pueden quedar preautorizados y C3 deja de ser continuación normal. La parada de DEC-009 permanece intacta | `DEC-010` |
 | 2026-09-21 | Recuperación híbrida elegida: sucesor limpio de `check_scope` primero, luego CI requerido, convergencia/WP-007, runtime con humo atribuible y E2. `WP-015` queda reservado, no creado ni activo; `ACTIVE` sigue en reposo | `DEC-011` |
+| 2026-09-21 | Gramática de alcance inequívoca: la línea ejecutable completa es el patrón, sin comentarios o anotaciones inline; `docs/(draft).md` es literal. La candidata agotada de WP-015 se preserva y deberá replantearse por autorización separada | `DEC-012` |
 
 ---
 
@@ -98,6 +99,14 @@ deliberación, no la parada técnica: `ACTIVE` sigue en reposo y `WP-015` queda
 solo reservado. Su creación, aprobación, admisión y activación requieren otra
 autorización. Ningún contrato bloqueado se reabre y ninguna candidata histórica
 se reutiliza.
+
+**Resolución normativa — DEC-012.** La primera candidata externa de WP-015
+quedó `NO APTO` tras C2 por una contradicción de la gramática heredada. DEC-012
+la resuelve sin modificar el candidato: todo el contenido posterior a `- ` es
+patrón, los metadatos inline desaparecen y `docs/(draft).md` es literal. El
+siguiente paso sigue necesitando autorización: preparar una candidata
+replanteada y someterla a una revisión completa nueva. `ACTIVE` permanece en
+reposo.
 
 **Tres verdades incómodas, con los datos delante:**
 

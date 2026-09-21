@@ -14,6 +14,40 @@ Las cinco reglas que deciden si un WP sirve:
 
 ---
 
+## Gramática ejecutable de las rutas
+
+DEC-012 elimina la ambigüedad entre rutas y presentación Markdown. En
+`Archivos permitidos` y `Archivos prohibidos`, todo el contenido posterior a
+`- ` —tras recortar espacios ASCII o tabuladores exteriores— es el patrón.
+
+- No escribas comentarios o anotaciones inline.
+- `#`, `(`, `)` y backticks son literales; los backticks no decoran.
+- Escribe las explicaciones en otra línea, sin marcador de lista, con `Nota:`.
+- `ninguno`, `none`, `n/a` y `-` son sentinelas exactos de lista vacía y deben
+  aparecer solos. Permitidos vacío es error, nunca «todo permitido».
+- `*` o `+` no sustituyen al guion como marcador.
+
+Caso vinculante:
+
+```markdown
+## Archivos permitidos
+
+- docs/(draft).md
+Nota: borrador conservado como nombre literal
+```
+
+Eso autoriza solo `docs/(draft).md`, no `docs/` ni `docs/otro.md`. Escribir
+`- docs/** # nota` crea literalmente ese patrón; en permitidos suele denegar y
+en prohibidos puede debilitar la prohibición. El parser distingue texto, no
+intención humana.
+
+Hasta que el guard converja sobre la biblioteca única, todo contrato aprobado,
+admitido o activo usa el subconjunto temporal de DEC-012: sin `#`, paréntesis,
+backticks o metadatos inline y sin whitespace Unicode distinto de espacio ASCII
+o tabulador. `-` conserva únicamente su función de sentinela.
+
+---
+
 ## Ejemplo BUENO (comentado)
 
 ```markdown
