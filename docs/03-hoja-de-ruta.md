@@ -1,6 +1,6 @@
 # Hoja de ruta — de la FDA al AI Agent Operating System
 
-**Creada:** 2026-08-30 · **Última revisión: 2026-09-21** (método autor/revisor de DEC-010 — ver Registro de revisiones) · **Estado:** **VIGENTE** desde la fusión en `main` de DEC-007, enmendada por DEC-008, DEC-009 y DEC-010; D5 queda sin acuerdo formal y el carril B continúa como propuesta, no como asignación activa · **Ámbito:** `fda-template` (carril A) y su primera instalación externa propuesta (carril B), y los proyectos que gobernarían: `AI-Comercial-System`/Agent OS y Document AI.
+**Creada:** 2026-08-30 · **Última revisión: 2026-09-21** (recuperación híbrida de DEC-011 — ver Registro de revisiones) · **Estado:** **VIGENTE** desde la fusión en `main` de DEC-007, enmendada por DEC-008, DEC-009, DEC-010 y DEC-011; D5 queda sin acuerdo formal y el carril B continúa como propuesta, no como asignación activa · **Ámbito:** `fda-template` (carril A) y su primera instalación externa propuesta (carril B), y los proyectos que gobernarían: `AI-Comercial-System`/Agent OS y Document AI.
 
 **Procedencia.** v1 (30-08): las cinco conversaciones del operador con otras IAs — síntesis en [`04-analisis-conversaciones-ia.md`](04-analisis-conversaciones-ia.md)—, el repositorio completo, el estado de los demás repos y fuentes externas. v2 (01-09): además, los **cuatro documentos de investigación de Leandro** y una **línea base de investigación independiente registrada antes de leerlos** — análisis completo, veredictos y red team en [`05-analisis-investigacion-leandro-y-revalidacion.md`](05-analisis-investigacion-leandro-y-revalidacion.md). Lo redactaron y materializaron sesiones de Claude Code por encargo directo del operador, como actos de operador (§9).
 
@@ -17,6 +17,7 @@
 | 2026-09-13 | WP-014 fusionado por PR #40 y cerrado `done` tras C1; exactamente diez acciones fijadas por SHA, aplicación y fusión humanas, coste 2,73/12 EUR; segunda condición de salida cumplida y `ACTIVE` vuelve a reposo | `DEC-003` §6 · `evidence/WP-014/CIERRE.md` |
 | 2026-09-21 | WP-008 D6-A cerrado `blocked` tras C5 excepcional; último hallazgo MEDIO abierto, A/B final no ejecutado, candidata preservada sin importar, coste 36,22/40 EUR y `ACTIVE` vuelve a reposo; la secuencia posterior queda detenida | `DEC-009` · `evidence/WP-008/CIERRE-BLOQUEADO.md` |
 | 2026-09-21 | Separación autor/revisor precisada: una revisión completa, correcciones Claude y revalidaciones enfocadas de la misma Astra; C1/C2 pueden quedar preautorizados y C3 deja de ser continuación normal. La parada de DEC-009 permanece intacta | `DEC-010` |
+| 2026-09-21 | Recuperación híbrida elegida: sucesor limpio de `check_scope` primero, luego CI requerido, convergencia/WP-007, runtime con humo atribuible y E2. `WP-015` queda reservado, no creado ni activo; `ACTIVE` sigue en reposo | `DEC-011` |
 
 ---
 
@@ -77,8 +78,10 @@ fusionada en `main` mediante
 exactamente diez pins (`5/2/1/2`), aplicación humana, revisión Astra enfocada
 final `APTO` y coste medido de 2,73 EUR sobre 12 EUR. La segunda condición de
 salida de DEC-003 §6 queda cumplida y `ACTIVE` vuelve a reposo. La pausa
-continúa: siguen pendientes la primera y la tercera condición. El siguiente
-paso de la secuencia es preparar y aprobar el contrato breve del núcleo WP-008.
+continúa: siguen pendientes la primera y la tercera condición. **En ese momento**
+el plan señalaba como siguiente paso preparar y aprobar el contrato breve del
+núcleo WP-008; DEC-009 lo detuvo y DEC-011 lo sustituyó por la secuencia vigente
+descrita abajo.
 
 **Actualización operativa — cierre bloqueado de WP-008.** D6-A consumió C1 y
 C2 ordinarios más C3–C5 excepcionales. Astra cerró el hallazgo ALTO anterior,
@@ -88,6 +91,13 @@ el A/B final no se ejecutó. DEC-009 cierra el intento como `blocked`, preserva
 la candidata sin importarla y devuelve `ACTIVE` a reposo. Ninguna condición de
 salida dependiente de WP-008 queda satisfecha y la secuencia posterior se
 detiene hasta una decisión humana nueva.
+
+**Actualización de rumbo — DEC-011.** La decisión humana nueva ya existe y
+elige control determinista del resultado primero. Esto supera la parada de
+deliberación, no la parada técnica: `ACTIVE` sigue en reposo y `WP-015` queda
+solo reservado. Su creación, aprobación, admisión y activación requieren otra
+autorización. Ningún contrato bloqueado se reabre y ninguna candidata histórica
+se reutiliza.
 
 **Tres verdades incómodas, con los datos delante:**
 
@@ -184,23 +194,31 @@ Secuencia (ajustada por D1/D6 y DEC-008; cada transición de `ACTIVE` sigue sien
 4. **WP-008 D6-A — CERRADO `blocked`.** Consumió `5 / 2`, no ejecutó el A/B
    final y no fusionó la implementación. La candidata queda preservada como
    histórica no conforme y `ACTIVE` vuelve a reposo mediante DEC-009.
-5. **PARADA EN REPOSO.** No se prepara, corrige, activa ni ejecuta WP-002,
-   WP-005, WP-007, E2, WP-012 u otro sucesor. Los pasos posteriores anteriores
-   quedan suspendidos, no renumerados ni autorizados. Continuar exige una
-   decisión humana nueva, preparada y revisada, que elija recuperación,
-   sustitución o cambio de secuencia.
+5. **RUMBO DECIDIDO; PARADA TÉCNICA EN REPOSO.** DEC-011 reserva `WP-015` como
+   sucesor limpio de WP-002, pero no lo crea, aprueba, admite ni activa. El
+   primer movimiento técnico exige una autorización humana posterior y
+   separada.
+6. **ORDEN FUTURO CONDICIONADO, NO AUTORIZADO:** `WP-015` para `check_scope`
+   local → sucesor limpio de WP-005 para CI y mutación humana del ruleset →
+   convergencia del guard y cierre de WP-007 por superación sin transición de
+   `ACTIVE` → sucesor limpio de WP-008 con runtime y humo atribuible → E2 →
+   cierre humano de la pausa. Cada paso requiere contrato y autorización
+   propios.
 
-**Criterio de salida:** WP-008 fusionado; **WP-014 fusionado, con exactamente
+**Criterio de salida adaptado por DEC-011:** sucesor limpio de WP-008 fusionado
+con runtime fail-closed, preflight bloqueante y humo seguro atribuible;
+**WP-014 fusionado, con exactamente
 los diez pins autorizados y el criterio n.º 2 de REQ-FDA-002 vacío —condición
 cumplida por la PR #40—**; control de
-alcance ejecutándose en CI **e incorporado como *required status check* del
-ruleset**; humo seguro de WP-008; y gate E2 resuelto conforme a DEC-003 §6.
+alcance local y ejecutándose en CI **e incorporado como *required status check*
+del ruleset**, guard convergente y WP-007 resuelto; y gate E2 resuelto conforme
+a DEC-003 §6.
 Solo entonces una PR de operador puede registrar la pausa como `superada`. Los
 cierres bloqueados de WP-009 y WP-013 no satisfacen por sí mismos la condición
 de acciones fijadas; el cierre `blocked` de WP-008 tampoco satisface la
 condición de runtime ni la del humo. La pausa sigue vigente porque las
-condiciones de WP-008 y de control de alcance/sandbox permanecen pendientes, y
-DEC-009 detiene la secuencia antes de WP-002.
+condiciones de runtime y de control de alcance/sandbox permanecen pendientes.
+La prueba posterior sobre producto no es condición de cierre.
 
 **Qué NO hacer:** añadir agentes; tocar `tests/guard/run-suite.sh` fuera de lo decidido en DEC-007; abrir el harness SDK; adoptar Spec Kit/OpenSpec como capa; construir dashboards.
 

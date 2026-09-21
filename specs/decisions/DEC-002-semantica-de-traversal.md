@@ -2,6 +2,7 @@
 
 **Estado:** aceptada · **Fecha:** 2026-07-29 · **Ámbito:** toda implementación de la semántica de `## Archivos permitidos` — `.claude/hooks/guard.sh`, `scripts/check_scope.py` y `work-packages/_TEMPLATE.md`
 **Origen:** contradicción detectada al preparar la implementación de WP-002 entre la prosa de `work-packages/_TEMPLATE.md` (línea 73) y el comportamiento real de `.claude/hooks/guard.sh` (§8). Condición de parada n.º 2 —contradicción entre requisitos—, resuelta por el responsable.
+**Enmendada el 2026-09-21 por [`DEC-011`](DEC-011-recuperacion-post-dec009.md):** §8 admite una excepción temporal y acotada para construir primero el sucesor limpio del juez del diff. La semántica por componente no cambia.
 
 ## Problema
 
@@ -110,6 +111,22 @@ Esta tabla es el **criterio de conformidad**. Toda implementación de la semánt
 
 `guard.sh` y `check_scope.py` deben emitir el **mismo veredicto en las ocho filas**, en todo momento. La secuencia de la sección «Migración» está ordenada precisamente para eso: **`guard.sh` se corrige y se fusiona antes de que WP-002 se reinicie**. No se implementa ni se fusiona ninguna versión de `check_scope.py` con una semántica distinta de la del hook vigente, ni siquiera transitoriamente. No hay ventana de divergencia y, por tanto, no hay deuda que declarar por este concepto.
 
+#### 8.a Excepción temporal de recuperación fijada por DEC-011
+
+[`DEC-011`](DEC-011-recuperacion-post-dec009.md) sustituye **solo el orden
+temporal** anterior. La excepción comienza únicamente si una autorización
+humana posterior aprueba el contrato y activa `WP-015`; cubre su implementación,
+verificación y fusión, y termina cuando el guard converge sobre la misma
+biblioteca de matching ya fusionada. La materialización de DEC-011 no inicia el
+intervalo ni autoriza trabajo.
+
+Durante ese intervalo, `check_scope` aplica la semántica por componente de esta
+decisión y el guard histórico puede seguir denegando `foo../bar`. Esa diferencia
+es una falsa denegación preventiva conocida: no permite relajar el juez del diff,
+no satisface el criterio de salida de la pausa y no puede sobrevivir al hito de
+convergencia. Fuera de este intervalo acotado vuelve a regir íntegramente la
+igualdad «en todo momento».
+
 ## La lectura del contrato desde el `merge-base` queda intacta
 
 DEC-002 cambia **el contenido de la semántica**, no **la fuente de verdad del contrato**. Son dos cosas distintas y no deben mezclarse.
@@ -140,6 +157,12 @@ Su cambio versionado a `estado: blocked` ocurre en **PR-2**, no en esta PR. **Es
 ## Migración
 
 Cuatro PRs, en este orden estricto.
+
+**Valor histórico del orden siguiente.** Las cuatro PR describen el plan
+original. DEC-011 gobierna la recuperación vigente: sucesor limpio de
+`check_scope` primero, integración requerida después y convergencia del guard a
+continuación. Esta actualización no reabre WP-002 ni WP-007, no activa WP-015 y
+no autoriza ninguna de esas acciones.
 
 **PR-1 — únicamente DEC-002 (esta PR, operador).** Registra `specs/decisions/DEC-002-semantica-de-traversal.md` y nada más. `guard.sh` sigue operando exactamente como hoy, `_TEMPLATE.md` conserva su redacción y todavía no existe código que lea esta norma. Que la decisión se fije antes de que nadie implemente contra ella es el objetivo, no un efecto secundario.
 
