@@ -3,6 +3,7 @@
 **Estado:** aceptada · **Fecha:** 2026-09-21 · **Ámbito:** elección de rumbo
 posterior a DEC-009, reserva del primer sucesor y composición normativa de
 operador; no crea ni activa ningún WP
+**Enmendada el 2026-09-21 por [`DEC-012`](DEC-012-gramatica-patrones-alcance.md):** resuelve la gramática de las listas de alcance, amplía de forma acotada la excepción temporal del parser histórico y exige replantear la candidata externa de WP-015; no crea, aprueba, admite ni activa el WP.
 
 **Base de decisión:** `f85163f93fe193ce177466dadfea63821f39e68f`.
 
@@ -76,11 +77,16 @@ aprueba el contrato y activa WP-015; cubrirá su implementación, verificación 
 fusión y terminará en la convergencia posterior del guard. DEC-011 no inicia el
 intervalo ni autoriza trabajo.
 
-Durante ese intervalo, la biblioteca aplicará la semántica por componente y el
-guard histórico podrá seguir rechazando `foo../bar`. Es una posible falsa
-denegación preventiva, no autoridad para relajar el juez del diff. La
-divergencia no puede sobrevivir al hito de convergencia ni utilizarse para
-declarar cerrada la pausa.
+Durante ese intervalo, la biblioteca aplicará la semántica por componente y la
+gramática de DEC-012. El guard histórico podrá seguir rechazando `foo../bar` y
+parseando de otra forma los caracteres excluidos del subconjunto temporal. La
+primera diferencia es una posible falsa denegación; la segunda no puede ser
+ejercida por un contrato vivo antes de la convergencia. Ninguna autoriza relajar
+el juez del diff o declarar cerrada la pausa.
+
+WP-015 y el sucesor limpio de WP-005 usarán el subconjunto temporal de DEC-012.
+La convergencia posterior exige una sola biblioteca y el corpus común de ambas
+decisiones; dos parsers coincidentes solo en los contratos existentes no bastan.
 
 ### 3. Orden posterior condicionado y no autorizado aquí
 
@@ -190,6 +196,9 @@ las candidatas. Nada histórico se usa como base ni como evidencia de éxito.
 - **DEC-002/DEC-007:** conserva la semántica por componente y la dirección de
   poner el juez del diff antes del parser del guard; enmienda temporalmente la
   igualdad «en todo momento» hasta la convergencia y resolución de WP-007.
+- **DEC-012:** retira comentarios y anotaciones inline del lenguaje ejecutable,
+  fija la literalidad y el subconjunto temporal, y ordena replantear —no abrir
+  C3 sobre— la candidata externa agotada de WP-015.
 
 ## Alternativas rechazadas
 
@@ -268,4 +277,5 @@ producto.
 - [DEC-007](DEC-007-punto-de-control-y-rumbo.md)
 - [DEC-009](DEC-009-cierre-bloqueado-wp-008.md)
 - [DEC-010](DEC-010-separacion-autor-revisor-y-ciclos.md)
+- [DEC-012](DEC-012-gramatica-patrones-alcance.md)
 - [Hoja de ruta](../../docs/03-hoja-de-ruta.md)

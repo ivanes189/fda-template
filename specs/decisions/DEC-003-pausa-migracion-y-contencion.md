@@ -9,6 +9,7 @@
 **Enmendada el 2026-09-21 por [`DEC-009`](DEC-009-cierre-bloqueado-wp-008.md):** §§2, 4, 5 y 6. WP-008 D6-A queda `blocked` tras C5 excepcional, `ACTIVE` vuelve a reposo y la secuencia posterior se detiene hasta una decisión humana nueva. La enmienda entra en vigor en el mismo diff atómico de dieciocho archivos que registra el cierre.
 **Enmendada el 2026-09-21 por [`DEC-010`](DEC-010-separacion-autor-revisor-y-ciclos.md):** §4 admite una única composición normativa de operador para precisar la separación autor/revisor y el bucle ordinario de dos ciclos. `ACTIVE` permanece en reposo y la parada técnica de DEC-009 no cambia.
 **Enmendada el 2026-09-21 por [`DEC-011`](DEC-011-recuperacion-post-dec009.md):** §§2, 4, 5 y 6 fijan una recuperación híbrida y reservan `WP-015` como primer contrato técnico futuro. `ACTIVE` permanece en reposo; `WP-015` no se crea, aprueba, admite para ejecución ni activa.
+**Enmendada el 2026-09-21 por [`DEC-012`](DEC-012-gramatica-patrones-alcance.md):** §§2, 4 y 5 admiten la composición normativa que resuelve la gramática de alcance y exige replantear la candidata de `WP-015`. `ACTIVE` permanece en reposo y WP-015 no se crea, modifica, aprueba, admite ni activa.
 
 ## Problema
 
@@ -151,7 +152,7 @@ De ahí tres consecuencias, que no se sustituyen entre sí:
 | 2.d | **Reposo** | La recuperación ordinaria sigue limitada a descartar y recrear el worktree dedicado; un fallo compartido exige parada. No fue necesario descartar ni recrear el worktree durante WP-014 | **Cumplida:** cadena de suministro acreditada sin depender de WP-013 |
 | 3 | **Reposo** | PR de operador de **un solo archivo** con el contrato de `WP-008` según la rama de D6 resuelta, que incorpora en su alcance el humo seguro de D1 y retira la equivalencia no medida de `WP008-F6` | Contrato de `WP-008` materializado, validado y aprobado |
 | 4 | `WP-008` | **Cierre de operador:** registra el bloqueo de D6-A tras `5 / 2`, preserva la candidata local, marca el contrato `blocked` y escribe reposo en `ACTIVE`, todo en el diff atómico de DEC-009. El A/B final no se ejecuta y no existe C6 | **Cumplida por DEC-009:** WP-008 cerrado administrativamente como bloqueado y `ACTIVE` en reposo; no se fusionó la implementación |
-| 5 | **Reposo** | **PARADA TÉCNICA.** DEC-011 ya eligió el rumbo de recuperación, pero no autoriza preparar, corregir, activar ni ejecutar ningún WP | Una autorización humana posterior y separada aprueba el contrato y admite y activa `WP-015` |
+| 5 | **Reposo** | **PARADA TÉCNICA.** DEC-011 eligió el rumbo y DEC-012 resolvió la gramática, pero la candidata agotada de WP-015 sigue preservada y no conforme | Autorización separada para una candidata replanteada; después, actos separados de aprobación, admisión y activación de `WP-015` |
 
 Las antiguas filas 5–12 quedan suspendidas y se conservan únicamente en el
 historial Git como el plan anterior a DEC-009. Las subsecciones que documentan
@@ -165,9 +166,10 @@ La parada de deliberación de DEC-009 queda superada porque ya existe una
 decisión de rumbo. La parada **técnica** continúa: `ACTIVE` permanece en reposo
 y esta secuencia expresa dependencias, no autorizaciones.
 
-1. Una autorización humana futura y separada podrá crear, aprobar, admitir y
-   activar el contrato de `WP-015`, sucesor limpio de WP-002. Hasta entonces el
-   identificador está solo reservado.
+1. Una autorización humana futura y separada podrá preparar una candidata
+   replanteada de `WP-015`, sucesor limpio de WP-002, conforme a DEC-012. Otra
+   autorización deberá crear y aprobar el contrato, admitirlo y activarlo.
+   Hasta entonces el identificador está solo reservado.
 2. `WP-015` construirá exclusivamente el ejecutable local determinista y la
    biblioteca única de matching. Su cierre no acreditará CI ni bloqueo de
    fusión.
@@ -420,6 +422,7 @@ Los tres checks obligatorios son jobs de `ci.yml` y siguen operando. La contenci
 | `DEC-009` | Cierre bloqueado de WP-008 D6-A y parada de la secuencia posterior en reposo |
 | `DEC-010` | Separación de autor y revisor, revalidaciones enfocadas y bucle ordinario de dos ciclos; composición normativa de operador sin transición de `ACTIVE` |
 | `DEC-011` | Recuperación híbrida posterior a DEC-009; composición normativa de cinco archivos y reserva de `WP-015`, sin crear, aprobar, admitir para ejecución ni activar su contrato |
+| `DEC-012` | Gramática inequívoca de patrones de alcance; composición normativa de ocho archivos, sin crear, modificar, aprobar, admitir ni activar `WP-015` |
 | `WP-013` | Cierre bloqueado tras C3 excepcional, preservación de la candidata histórica no conforme y transición solidaria a reposo conforme a la enmienda de recuperación de `DEC-008` |
 | `WP-014` | Cerrado `done` tras la aplicación humana exacta de los diez pins por SHA, revisión independiente, PR #40 fusionada y transición solidaria a reposo; no dependió de fusionar WP-013 |
 | `docs/03-hoja-de-ruta.md` | Hoja de ruta v2, con la foto local de WP-008-r2 corregida y la arquitectura objetivo separada del estado materializado |
@@ -506,13 +509,23 @@ normativo de operador con `ACTIVE` en reposo: reserva `WP-015`, pero no crea,
 aprueba, admite para ejecución ni activa su contrato; tampoco modifica código,
 tests, workflows, ruleset, candidatas, worktrees o evidencias históricas.
 
+**Admisión atómica de `DEC-012` y de la gramática de alcance.** Se modifica
+directamente esta lista en el mismo diff; la decisión no se autoautoriza. La
+composición cerrada consta exactamente de ocho archivos: `DEC-012`, esta
+`DEC-003`, `DEC-002`, `DEC-011`, `docs/03-hoja-de-ruta.md`,
+`work-packages/_TEMPLATE.md` y
+`docs/manual/{03-redactar-un-wp.md,05-bloqueos-y-parada.md}`. Todos viajan
+juntos o ninguno. Es un acto normativo de operador con `ACTIVE` en reposo: no
+crea, modifica, aprueba, admite ni activa WP-015; no cambia guard, scripts,
+tests, workflows, ruleset, contratos existentes, evidencias o candidatas.
+
 ### 5. Punto de control de la pausa: 2026-09-07
 
 Sustituye a la fecha original del 2026-08-10, cuya revisión se practicó y quedó registrada en [`DEC-005`](DEC-005-troceado-de-wp-008-y-revision-de-la-pausa.md) §1: el criterio de §6 no estaba cumplido y no podía estarlo, porque `WP-009` no tenía siquiera contrato redactado.
 
 Es un **punto de control, no una promesa de finalización**. En esa fecha: o el criterio de §6 está cumplido y la pausa termina, o **parada y análisis de causa registrado por escrito**. Llegar sin haberlo cumplido **no es un incumplimiento**: es el disparador de ese análisis, exactamente como ocurrió el 2026-08-10. Esta caducidad rige **la pausa**, no el estado externo de §3.
 
-**Resultado efectivo del punto de control, registrado el 2026-09-09 y actualizado el 2026-09-21.** El criterio completo de §6 **no está cumplido**. El análisis de causa es la hoja de ruta v2, la revisión `docs/05` y `DEC-007`: el enforcement se estaba endureciendo en la capa débil mientras la concluyente seguía sin construirse. `DEC-008` registra que WP-009 agotó 2/2 ciclos y que WP-013 terminó también bloqueado después de C3 excepcional. WP-014 completó después la cadena de suministro sin depender del materializador: PR #40 fusionada, diez pins exactos y cierre `done`. `DEC-009` registra que WP-008 D6-A agotó C1–C5, quedó `blocked` sin A/B final y devolvió `ACTIVE` a reposo. `DEC-011` resuelve el rumbo —juez determinista primero y sucesores limpios—, pero no autoriza trabajo técnico. La pausa **no termina** porque las condiciones primera y tercera siguen pendientes; `ACTIVE` continúa en reposo hasta una autorización posterior y separada de `WP-015`.
+**Resultado efectivo del punto de control, registrado el 2026-09-09 y actualizado el 2026-09-21.** El criterio completo de §6 **no está cumplido**. El análisis de causa es la hoja de ruta v2, la revisión `docs/05` y `DEC-007`: el enforcement se estaba endureciendo en la capa débil mientras la concluyente seguía sin construirse. `DEC-008` registra que WP-009 agotó 2/2 ciclos y que WP-013 terminó también bloqueado después de C3 excepcional. WP-014 completó después la cadena de suministro sin depender del materializador: PR #40 fusionada, diez pins exactos y cierre `done`. `DEC-009` registra que WP-008 D6-A agotó C1–C5, quedó `blocked` sin A/B final y devolvió `ACTIVE` a reposo. `DEC-011` resuelve el rumbo —juez determinista primero y sucesores limpios— y `DEC-012` resuelve la gramática que bloqueó la primera candidata de WP-015, pero ninguna autoriza trabajo técnico. La pausa **no termina** porque las condiciones primera y tercera siguen pendientes; `ACTIVE` continúa en reposo hasta autorizaciones posteriores y separadas para replantear, aprobar, admitir y activar `WP-015`.
 
 **No se fija otra fecha de revisión.** El tercer punto de control por calendario queda sustituido por **gates de evidencia**: la pausa avanza cuando cada paso de §2 cumple su condición verificable y se cierra cuando el criterio de §6 está efectivamente cumplido, no en una fecha. Las fechas de la hoja de ruta son orientativas; los criterios de salida son los que vinculan (principio P4 de `docs/03`). Si un paso se atasca, el disparador sigue siendo el mismo: **parada y análisis de causa por escrito**, no una prórroga automática.
 
@@ -623,6 +636,8 @@ Sin versionar en el árbol de trabajo a fecha de hoy:
 - [`DEC-008`](DEC-008-cierre-y-division-de-wp-009.md) — cierres de WP-009/WP-013 y ruta limitada de WP-014
 - [`DEC-009`](DEC-009-cierre-bloqueado-wp-008.md) — cierre bloqueado de WP-008 D6-A y parada de la secuencia
 - [`DEC-010`](DEC-010-separacion-autor-revisor-y-ciclos.md) — separación de autor y revisor y bucle ordinario de dos ciclos
+- [`DEC-011`](DEC-011-recuperacion-post-dec009.md) — recuperación híbrida y reserva de WP-015
+- [`DEC-012`](DEC-012-gramatica-patrones-alcance.md) — gramática inequívoca de los patrones de alcance
 - [`CLAUDE.md`](../../CLAUDE.md) — constitución; ruta de la composición de esa PR
 - [`docs/02-guia-fabrica-desarrollo-agentica.md`](../../docs/02-guia-fabrica-desarrollo-agentica.md) — especificación vinculante; ruta de la composición
 - [`docs/manual/MANUAL.md`](../../docs/manual/MANUAL.md) — índice y modelo de controles; ruta de la composición

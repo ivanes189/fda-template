@@ -414,8 +414,9 @@ para ejecución ni activación.
 
 El orden futuro vinculante de dependencias es:
 
-1. autorización separada del contrato de `WP-015`, sucesor limpio de WP-002,
-   para producir únicamente `check_scope` local y la biblioteca de matching;
+1. autorización separada para una candidata replanteada de `WP-015`, sucesor
+   limpio de WP-002; después, actos separados para aprobar, admitir y activar
+   el contrato que produzca únicamente `check_scope` local y la biblioteca;
 2. sucesor limpio de WP-005, autorizado por separado, para integrar el mismo
    verificador en CI; después, mutación humana del ruleset que lo haga requerido;
 3. convergencia humana del guard sobre la misma biblioteca y cierre de WP-007
@@ -432,6 +433,26 @@ contrato, presupuesto, autorización, rama, PR y ciclos propios. La única
 excepción temporal a la igualdad de DEC-002 §8 comienza si se aprueba y activa
 WP-015, cubre su implementación, verificación y fusión, y termina con la
 convergencia del guard. DEC-011 por sí sola no inicia esa ventana.
+
+### Gramática resuelta por DEC-012; WP-015 aún no autorizado
+
+La primera candidata externa de WP-015 agotó dos correcciones con una
+contradicción normativa abierta: la plantilla decía a la vez que eliminaba
+anotaciones entre paréntesis y que los paréntesis eran literales. DEC-012
+resuelve la contradicción fuera del WP:
+
+- todo el contenido posterior a `- ` es el patrón;
+- no existen comentarios ni anotaciones inline;
+- `#`, paréntesis y backticks son literales;
+- `docs/(draft).md` autoriza únicamente esa ruta;
+- hasta converger el guard, los contratos vivos usan el subconjunto temporal
+  compatible fijado por DEC-012.
+
+La decisión no corrige ni aprueba la candidata agotada. Se preserva con su
+`NO APTO`. El siguiente acto posible es una autorización humana separada para
+preparar una candidata **replanteada**, con una revisión completa Astra nueva;
+no es C3. Materializar DEC-012 tampoco crea, admite o activa WP-015 y `ACTIVE`
+permanece en reposo.
 
 El humo no se retira, pero su oráculo anterior queda retirado. Antes de aprobar
 el sucesor de WP-008 debe existir una señal positiva y atribuible basada en

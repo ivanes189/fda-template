@@ -38,12 +38,32 @@ CÓMO USAR ESTA PLANTILLA
 <!--
 SEMÁNTICA DE ESTA SECCIÓN — es un contrato ejecutable, no una descripción.
 La aplica .claude/hooks/guard.sh (preventivo) y la aplicará scripts/check_scope.py
-(post-hoc sobre el diff, WP-002). Ambos deben interpretarla igual.
+(post-hoc sobre el diff, sucesor de WP-002). La igualdad final exige una
+biblioteca única; hasta la convergencia rige el subconjunto temporal de DEC-012.
 
 FORMATO
   · Un patrón por línea, empezando por "- " (guion + espacio).
-  · Se ignoran backticks, comentarios inline tras "#" y anotaciones entre paréntesis.
-  · "ninguno", "none", "n/a" se interpretan como lista vacía.
+  · Tras retirar el marcador se recortan SOLO espacios ASCII o tabuladores de
+    los extremos. TODO el contenido restante es el patrón ejecutable.
+  · NO existen comentarios ni anotaciones inline. "#", "(", ")" y backticks
+    son literales; los backticks no decoran rutas y nunca se eliminan.
+  · Las explicaciones van en una línea separada que no empiece como elemento
+    de lista, preferiblemente con "Nota:".
+  · "ninguno", "none", "n/a" y "-" son sentinelas exactos de lista vacía;
+    deben aparecer solos. En permitidos, lista vacía es error fail-closed.
+  · Un elemento iniciado con "*" o "+" es contrato malformado, no una lista
+    alternativa. Norma y tabla vinculante: DEC-012.
+
+  CASO DISCRIMINANTE
+    Entrada "docs/(draft).md" → autoriza SOLO docs/(draft).md
+    Entrada "docs/** # nota"  → "# nota" es parte literal del patrón
+    Nota: solo manuales → no produce ningún patrón
+
+  TRANSICIÓN
+  · Hasta que el guard consuma la biblioteca única, los contratos aprobados,
+    admitidos o activos usan el subconjunto de DEC-012: sin "#", paréntesis,
+    backticks ni metadatos inline; "-" solo como sentinela; sin whitespace
+    Unicode salvo espacio ASCII o tabulador.
 
 RUTAS
   · Siempre RELATIVAS A LA RAÍZ del repositorio, sin "./" inicial.

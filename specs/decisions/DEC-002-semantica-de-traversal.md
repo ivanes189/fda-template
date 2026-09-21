@@ -3,6 +3,7 @@
 **Estado:** aceptada · **Fecha:** 2026-07-29 · **Ámbito:** toda implementación de la semántica de `## Archivos permitidos` — `.claude/hooks/guard.sh`, `scripts/check_scope.py` y `work-packages/_TEMPLATE.md`
 **Origen:** contradicción detectada al preparar la implementación de WP-002 entre la prosa de `work-packages/_TEMPLATE.md` (línea 73) y el comportamiento real de `.claude/hooks/guard.sh` (§8). Condición de parada n.º 2 —contradicción entre requisitos—, resuelta por el responsable.
 **Enmendada el 2026-09-21 por [`DEC-011`](DEC-011-recuperacion-post-dec009.md):** §8 admite una excepción temporal y acotada para construir primero el sucesor limpio del juez del diff. La semántica por componente no cambia.
+**Enmendada el 2026-09-21 por [`DEC-012`](DEC-012-gramatica-patrones-alcance.md):** §8 incorpora la gramática inequívoca de las entradas de alcance y acota su divergencia temporal con el parser histórico. La semántica de traversal no cambia.
 
 ## Problema
 
@@ -126,6 +127,19 @@ es una falsa denegación preventiva conocida: no permite relajar el juez del dif
 no satisface el criterio de salida de la pausa y no puede sobrevivir al hito de
 convergencia. Fuera de este intervalo acotado vuelve a regir íntegramente la
 igualdad «en todo momento».
+
+#### 8.b Gramática de alcance y subconjunto temporal fijados por DEC-012
+
+[`DEC-012`](DEC-012-gramatica-patrones-alcance.md) resuelve otra contradicción
+previa a WP-015: los comentarios y anotaciones inline no existen en el lenguaje
+ejecutable; todo el contenido posterior a `- ` es patrón y `#`, paréntesis y
+backticks son literales. `docs/(draft).md` autoriza solo esa ruta.
+
+Hasta que el guard consuma la biblioteca única, todo contrato aprobado, admitido
+o activo se limita al subconjunto compatible de DEC-012. La excepción comienza
+y termina en los mismos hitos de §8.a. No autoriza un contrato vivo que explote
+la divergencia ni permite ampliar el alcance por la interpretación histórica
+del guard.
 
 ## La lectura del contrato desde el `merge-base` queda intacta
 
