@@ -1,6 +1,6 @@
 # Hoja de ruta — de la FDA al AI Agent Operating System
 
-**Creada:** 2026-08-30 · **Última revisión: 2026-09-21** (gramática de alcance de DEC-012 — ver Registro de revisiones) · **Estado:** **VIGENTE** desde la fusión en `main` de DEC-007, enmendada por DEC-008, DEC-009, DEC-010, DEC-011 y DEC-012; D5 queda sin acuerdo formal y el carril B continúa como propuesta, no como asignación activa · **Ámbito:** `fda-template` (carril A) y su primera instalación externa propuesta (carril B), y los proyectos que gobernarían: `AI-Comercial-System`/Agent OS y Document AI.
+**Creada:** 2026-08-30 · **Última revisión: 2026-09-22** (admisión de WP-015 — ver Registro de revisiones) · **Estado:** **VIGENTE** desde la fusión en `main` de DEC-007, enmendada por DEC-008, DEC-009, DEC-010, DEC-011 y DEC-012 y actualizada por la admisión de WP-015; D5 queda sin acuerdo formal y el carril B continúa como propuesta, no como asignación activa · **Ámbito:** `fda-template` (carril A) y su primera instalación externa propuesta (carril B), y los proyectos que gobernarían: `AI-Comercial-System`/Agent OS y Document AI.
 
 **Procedencia.** v1 (30-08): las cinco conversaciones del operador con otras IAs — síntesis en [`04-analisis-conversaciones-ia.md`](04-analisis-conversaciones-ia.md)—, el repositorio completo, el estado de los demás repos y fuentes externas. v2 (01-09): además, los **cuatro documentos de investigación de Leandro** y una **línea base de investigación independiente registrada antes de leerlos** — análisis completo, veredictos y red team en [`05-analisis-investigacion-leandro-y-revalidacion.md`](05-analisis-investigacion-leandro-y-revalidacion.md). Lo redactaron y materializaron sesiones de Claude Code por encargo directo del operador, como actos de operador (§9).
 
@@ -19,6 +19,7 @@
 | 2026-09-21 | Separación autor/revisor precisada: una revisión completa, correcciones Claude y revalidaciones enfocadas de la misma Astra; C1/C2 pueden quedar preautorizados y C3 deja de ser continuación normal. La parada de DEC-009 permanece intacta | `DEC-010` |
 | 2026-09-21 | Recuperación híbrida elegida: sucesor limpio de `check_scope` primero, luego CI requerido, convergencia/WP-007, runtime con humo atribuible y E2. `WP-015` queda reservado, no creado ni activo; `ACTIVE` sigue en reposo | `DEC-011` |
 | 2026-09-21 | Gramática de alcance inequívoca: la línea ejecutable completa es el patrón, sin comentarios o anotaciones inline; `docs/(draft).md` es literal. La candidata agotada de WP-015 se preserva y deberá replantearse por autorización separada | `DEC-012` |
+| 2026-09-22 | WP-015 materializado por PR #48 y aprobado contractualmente por PR #49; contrato `ready` admitido en la lista cerrada de DEC-003, con `ACTIVE` en reposo y activación aún pendiente | `DEC-003` §4 |
 
 ---
 
@@ -107,6 +108,13 @@ patrón, los metadatos inline desaparecen y `docs/(draft).md` es literal. El
 siguiente paso sigue necesitando autorización: preparar una candidata
 replanteada y someterla a una revisión completa nueva. `ACTIVE` permanece en
 reposo.
+
+**Actualización operativa — WP-015 aprobado y admitido.** La PR #48
+materializó el contrato replanteado y la PR #49 lo dejó `ready`. La composición
+atómica de admisión lo incorpora ahora a `DEC-003` §4 sin modificar el
+contrato. `ACTIVE` permanece en reposo: la admisión no es activación y no
+autoriza implementación. El siguiente acto posible es una autorización humana
+separada para activar exclusivamente `WP-015`.
 
 **Tres verdades incómodas, con los datos delante:**
 
@@ -203,11 +211,11 @@ Secuencia (ajustada por D1/D6 y DEC-008; cada transición de `ACTIVE` sigue sien
 4. **WP-008 D6-A — CERRADO `blocked`.** Consumió `5 / 2`, no ejecutó el A/B
    final y no fusionó la implementación. La candidata queda preservada como
    histórica no conforme y `ACTIVE` vuelve a reposo mediante DEC-009.
-5. **RUMBO DECIDIDO; PARADA TÉCNICA EN REPOSO.** DEC-011 reserva `WP-015` como
-   sucesor limpio de WP-002, pero no lo crea, aprueba, admite ni activa. El
-   primer movimiento técnico exige una autorización humana posterior y
-   separada.
-6. **ORDEN FUTURO CONDICIONADO, NO AUTORIZADO:** `WP-015` para `check_scope`
+5. **WP-015 APROBADO Y ADMITIDO; ACTIVACIÓN PENDIENTE.** El sucesor limpio de
+   WP-002 existe con contrato `ready` y figura en la lista cerrada de DEC-003.
+   `ACTIVE` permanece en reposo y ningún trabajo técnico está autorizado hasta
+   una activación humana posterior y separada.
+6. **ORDEN FUTURO CONDICIONADO; ACTIVACIÓN AÚN NO AUTORIZADA:** `WP-015` para `check_scope`
    local → sucesor limpio de WP-005 para CI y mutación humana del ruleset →
    convergencia del guard y cierre de WP-007 por superación sin transición de
    `ACTIVE` → sucesor limpio de WP-008 con runtime y humo atribuible → E2 →
